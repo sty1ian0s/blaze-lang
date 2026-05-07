@@ -1,26 +1,7 @@
-## Updated Bootstrapping (JIT‑first)
-
-| Phase | Content | Compiled with |
-|-------|---------|---------------|
-| 0 | Go‑based interpreter `blazei` for a minimal subset | – |
-| 1 | Self‑hosting JIT compiler written in Blaze‑Core (using the relaxed JIT profile).  Boot: `blazei` → `blazej.c` → native `blazej` | Phase 0 interpreter |
-| 2 | Full language features added incrementally, always self‑hosted via JIT.  `blaze fix --aot-ify` used to add annotations where needed | Self‑hosted JIT |
-| 3a‑c | Standard library (required) | JIT compiler |
-| 3d | Optional specialised std modules | JIT compiler |
-| 4‑5 | Ecosystem crates | JIT compiler |
-| AOT | The fully annotated AOT compiler is built using the JIT compiler and `blaze fix`; from then on, production builds use AOT | JIT → AOT |
-
-This makes the JIT the **development vehicle** and the AOT the **deployment vehicle**.
-
----
-
-Now, the first specification file — `phase0‑spec.md` — the bootstrap interpreter written in Go.  Here it is, complete and self‑contained:
-
-```markdown
 # Blaze Phase 0 – Minimal Language Specification  
 *(for the bootstrapping interpreter `blazei`)*
 
-> **Goal:** implement a Go‑based interpreter that can execute a tiny subset of Blaze.  Later phases will add generics, effects, actors, etc.
+> **Goal:** implement a Rust‑based interpreter (Rust 1.60.0) that can execute a tiny subset of Blaze.  Later phases will add generics, effects, actors, etc.  The interpreter is a pure Rust project with no external dependencies beyond the standard library.
 
 ---
 
@@ -166,7 +147,7 @@ Only `i32` and `bool`.  There is no implicit conversion between them.
 
 ## 4. Testing Requirements for Phase 0
 
-When building `blazei`, you must write tests (in Go) for:
+When building `blazei`, you must write tests (in Rust, using the `#[test]` attribute and the standard library’s test harness) for:
 - Lexer: tokenising all keywords, operators, integers, booleans.
 - Parser: accepting valid programs and rejecting invalid ones.
 - Semantic checks: affine usage, type errors, undefined variables.
