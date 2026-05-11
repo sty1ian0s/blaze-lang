@@ -16,38 +16,81 @@ pub enum Token {
     Continue,
     True,
     False,
-
-    // Identifiers and literals
+    Pub,
+    Const,
+    Static,
+    For,
+    Match,
+    Enum,
+    Union,
+    Unsafe,
+    Use,
+    Mod,
+    Extern,
+    Actor,
+    Trait,
+    Impl,
+    Where,
+    Effect,
+    Dyn,
+    Async,
+    Await,
+    Move,
+    Ref,
+    Seq,
+    Unroll,
+    Guard,
+    Defer,
+    Try,
+    Catch,
+    With,
+    Type,
+    As,
+    Mut,
+    // Operators
+    Plus,
+    Minus,
+    Star,
+    Slash,
+    Percent,
+    Eq,
+    EqEq,
+    NotEq,
+    Lt,
+    Gt,
+    Le,
+    Ge,
+    And,
+    Or,
+    Not,
+    BitAnd,
+    BitOr,
+    BitXor,
+    Shl,
+    Shr,
+    At,
+    Hash,
+    Tilde,
+    LParen,
+    RParen,
+    LBrace,
+    RBrace,
+    LBracket,
+    RBracket,
+    Comma,
+    Semicolon,
+    Colon,
+    Dot,
+    Arrow,
+    FatArrow,
+    Question,
+    AtAt,
+    // Literals and identifiers
     Ident(String),
     Integer(i32),
-
-    // Operators and punctuation
-    Plus,      // +
-    Minus,     // -
-    Star,      // *
-    Slash,     // /
-    Percent,   // %
-    Eq,        // =
-    EqEq,      // ==
-    NotEq,     // !=
-    Lt,        // <
-    Gt,        // >
-    Le,        // <=
-    Ge,        // >=
-    And,       // &&
-    Or,        // ||
-    Not,       // !
-    LParen,    // (
-    RParen,    // )
-    LBrace,    // {
-    RBrace,    // }
-    Comma,     // ,
-    Semicolon, // ;
-    Colon,     // :
-    Dot,       // .
-    Arrow,     // ->
-
-    // End of file
+    Float(f64),
+    StringLit(String),
+    CharLit(char),
     Eof,
 }
 
@@ -71,6 +114,37 @@ pub fn tokenize(input: &str) -> Result<Vec<Token>, String> {
                     "continue" => Token::Continue,
                     "true" => Token::True,
                     "false" => Token::False,
+                    "pub" => Token::Pub,
+                    "const" => Token::Const,
+                    "static" => Token::Static,
+                    "for" => Token::For,
+                    "match" => Token::Match,
+                    "enum" => Token::Enum,
+                    "union" => Token::Union,
+                    "unsafe" => Token::Unsafe,
+                    "use" => Token::Use,
+                    "mod" => Token::Mod,
+                    "extern" => Token::Extern,
+                    "actor" => Token::Actor,
+                    "trait" => Token::Trait,
+                    "impl" => Token::Impl,
+                    "where" => Token::Where,
+                    "effect" => Token::Effect,
+                    "dyn" => Token::Dyn,
+                    "async" => Token::Async,
+                    "await" => Token::Await,
+                    "move" => Token::Move,
+                    "ref" => Token::Ref,
+                    "seq" => Token::Seq,
+                    "unroll" => Token::Unroll,
+                    "guard" => Token::Guard,
+                    "defer" => Token::Defer,
+                    "try" => Token::Try,
+                    "catch" => Token::Catch,
+                    "with" => Token::With,
+                    "type" => Token::Type,
+                    "as" => Token::As,
+                    "mut" => Token::Mut,
                     _ => Token::Ident(ident),
                 };
                 tokens.push(token);
@@ -99,7 +173,6 @@ pub fn tokenize(input: &str) -> Result<Vec<Token>, String> {
             '/' => {
                 chars.next();
                 if chars.peek() == Some(&'/') {
-                    // skip comment line
                     while let Some(&c) = chars.peek() {
                         if c == '\n' {
                             break;
@@ -107,8 +180,7 @@ pub fn tokenize(input: &str) -> Result<Vec<Token>, String> {
                         chars.next();
                     }
                 } else if chars.peek() == Some(&'*') {
-                    // Block comment – not required, but we implement for robustness
-                    chars.next(); // skip '*'
+                    chars.next();
                     let mut depth = 1;
                     while let Some(c) = chars.next() {
                         if c == '/' && chars.peek() == Some(&'*') {
@@ -132,11 +204,16 @@ pub fn tokenize(input: &str) -> Result<Vec<Token>, String> {
             }
             '=' => {
                 chars.next();
-                if chars.peek() == Some(&'=') {
-                    chars.next();
-                    tokens.push(Token::EqEq);
-                } else {
-                    tokens.push(Token::Eq);
+                match chars.peek() {
+                    Some(&'=') => {
+                        chars.next();
+                        tokens.push(Token::EqEq);
+                    }
+                    Some(&'>') => {
+                        chars.next();
+                        tokens.push(Token::FatArrow);
+                    }
+                    _ => tokens.push(Token::Eq),
                 }
             }
             '!' => {
@@ -150,20 +227,30 @@ pub fn tokenize(input: &str) -> Result<Vec<Token>, String> {
             }
             '<' => {
                 chars.next();
-                if chars.peek() == Some(&'=') {
-                    chars.next();
-                    tokens.push(Token::Le);
-                } else {
-                    tokens.push(Token::Lt);
+                match chars.peek() {
+                    Some(&'=') => {
+                        chars.next();
+                        tokens.push(Token::Le);
+                    }
+                    Some(&'<') => {
+                        chars.next();
+                        tokens.push(Token::Shl);
+                    }
+                    _ => tokens.push(Token::Lt),
                 }
             }
             '>' => {
                 chars.next();
-                if chars.peek() == Some(&'=') {
-                    chars.next();
-                    tokens.push(Token::Ge);
-                } else {
-                    tokens.push(Token::Gt);
+                match chars.peek() {
+                    Some(&'=') => {
+                        chars.next();
+                        tokens.push(Token::Ge);
+                    }
+                    Some(&'>') => {
+                        chars.next();
+                        tokens.push(Token::Shr);
+                    }
+                    _ => tokens.push(Token::Gt),
                 }
             }
             '&' => {
@@ -172,7 +259,7 @@ pub fn tokenize(input: &str) -> Result<Vec<Token>, String> {
                     chars.next();
                     tokens.push(Token::And);
                 } else {
-                    return Err("Unexpected '&'".to_string());
+                    tokens.push(Token::BitAnd);
                 }
             }
             '|' => {
@@ -181,8 +268,16 @@ pub fn tokenize(input: &str) -> Result<Vec<Token>, String> {
                     chars.next();
                     tokens.push(Token::Or);
                 } else {
-                    return Err("Unexpected '|'".to_string());
+                    tokens.push(Token::BitOr);
                 }
+            }
+            '^' => {
+                tokens.push(Token::BitXor);
+                chars.next();
+            }
+            '~' => {
+                tokens.push(Token::Tilde);
+                chars.next();
             }
             '(' => {
                 tokens.push(Token::LParen);
@@ -198,6 +293,14 @@ pub fn tokenize(input: &str) -> Result<Vec<Token>, String> {
             }
             '}' => {
                 tokens.push(Token::RBrace);
+                chars.next();
+            }
+            '[' => {
+                tokens.push(Token::LBracket);
+                chars.next();
+            }
+            ']' => {
+                tokens.push(Token::RBracket);
                 chars.next();
             }
             ',' => {
@@ -216,19 +319,67 @@ pub fn tokenize(input: &str) -> Result<Vec<Token>, String> {
                 tokens.push(Token::Dot);
                 chars.next();
             }
+            '?' => {
+                tokens.push(Token::Question);
+                chars.next();
+            }
+            '@' => {
+                chars.next();
+                if chars.peek() == Some(&'@') {
+                    chars.next();
+                    tokens.push(Token::AtAt);
+                } else {
+                    tokens.push(Token::At);
+                }
+            }
+            '#' => {
+                tokens.push(Token::Hash);
+                chars.next();
+            }
+            '"' => {
+                chars.next();
+                let mut s = String::new();
+                while let Some(&c) = chars.peek() {
+                    if c == '"' {
+                        break;
+                    }
+                    if c == '\\' {
+                        chars.next();
+                        if let Some(&esc) = chars.peek() {
+                            match esc {
+                                'n' => s.push('\n'),
+                                'r' => s.push('\r'),
+                                't' => s.push('\t'),
+                                '\\' => s.push('\\'),
+                                '"' => s.push('"'),
+                                _ => s.push(esc),
+                            }
+                            chars.next();
+                        }
+                    } else {
+                        s.push(c);
+                        chars.next();
+                    }
+                }
+                if chars.peek() == Some(&'"') {
+                    chars.next();
+                }
+                tokens.push(Token::StringLit(s));
+            }
+            '\'' => {
+                chars.next();
+                let c = chars.next().unwrap_or('\0');
+                if chars.peek() == Some(&'\'') {
+                    chars.next();
+                    tokens.push(Token::CharLit(c));
+                } else {
+                    return Err("invalid character literal".to_string());
+                }
+            }
             ' ' | '\t' | '\r' | '\n' => {
                 chars.next();
             }
-            _ => {
-                // String/char literals not supported
-                if ch == '"' {
-                    return Err("string literals are not supported in Phase 0".to_string());
-                } else if ch == '\'' {
-                    return Err("character literals are not supported in Phase 0".to_string());
-                } else {
-                    return Err(format!("unexpected character: {}", ch));
-                }
-            }
+            _ => return Err(format!("unexpected character: {}", ch)),
         }
     }
     tokens.push(Token::Eof);

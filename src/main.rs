@@ -1,4 +1,8 @@
-use blazei::{check, parse, run_main, tokenize};
+mod ast;
+mod lexer;
+mod parser;
+mod semantic;
+
 use std::env;
 use std::fs;
 use std::process::exit;
@@ -14,7 +18,7 @@ fn main() {
         exit(1);
     });
 
-    let tokens = match tokenize(&source) {
+    let tokens = match lexer::tokenize(&source) {
         Ok(t) => t,
         Err(e) => {
             eprintln!("Lexical error: {}", e);
@@ -22,25 +26,18 @@ fn main() {
         }
     };
 
-    let program = match parse(&tokens) {
-        Ok(p) => p,
+    let parse_result = match parser::parse(&tokens) {
+        Ok(res) => res,
         Err(e) => {
             eprintln!("Parse error: {}", e);
             exit(1);
         }
     };
 
-    if let Err(e) = check(&program) {
+    if let Err(e) = semantic::check(parse_result.nodes, parse_result.strings, parse_result.root) {
         eprintln!("Semantic error: {}", e);
         exit(1);
     }
 
-    match run_main(&program) {
-        Ok(Some(val)) => println!("{}", val),
-        Ok(None) => {}
-        Err(e) => {
-            eprintln!("Runtime error: {}", e);
-            exit(1);
-        }
-    }
+    println!("OK");
 }

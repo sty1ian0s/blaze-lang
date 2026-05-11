@@ -7,8 +7,5 @@ edition = "2021"
 name = "blazei"
 path = "src/main.rs"
 
-[lib]
-path = "src/lib.rs"
-
 [dev-dependencies]
 tempfile = "3.0"

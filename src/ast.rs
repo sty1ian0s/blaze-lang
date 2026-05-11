@@ -1,103 +1,69 @@
-use std::collections::HashMap;
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct NodeIdx(pub u32);
 
-#[derive(Debug, Clone, PartialEq)]
-pub enum Type {
-    I32,
-    Bool,
-    Void,
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum NodeTag {
+    Program,
+    FnDecl,
+    StructDecl,
+    EnumDecl,
+    UnionDecl,
+    TraitDecl,
+    ImplDecl,
+    ModDecl,
+    UseDecl,
+    ConstDecl,
+    StaticDecl,
+    ExternDecl,
+    ActorDecl,
+    Block,
+    LetStmt,
+    IfStmt,
+    WhileStmt,
+    ForStmt,
+    LoopStmt,
+    MatchStmt,
+    ReturnStmt,
+    ExprStmt,
+    BinaryOp,
+    UnaryOp,
+    Call,
+    Ident,
+    LiteralInt,
+    LiteralBool,
+    LiteralString,
+    LiteralChar,
+    StructInit,
+    FieldAccess,
 }
 
 #[derive(Debug, Clone)]
-pub struct Program {
-    pub functions: HashMap<String, Function>,
-    pub structs: HashMap<String, Struct>,
+pub struct Node {
+    pub tag: NodeTag,
+    pub span_start: u32,
+    pub span_end: u32,
+    pub payload: [u32; 4],
 }
 
-#[derive(Debug, Clone)]
-pub struct Function {
-    pub name: String,
-    pub params: Vec<String>,
-    pub body: Vec<Stmt>,
-    pub return_type: Type,
+pub struct StringTable {
+    strings: Vec<String>,
 }
 
-#[derive(Debug, Clone)]
-pub struct Struct {
-    pub name: String,
-    pub fields: Vec<(String, Type)>,
-}
-
-#[derive(Debug, Clone)]
-pub enum Stmt {
-    Let {
-        name: String,
-        init: Option<Expr>,
-    },
-    Expr(Expr),
-    If {
-        cond: Expr,
-        then_block: Vec<Stmt>,
-        else_block: Option<Vec<Stmt>>,
-    },
-    While {
-        cond: Expr,
-        body: Vec<Stmt>,
-    },
-    Loop {
-        body: Vec<Stmt>,
-    },
-    Break,
-    Continue,
-    Return(Option<Expr>),
-}
-
-#[derive(Debug, Clone)]
-pub enum Expr {
-    LiteralInt(i32),
-    LiteralBool(bool),
-    Variable(String),
-    BinaryOp {
-        op: BinOp,
-        left: Box<Expr>,
-        right: Box<Expr>,
-    },
-    UnaryOp {
-        op: UnaryOp,
-        expr: Box<Expr>,
-    },
-    Call {
-        func: String,
-        args: Vec<Expr>,
-    },
-    StructInit {
-        name: String,
-        fields: Vec<Expr>,
-    },
-    FieldAccess {
-        struct_expr: Box<Expr>,
-        field: String,
-    },
-}
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum BinOp {
-    Add,
-    Sub,
-    Mul,
-    Div,
-    Rem,
-    Eq,
-    Ne,
-    Lt,
-    Gt,
-    Le,
-    Ge,
-    And,
-    Or,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum UnaryOp {
-    Neg,
-    Not,
+impl StringTable {
+    pub fn new() -> Self {
+        StringTable {
+            strings: Vec::new(),
+        }
+    }
+    pub fn intern(&mut self, s: &str) -> u32 {
+        if let Some(pos) = self.strings.iter().position(|x| x == s) {
+            pos as u32
+        } else {
+            self.strings.push(s.to_string());
+            (self.strings.len() - 1) as u32
+        }
+    }
+    pub fn get(&self, idx: u32) -> &str {
+        &self.strings[idx as usize]
+    }
 }
