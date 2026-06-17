@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Appendix D – Coherence and Orphan Rules</title>
+    </head>
+    <body>
+        <header><h1>Appendix D – Coherence and Orphan Rules</h1></header>
+        <nav>
+            <p>
+                <a href="appendix-c-closure-disambiguation.html" rel="prev"
+                    >Previous: Appendix C</a
+                >
+                |
+                <a
+                    href="appendix-e-project-security-configuration.html"
+                    rel="next"
+                    >Next: Appendix E</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Status</h2>
+                <p>
+                    Normative. Specifies rules that guarantee at most one
+                    implementation of a trait for a given type exists in any
+                    compiled Blaze program.
+                </p>
+            </section>
+            <section>
+                <h2>D.1 Coherence Rule</h2>
+                <p>
+                    For any pair <code>(Trait, Type)</code>, there must be
+                    <strong>at most one</strong>
+                    <code>impl Trait for Type</code> block in the entire linked
+                    program. Enforced at link time.
+                </p>
+            </section>
+            <section>
+                <h2>D.2 Orphan Rule (Per Crate)</h2>
+                <p>
+                    An <code>impl Trait for Type</code> is allowed
+                    <strong>only if</strong> at least one of the following is
+                    true:
+                </p>
+                <ol>
+                    <li>
+                        The trait <code>Trait</code> is defined in the current
+                        crate.
+                    </li>
+                    <li>
+                        The type <code>Type</code> is defined in the current
+                        crate.
+                    </li>
+                </ol>
+                <p>
+                    This prevents two external crates from independently
+                    implementing a foreign trait for a foreign type.
+                </p>
+            </section>
+            <section>
+                <h2>D.3 Blanket Implementations</h2>
+                <p>
+                    The orphan rule applies to blanket implementations (<code
+                        >impl&lt;T&gt; Trait for T where …</code
+                    >) in the same way. A blanket implementation is allowed only
+                    if the trait is defined in the current crate.
+                </p>
+                <p>
+                    Standard library prelude traits (<code>Clone</code>,
+                    <code>Debug</code>, <code>Default</code>, <code>Eq</code>,
+                    <code>Ord</code>, <code>Hash</code>, <code>Send</code>,
+                    <code>Sync</code>) are special‑cased for auto‑derivation;
+                    orphan rule relaxed for deriving these traits on
+                    user‑defined types.
+                </p>
+            </section>
+            <section>
+                <h2>D.4 Violation Example (Rejected)</h2>
+                <pre>
+// Crate A defines TraitA
+// Crate B defines TypeB
+// Crate C contains:
+impl TraitA for TypeB { … }   // ERROR: both TraitA and TypeB are foreign to Crate C</pre
+                >
+            </section>
+            <section>
+                <h2>D.5 Allowed Examples</h2>
+                <ul>
+                    <li>
+                        <code>impl Clone for MyType { … }</code> – allowed,
+                        <code>MyType</code> is local.
+                    </li>
+                    <li>
+                        <code>impl MyTrait for Vec&lt;i32&gt; { … }</code> –
+                        allowed, <code>MyTrait</code> is local.
+                    </li>
+                    <li>
+                        <code>impl Display for MyType { … }</code> – allowed,
+                        <code>MyType</code> is local, even though
+                        <code>Display</code> is foreign.
+                    </li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="appendix-c-closure-disambiguation.html" rel="prev"
+                        >Previous: Appendix C</a
+                    >
+                    |
+                    <a
+                        href="appendix-e-project-security-configuration.html"
+                        rel="next"
+                        >Next: Appendix E</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

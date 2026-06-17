@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: Accessibility</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: Accessibility</h1></header>
+        <nav>
+            <p>
+                <a href="phase3d-specialized-l10n.html" rel="prev"
+                    >Previous: L10n</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-arch.html" rel="next"
+                    >Next: Arch</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Provide platform‑specific backend for translating semantic
+                    accessibility tree to native APIs (AT‑SPI, UIA,
+                    NSAccessibility).
+                </p>
+            </section>
+            <section>
+                <h2>1. Core Trait</h2>
+                <pre>
+pub trait AccessibilityBackend: Send + Sync {
+    fn update(&amp;mut self, nodes: &amp;[AccessibilityNode]);
+    fn flush(&amp;mut self);
+}</pre
+                >
+            </section>
+            <section>
+                <h2>
+                    2. <code>AccessibilityNode</code> (re‑exported from
+                    <code>blaze‑gui</code>)
+                </h2>
+                <pre>
+pub struct AccessibilityNode {
+    pub id: u64,
+    pub role: AccessibilityRole,
+    pub label: String,
+    pub value: Option&lt;String&gt;,
+    pub description: Option&lt;String&gt;,
+    pub actions: Vec&lt;AccessibilityAction&gt;,
+    pub bounding_rect: Rect,
+    pub parent_id: Option&lt;u64&gt;,
+    pub children_ids: Vec&lt;u64&gt;,
+}
+pub enum AccessibilityRole { Button, Slider, CheckBox, StaticText, Image, Link, List, ListItem, Heading, Window, Dialog, Menu, MenuItem, TabList, Tab, Tree, TreeItem, Custom(String) }
+pub struct AccessibilityAction { pub name: String, pub action_type: ActionType }
+pub enum ActionType { Activate, Increment, Decrement, Toggle, ScrollIntoView }</pre
+                >
+            </section>
+            <section>
+                <h2>3. Backend Implementations</h2>
+                <ul>
+                    <li><code>AtSpiBackend</code> (Linux) – D‑Bus AT‑SPI2.</li>
+                    <li>
+                        <code>UiaBackend</code> (Windows) – UI Automation COM.
+                    </li>
+                    <li>
+                        <code>NsAccessibilityBackend</code> (macOS) –
+                        NSAccessibility.
+                    </li>
+                    <li>
+                        <code>NullBackend</code> – no‑op for unsupported
+                        platforms.
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>4. Integration</h2>
+                <p>
+                    <code>blaze‑gui::App</code> owns a
+                    <code>Box&lt;dyn AccessibilityBackend&gt;</code>; updates
+                    after each UI rebuild.
+                </p>
+            </section>
+            <section>
+                <h2>5. Testing</h2>
+                <ul>
+                    <li>Null backend: no‑op.</li>
+                    <li>
+                        Mock backend: capture nodes and verify roles/labels.
+                    </li>
+                    <li>Platform‑specific: manual with screen reader.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase3d-specialized-l10n.html" rel="prev"
+                        >Previous: L10n</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-arch.html" rel="next"
+                        >Next: Arch</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

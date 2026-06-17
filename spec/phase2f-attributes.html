@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 2f – Attributes and Zero‑Cost Abstractions</title>
+    </head>
+    <body>
+        <header>
+            <h1>Blaze Phase 2f – Attributes and Zero‑Cost Abstractions</h1>
+        </header>
+        <nav>
+            <p>
+                <a href="phase2e-contracts.html" rel="prev"
+                    >Previous: Phase 2e</a
+                >
+                |
+                <a href="phase3a-core-builtins.html" rel="next"
+                    >Next: Phase 3a – Core Builtins</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Implement all remaining attributes: built‑in expansions,
+                    conditional compilation, parser‑facing ZCAs,
+                    comptime‑expanded macros, domain‑specific bundles, and
+                    annotation attributes (including negative space and hardware
+                    attributes).
+                </p>
+            </section>
+            <section>
+                <h2>1. Built‑in Expansions</h2>
+                <h3>1.1 <code>@data</code></h3>
+                <p>
+                    Expands to <code>@copy</code> +
+                    <code
+                        >@derive(Debug, Binary, Default, PartialEq,
+                        PartialOrd)</code
+                    >. Fails if type cannot be <code>@copy</code>.
+                </p>
+                <h3>1.2 <code>@derive(trait_list)</code></h3>
+                <p>
+                    Generates <code>impl</code> blocks for listed traits.
+                    Supported: <code>Debug</code>, <code>Binary</code>,
+                    <code>Default</code>, <code>PartialEq</code>,
+                    <code>PartialOrd</code>, <code>Clone</code>,
+                    <code>Display</code>, <code>From&lt;T&gt;</code>,
+                    <code>Into&lt;T&gt;</code>, <code>AsRef&lt;T&gt;</code>,
+                    <code>AsMut&lt;T&gt;</code>, <code>Error</code>,
+                    <code>FromRow</code>, <code>Deduplicate</code>,
+                    <code>Refine</code>.
+                </p>
+                <ul>
+                    <li>
+                        <code>Refine</code> generates <code>try_from</code> and
+                        <code>new</code> methods for constrained types.
+                    </li>
+                </ul>
+                <h3>1.3 <code>@scale</code></h3>
+                <p>Hint for numeric scaling (reserved).</p>
+                <h3>1.4 <code>@variant_partition</code></h3>
+                <p>
+                    Transforms an enum collection into separate arrays per
+                    variant (SoA with variant indexing).
+                </p>
+                <h3>1.5 <code>@sift</code></h3>
+                <p>
+                    Creates boolean index array for branch elimination on
+                    condition‑based iteration.
+                </p>
+                <h3>1.6 <code>@hot</code> / <code>@cold</code></h3>
+                <p>Optimisation hints for code placement.</p>
+                <h3>1.7 <code>@native</code></h3>
+                <p>
+                    Platform‑specific implementations; compiler picks matching
+                    <code>@native(target_os = ...)</code>.
+                </p>
+                <h3>1.8 <code>@packed</code></h3>
+                <p>
+                    Bit‑packed layout for struct fields (when not combined with
+                    <code>@layout</code>).
+                </p>
+            </section>
+            <section>
+                <h2>2. Conditional Compilation</h2>
+                <h3>2.1 <code>@cfg(condition)</code></h3>
+                <p>
+                    Includes item only if compile‑time condition true.
+                    Conditions: <code>target_os</code>,
+                    <code>target_arch</code>, <code>feature</code>,
+                    <code>target_endian</code>, <code>any(…)</code>,
+                    <code>all(…)</code>, <code>not(…)</code>.
+                </p>
+                <h3>2.2 <code>@cfg_attr(condition, attrs...)</code></h3>
+                <p>Applies attributes only if condition holds.</p>
+            </section>
+            <section>
+                <h2>3. Parser‑Facing Zero‑Cost Abstractions</h2>
+                <h3>3.1 <code>@enum_consts</code></h3>
+                <p>
+                    Generates <code>const VARIANT = Enum::Variant;</code> for
+                    each variant.
+                </p>
+                <h3>3.2 <code>@tuple_struct</code></h3>
+                <p>Generates constructor and indexing getter.</p>
+                <h3>3.3 <code>@newtype(T)</code></h3>
+                <p>
+                    Generates <code>from_inner</code>, <code>into_inner</code>,
+                    and <code>Deref</code> impls.
+                </p>
+            </section>
+            <section>
+                <h2>4. Comptime‑Expanded Macros</h2>
+                <ul>
+                    <li>
+                        <code>@builder</code>, <code>@state_machine</code>,
+                        <code>@validate</code>
+                    </li>
+                    <li>
+                        <code>@trace</code>, <code>@metrics</code>,
+                        <code>@observe</code>
+                    </li>
+                    <li>
+                        <code>@throttle</code>, <code>@debounce</code>,
+                        <code>@retry</code>
+                    </li>
+                    <li>
+                        <code>@event</code>, <code>@inject</code>,
+                        <code>@lazy</code>
+                    </li>
+                    <li><code>@ffi(delegate)</code></li>
+                    <li>
+                        <code>@paginate</code>, <code>@schedule</code>,
+                        <code>@cache</code>, <code>@circuit_breaker</code>
+                    </li>
+                    <li>
+                        <code>@max_concurrency</code>, <code>@idempotent</code>,
+                        <code>@watch</code>, <code>@lockstep</code>
+                    </li>
+                    <li>
+                        <code>@raft</code>, <code>@history</code>,
+                        <code>@rest</code>, <code>@tail_sensitive</code>,
+                        <code>@workflow</code>
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>5. Domain‑Specific Bundles</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Bundle</th>
+                            <th>Expands to</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>@web</code></td>
+                            <td><code>@rest, @auth, @cors, @session</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>@game</code></td>
+                            <td>
+                                <code
+                                    >@simulate, @ecs, @physics(2d), @audio</code
+                                >
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>@embedded</code></td>
+                            <td>
+                                <code
+                                    >@no_std, @no_runtime, @panic("abort"),
+                                    @pool</code
+                                >
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>@cli_tool</code></td>
+                            <td><code>@cli, @config, @validate</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>@browser</code></td>
+                            <td><code>@blaze‑web, @wasm, @web</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+            <section>
+                <h2>
+                    6. Annotation Attributes (Negative Space &amp; Hardware)
+                </h2>
+                <ul>
+                    <li><code>@copy</code> – copyable type</li>
+                    <li><code>@comptime</code> – compile‑time only</li>
+                    <li>
+                        <code>@layout(...)</code> – memory layout
+                        (<code>soa</code>, <code>auto</code>,
+                        <code>packed</code>, <code>C</code>, <code>aosoa</code>,
+                        <code>adaptive</code>)
+                    </li>
+                    <li>
+                        <code>@float_epsilon(...)</code> – epsilon for
+                        <code>ApproxEq</code>
+                    </li>
+                    <li>
+                        <code>@overflow</code> – overflow behavior
+                        (<code>wrap</code>, <code>panic</code>)
+                    </li>
+                    <li><code>@must_use</code> – warn on unused return</li>
+                    <li>
+                        <code>@gpu</code>, <code>@hardware</code>,
+                        <code>@parallel</code> – effect annotations
+                    </li>
+                    <li>
+                        <code>@test</code>, <code>@bench</code> – test/benchmark
+                        markers
+                    </li>
+                    <li><code>@deprecated</code> – deprecation warning</li>
+                    <li>
+                        <code>@cold</code>, <code>@reply</code>,
+                        <code>@feature</code>, <code>@no_std</code>,
+                        <code>@no_runtime</code>, <code>@panic("abort")</code>
+                    </li>
+                    <li>
+                        <code>@slide(N)</code>, <code>@window_nobounds</code>,
+                        <code>@window_accumulate</code>
+                    </li>
+                    <li><code>@debug_visualizer(closure)</code></li>
+                    <li>
+                        <code>@branchless</code> – enforces branch‑free code;
+                        compile‑time error if branch cannot be eliminated
+                    </li>
+                    <li>
+                        <code>@texture(...)</code> – asset attribute (see
+                        <code>blaze‑asset</code>)
+                    </li>
+                    <li>
+                        <code>@generate(...)</code> – procedural asset
+                        generation
+                    </li>
+                    <li>
+                        <code>@streaming(...)</code> – automatic runtime
+                        streaming
+                    </li>
+                    <li>
+                        <code>@cache_line(align = 64, hint = "prefetch")</code>
+                        – cache alignment and prefetch hint
+                    </li>
+                    <li><code>@aligned(16)</code> – memory alignment</li>
+                    <li>
+                        <code>@volatile</code> – prevent compiler
+                        reordering/elimination
+                    </li>
+                    <li>
+                        <code>@non_temporal</code> – streaming stores
+                        (write‑combining)
+                    </li>
+                    <li>
+                        <code>@simd_lane(0..3)</code> – assign to specific SIMD
+                        lane
+                    </li>
+                    <li>
+                        <code>@vectorize(enable = true, width = 8)</code> –
+                        force vectorisation
+                    </li>
+                    <li>
+                        <code>@masked</code> – generate masked SIMD operations
+                    </li>
+                    <li>
+                        <code>@device("gpu", kernel = "my_kernel")</code> –
+                        offload to device
+                    </li>
+                    <li>
+                        <code>@sync_with("gpu")</code> – synchronise across
+                        devices
+                    </li>
+                    <li>
+                        <code>@atomic(ordering = "release")</code> – atomic
+                        operation ordering
+                    </li>
+                    <li>
+                        <code>@fence(scope = "device")</code> – memory barrier
+                    </li>
+                    <li>
+                        <code>@shared</code> – deduplicate constant across
+                        compilation units
+                    </li>
+                    <li>
+                        <code>@compressed(level = L, algorithm = "algo")</code>
+                        – compress static data at build time
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>7. Attribute Decision Table &amp; LSP</h2>
+                <p>
+                    LSP uses pre‑computed table to suggest attributes based on
+                    patterns.
+                </p>
+            </section>
+            <section>
+                <h2>8. Testing</h2>
+                <ul>
+                    <li>
+                        Built‑in expansions: generated code compiles and behaves
+                        correctly.
+                    </li>
+                    <li>
+                        Conditional compilation: inclusion/exclusion with
+                        <code>--target</code> and <code>--feature</code>.
+                    </li>
+                    <li>
+                        Parser‑facing ZCAs: constants, constructors, conversion
+                        functions.
+                    </li>
+                    <li>Comptime macros: generated code verified.</li>
+                    <li>Bundles: expansion correctness.</li>
+                    <li>
+                        Annotation attributes: stored and accessible via
+                        reflection.
+                    </li>
+                    <li>
+                        <code>@branchless</code>: branch‑free code enforced;
+                        compile error on failure.
+                    </li>
+                    <li>
+                        <code>@texture</code>, <code>@generate</code>,
+                        <code>@streaming</code>: tested in Phase 5
+                        (<code>blaze‑asset</code>).
+                    </li>
+                    <li>
+                        Hardware attributes: alignment, SIMD, device offloading
+                        verified in assembly.
+                    </li>
+                    <li>
+                        Negative space: constraint solver tests (compile‑time
+                        proof, runtime fallback).
+                    </li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase2e-contracts.html" rel="prev"
+                        >Previous: Phase 2e</a
+                    >
+                    |
+                    <a href="phase3a-core-builtins.html" rel="next"
+                        >Next: Phase 3a – Core Builtins</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

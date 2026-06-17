@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 5 – Ecosystem: CUDA</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 5 – Ecosystem: CUDA</h1></header>
+        <nav>
+            <p>
+                <a href="phase5-ecosystem-blaze-plot.html" rel="prev"
+                    >Previous: Plot</a
+                >
+                |
+                <a href="phase5-ecosystem-blaze-opencl.html" rel="next"
+                    >Next: OpenCL</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Low‑level, unsafe, data‑oriented bindings to NVIDIA CUDA GPU
+                    computing platform (Driver API v12.x). Wraps resources
+                    (device, context, stream, event, memory, module, function)
+                    in linear types.
+                </p>
+            </section>
+            <section>
+                <h2>1. Core Types</h2>
+                <pre>
+pub struct Device { id: i32 }
+impl Device { pub fn count() -> usize; pub fn get(index: usize) -> Option&lt;Self&gt;; }
+pub struct Context { inner: CUcontext }
+impl Context { pub fn set_current(&amp;self) -> Result&lt;(), CudaError&gt;; pub fn pop_current() -> Result&lt;(), CudaError&gt;; pub fn create_stream(&amp;self) -> Result&lt;Stream, CudaError&gt;; }
+pub struct Stream { inner: CUstream }
+pub struct Event { inner: CUevent }
+pub struct DeviceMemory { ptr: *mut u8, size: usize }
+pub struct UnifiedMemory { ptr: *mut u8, size: usize }
+pub struct Module { inner: CUmodule }
+pub struct Function { inner: CUfunction }</pre
+                >
+            </section>
+            <section>
+                <h2>2. Memory</h2>
+                <pre>
+impl DeviceMemory {
+    pub fn new(size: usize) -> Result&lt;Self, CudaError&gt;;
+    pub unsafe fn as_ptr(&amp;self) -> *mut u8;
+    pub fn size(&amp;self) -> usize;
+    pub unsafe fn copy_to_host(&amp;self, host: *mut u8, size: usize) -> Result&lt;(), CudaError&gt;;
+    pub unsafe fn copy_from_host(&amp;self, host: *const u8, size: usize) -> Result&lt;(), CudaError&gt;;
+    pub unsafe fn memset(&amp;self, value: u8, size: usize) -> Result&lt;(), CudaError&gt;;
+}
+impl UnifiedMemory {
+    pub fn new(size: usize) -> Result&lt;Self, CudaError&gt;;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>3. Module and Kernel</h2>
+                <pre>
+impl Module {
+    pub fn from_ptx(ptx: &amp;str) -> Result&lt;Self, CudaError&gt;;
+    pub fn from_file(path: &amp;str) -> Result&lt;Self, CudaError&gt;;
+    pub fn get_function(&amp;self, name: &amp;str) -> Result&lt;Function, CudaError&gt;;
+}
+impl Function {
+    pub unsafe fn launch(&amp;self, grid: (u32, u32, u32), block: (u32, u32, u32), shared_mem: u32, stream: &amp;Stream, args: &amp;[*mut c_void]) -> Result&lt;(), CudaError&gt;;
+    pub fn max_threads_per_block(&amp;self) -> i32;
+    pub fn optimal_block_size(&amp;self) -> i32;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>4. Error Handling</h2>
+                <pre>
+pub enum CudaError {
+    InvalidValue, OutOfMemory, NotInitialized, Deinitialized, NoDevice,
+    InvalidDevice, InvalidImage, InvalidContext, ContextAlreadyCurrent,
+    MapFailed, UnmapFailed, ArrayIsMapped, AlreadyMapped, NoBinaryForGpu,
+    AlreadyAcquired, NotMapped, InvalidSource, FileNotFound, NvlinkFailed,
+    InvalidPtx, UnloadingFailed, LaunchFailed, LaunchOutOfResources,
+    LaunchTimeout, LaunchIncompatibleTexturing, Unknown(i32),
+}</pre
+                >
+            </section>
+            <section>
+                <h2>5. Testing</h2>
+                <ul>
+                    <li>Device enumeration.</li>
+                    <li>Context creation.</li>
+                    <li>Memory copy.</li>
+                    <li>Stream synchronisation.</li>
+                    <li>Kernel launch (simple PTX).</li>
+                    <li>Error handling.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase5-ecosystem-blaze-plot.html" rel="prev"
+                        >Previous: Plot</a
+                    >
+                    |
+                    <a href="phase5-ecosystem-blaze-opencl.html" rel="next"
+                        >Next: OpenCL</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

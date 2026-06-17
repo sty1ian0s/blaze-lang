@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: Physics2D</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: Physics2D</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-opengl.html" rel="prev"
+                    >Previous: OpenGL</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-physics3d.html" rel="next"
+                    >Next: Physics3D</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    2D rigid‑body physics engine built on ECS, SoA layout, and
+                    sliding‑window iteration. Pure, deterministic,
+                    auto‑parallelised.
+                </p>
+            </section>
+            <section>
+                <h2>1. Components</h2>
+                <pre>
+@layout(soa)
+pub struct RigidBody2D {
+    pos: Vec2,
+    vel: Vec2,
+    angle: f32,
+    angular_vel: f32,
+    mass: f32,
+    inv_mass: f32,
+    inertia: f32,
+    inv_inertia: f32,
+    restitution: f32,
+    friction: f32,
+    body_type: BodyType,
+    flags: BodyFlags,
+}
+pub enum BodyType { Static, Dynamic, Kinematic }
+pub struct Collider2D { shape: ColliderShape, local_pos: Vec2, local_angle: f32, category_bits: u16, mask_bits: u16 }
+pub struct Contact { point: Vec2, normal: Vec2, penetration: f32, tangent: Vec2, normal_impulse: f32, tangent_impulse: f32, body_a: Entity, body_b: Entity }</pre
+                >
+            </section>
+            <section>
+                <h2>2. Systems</h2>
+                <pre>
+fn integrate_forces(mut bodies: Query!(&amp;mut RigidBody2D), config: Res&lt;PhysicsConfig&gt;, dt: f32);
+fn broad_phase(colliders: Query!(&amp;Collider2D, &amp;RigidBody2D), config: Res&lt;PhysicsConfig&gt;) -> Vec&lt;(Entity, Entity)&gt;;
+fn narrow_phase(pairs: &amp;[(Entity, Entity)], bodies: Query!(&amp;RigidBody2D), colliders: Query!(&amp;Collider2D), contacts: impl Insert&lt;Contact&gt;);
+fn resolve_contacts(contacts: &amp;mut [Contact], mut bodies: Query!(&amp;mut RigidBody2D), config: Res&lt;PhysicsConfig&gt;);
+fn sleep_manager(mut bodies: Query!(&amp;mut RigidBody2D), config: Res&lt;PhysicsConfig&gt;, dt: f32);</pre
+                >
+            </section>
+            <section>
+                <h2>3. Integration</h2>
+                <pre>
+pub fn add_physics_plugin(stage: &amp;mut SystemStage, config: PhysicsConfig);</pre
+                >
+            </section>
+            <section>
+                <h2>4. Determinism</h2>
+                <p>
+                    All systems are pure (<code>∅</code> effect). Floating‑point
+                    deterministic with <code>--reproducible</code>.
+                </p>
+            </section>
+            <section>
+                <h2>5. Testing</h2>
+                <ul>
+                    <li>Integration: gravity.</li>
+                    <li>Collision: boxes.</li>
+                    <li>Restitution: bounce.</li>
+                    <li>Sleep: body below threshold.</li>
+                    <li>Determinism: identical output.</li>
+                    <li>Performance: 10k bodies.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-opengl.html" rel="prev"
+                        >Previous: OpenGL</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-physics3d.html" rel="next"
+                        >Next: Physics3D</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

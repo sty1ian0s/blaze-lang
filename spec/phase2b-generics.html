@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 2b – Generics, Traits, and Impls</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 2b – Generics, Traits, and Impls</h1></header>
+        <nav>
+            <p>
+                <a href="phase2a-types.html" rel="prev">Previous: Phase 2a</a> |
+                <a href="phase2c-effects.html" rel="next"
+                    >Next: Phase 2c – Effects</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Extend the compiler to support generic functions, generic
+                    structs/enums, trait declarations, trait implementations,
+                    trait bounds, <code>dyn Trait</code> objects,
+                    <code>where</code> clauses, and the coherence rules.
+                </p>
+            </section>
+            <section>
+                <h2>1. Generic Parameters</h2>
+                <h3>1.1 Syntax</h3>
+                <pre>
+generic_params = "[" generic_param { "," generic_param } [ "," ] "]"
+generic_param  = ident [ ":" bound ] | "effect" ident
+bound          = path { "+" path }</pre
+                >
+                <h3>1.2 Semantics</h3>
+                <ul>
+                    <li>Type parameters may have trait bounds.</li>
+                    <li>
+                        Inference from argument types; explicit turbofish
+                        <code>func::&lt;T&gt;(x)</code>.
+                    </li>
+                    <li>Ambiguous types require explicit argument.</li>
+                </ul>
+                <h3>1.3 Monomorphisation</h3>
+                <p>
+                    Separate code copy for each concrete type argument set. No
+                    runtime overhead.
+                </p>
+            </section>
+            <section>
+                <h2>2. Generic Structs and Enums</h2>
+                <pre>
+struct Vec&lt;T&gt; { data: *mut T, len: usize, cap: usize }
+enum Option&lt;T&gt; { Some(T), None }</pre
+                >
+                <p>Type parameters in scope for fields and variants.</p>
+            </section>
+            <section>
+                <h2>3. Traits</h2>
+                <h3>3.1 Trait Declaration</h3>
+                <pre>
+trait_decl = "trait" ident [ generic_params ] [ ":" bound ] "{" { trait_item } "}"
+trait_item = fn_decl_no_body | const_decl | type_decl</pre
+                >
+                <h3>3.2 <code>@trivial</code> Trait Attribute</h3>
+                <p>
+                    <code>@trivial(implementors)</code> – closed‑world
+                    optimisation. Replaces <code>dyn Trait</code> with a
+                    <code>match</code> over an enum of listed implementors. No
+                    vtable; tag stored instead of vtable pointer. If
+                    implementors omitted, compiler collects all implementors in
+                    current crate.
+                </p>
+                <h3>3.3 Trait Bounds</h3>
+                <p><code>T: Trait</code> or <code>where T: Trait</code>.</p>
+                <h3>3.4 Impl Blocks</h3>
+                <pre>
+impl_decl = "impl" [ generic_params ] ( type "{" { impl_item } "}" | bound "for" type "{" { impl_item } "}" )</pre
+                >
+                <h3>3.5 Method Resolution</h3>
+                <ol>
+                    <li>Inherent methods.</li>
+                    <li>Trait methods.</li>
+                    <li>Fully‑qualified syntax for ambiguity.</li>
+                </ol>
+                <h3>3.6 <code>dyn Trait</code></h3>
+                <p>
+                    Dynamic dispatch via vtable (or tag+data for
+                    <code>@trivial</code>). Object safety rules enforced.
+                </p>
+            </section>
+            <section>
+                <h2>4. Coherence and Orphan Rules</h2>
+                <ul>
+                    <li>Coherence: at most one impl per (Trait, Type).</li>
+                    <li>
+                        Orphan: impl allowed only if Trait or Type defined in
+                        current crate.
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>5. Code Generation</h2>
+                <ul>
+                    <li>Monomorphisation with name mangling.</li>
+                    <li>
+                        Vtables for <code>dyn Trait</code>; no vtable for
+                        <code>@trivial</code>.
+                    </li>
+                    <li>
+                        Indirect call for <code>dyn</code>; direct jump for
+                        <code>@trivial</code>.
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>6. Testing</h2>
+                <ul>
+                    <li>
+                        Generic functions: instantiation, inference, ambiguous
+                        error.
+                    </li>
+                    <li>
+                        Generic structs/enums: construction, field access,
+                        method calls.
+                    </li>
+                    <li>
+                        Trait declarations/impls: inherent, trait, default
+                        methods.
+                    </li>
+                    <li>Trait bounds: inline and <code>where</code>.</li>
+                    <li>
+                        <code>dyn Trait</code>: coercion, dispatch, object
+                        safety.
+                    </li>
+                    <li>
+                        Coherence/Orphan: conflicting impls, orphan violations.
+                    </li>
+                    <li>
+                        <code>@trivial</code>: closed‑world dispatch, no vtable,
+                        compile‑time error for missing implementors.
+                    </li>
+                    <li>
+                        Complexity: monomorphisation O(instantiations × size).
+                    </li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase2a-types.html" rel="prev"
+                        >Previous: Phase 2a</a
+                    >
+                    |
+                    <a href="phase2c-effects.html" rel="next"
+                        >Next: Phase 2c – Effects</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

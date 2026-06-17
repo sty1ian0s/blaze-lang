@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 3a – Core Library: Comparison</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 3a – Core Library: Comparison</h1></header>
+        <nav>
+            <p>
+                <a href="phase3a-core-clone.html" rel="prev">Previous: Clone</a>
+                |
+                <a href="phase3a-core-collections.html" rel="next"
+                    >Next: Collections</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Implement the <code>std::cmp</code> module: traits for
+                    equality, ordering, and approximate equality, along with the
+                    <code>Ordering</code> enum.
+                </p>
+            </section>
+            <section>
+                <h2>1. Traits</h2>
+                <h3>1.1 <code>PartialEq</code></h3>
+                <pre>
+pub trait PartialEq {
+    fn eq(&amp;self, other: &amp;Self) -> bool;
+}</pre
+                >
+                <p>
+                    Must be symmetric and transitive. Used by <code>==</code>.
+                </p>
+                <h3>1.2 <code>Eq</code></h3>
+                <pre>pub trait Eq: PartialEq {}</pre>
+                <p>
+                    Marker trait for true equivalence (reflexive, symmetric,
+                    transitive). All integer types and
+                    <code>bool</code> implement <code>Eq</code>. Floating‑point
+                    types do not (due to <code>NaN</code>).
+                </p>
+                <h3>1.3 <code>Ordering</code></h3>
+                <pre>
+pub enum Ordering {
+    Less,
+    Equal,
+    Greater,
+}</pre
+                >
+                <h3>1.4 <code>PartialOrd</code></h3>
+                <pre>
+pub trait PartialOrd: PartialEq {
+    fn partial_cmp(&amp;self, other: &amp;Self) -> Option&lt;Ordering&gt;;
+}</pre
+                >
+                <p>
+                    Returns <code>None</code> for incomparable values (like
+                    <code>NaN</code>). Used by <code>&lt;</code>,
+                    <code>&gt;</code>, etc.
+                </p>
+                <h3>1.5 <code>Ord</code></h3>
+                <pre>
+pub trait Ord: Eq + PartialOrd {
+    fn cmp(&amp;self, other: &amp;Self) -> Ordering;
+}</pre
+                >
+                <p>
+                    Total order. All integers and <code>bool</code> implement
+                    <code>Ord</code>.
+                </p>
+                <h3>1.6 <code>ApproxEq</code></h3>
+                <pre>
+pub trait ApproxEq {
+    fn approx_eq(&amp;self, other: &amp;Self, epsilon: Self) -> bool;
+}</pre
+                >
+                <p>
+                    Used by <code>=~</code> operator. Default epsilon:
+                    <code>4 * EPSILON</code> of the type. Implemented for
+                    <code>f32</code>, <code>f64</code>.
+                </p>
+            </section>
+            <section>
+                <h2>2. Standard Implementations</h2>
+                <ul>
+                    <li>
+                        All integer types: <code>PartialEq</code>,
+                        <code>Eq</code>, <code>PartialOrd</code>,
+                        <code>Ord</code>.
+                    </li>
+                    <li>
+                        All float types: <code>PartialEq</code>,
+                        <code>PartialOrd</code>, <code>ApproxEq</code> (no
+                        <code>Eq</code>/<code>Ord</code>).
+                    </li>
+                    <li>
+                        <code>bool</code>, <code>char</code>, <code>()</code>:
+                        all four (where applicable).
+                    </li>
+                    <li>
+                        <code>&amp;T</code>: delegates to
+                        <code>T::eq</code> (value comparison).
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>3. Derivation</h2>
+                <p>
+                    <code>@derive(PartialEq)</code> generates equality by
+                    comparing all fields; <code>@derive(Eq)</code> auto‑applied
+                    if all fields are <code>Eq</code>;
+                    <code>@derive(PartialOrd)</code> and
+                    <code>@derive(Ord)</code> generate lexicographic ordering.
+                </p>
+            </section>
+            <section>
+                <h2>4. Testing</h2>
+                <ul>
+                    <li>
+                        Primitive types: equality and ordering edge cases
+                        (<code>MIN</code>, <code>MAX</code>, <code>NaN</code>,
+                        infinity).
+                    </li>
+                    <li>
+                        <code>ApproxEq</code>: compare with various epsilons;
+                        ensure <code>=~</code> works.
+                    </li>
+                    <li>Manual implementations for custom structs.</li>
+                    <li>
+                        Type check: <code>f64</code> cannot be used where
+                        <code>Eq</code> required.
+                    </li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase3a-core-clone.html" rel="prev"
+                        >Previous: Clone</a
+                    >
+                    |
+                    <a href="phase3a-core-collections.html" rel="next"
+                        >Next: Collections</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

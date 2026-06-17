@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: Backtrace</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: Backtrace</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-audio.html" rel="prev"
+                    >Previous: Audio</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-bench-utils.html" rel="next"
+                    >Next: Bench Utils</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Provide zero‑cost backtrace capture, symbolication, and
+                    formatting using DWARF/PDB.
+                </p>
+            </section>
+            <section>
+                <h2>1. Core Types</h2>
+                <pre>
+pub struct Backtrace { frames: Vec&lt;Frame&gt;, thread_name: Option&lt;Text&gt; }
+pub struct Frame {
+    pub instruction_pointer: usize,
+    pub symbol_name: Option&lt;Text&gt;,
+    pub file: Option&lt;Text&gt;,
+    pub line: Option&lt;u32&gt;,
+    pub column: Option&lt;u32&gt;,
+}</pre
+                >
+            </section>
+            <section>
+                <h2>2. Capture</h2>
+                <pre>
+impl Backtrace {
+    pub fn capture() -> Backtrace;
+    pub fn capture_skip(skip: usize) -> Backtrace;
+}</pre
+                >
+                <p>
+                    Uses compiler‑generated unwinding tables (`.eh_frame` or
+                    PDB). Pure (no allocation except final <code>Vec</code>).
+                </p>
+            </section>
+            <section>
+                <h2>3. Symbolication</h2>
+                <pre>
+impl Backtrace {
+    pub fn symbolicate(&amp;mut self) -> Result&lt;(), BacktraceError&gt;;
+    pub fn symbolicated(self) -> Backtrace;
+}
+pub fn set_debug_path(path: &amp;str);</pre
+                >
+                <p>
+                    Uses DWARF debug info, `.blzdbg` file, or platform APIs
+                    (`dladdr`, `SymFromAddr`).
+                </p>
+            </section>
+            <section>
+                <h2>4. Formatting</h2>
+                <pre>
+impl Backtrace {
+    pub fn to_string(&amp;self) -> Text;
+    pub fn to_string_pretty(&amp;self) -> Text;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>5. Integration</h2>
+                <p>
+                    Provides <code>#[panic_handler]</code> attribute to print
+                    backtrace on panic.
+                </p>
+            </section>
+            <section>
+                <h2>6. Error Handling</h2>
+                <pre>
+pub enum BacktraceError {
+    Io(std::io::Error),
+    NoDebugInfo,
+    UnsupportedPlatform,
+    SymbolNotFound,
+}</pre
+                >
+            </section>
+            <section>
+                <h2>7. Testing</h2>
+                <ul>
+                    <li>Capture: non‑zero frames.</li>
+                    <li>Symbolication: test function name appears.</li>
+                    <li>Pretty formatting contains expected strings.</li>
+                    <li>No debug info: symbol name <code>None</code>.</li>
+                    <li>Thread safety.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-audio.html" rel="prev"
+                        >Previous: Audio</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-bench-utils.html" rel="next"
+                        >Next: Bench Utils</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

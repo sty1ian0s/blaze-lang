@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: Text</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: Text</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-svg.html" rel="prev"
+                    >Previous: SVG</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-tls.html" rel="next"
+                    >Next: TLS</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    GPU‑accelerated text layout and rendering engine. Font
+                    loading, glyph caching (atlas), shaping (HarfBuzz or
+                    pure‑Blaze fallback), measurement, drawing.
+                </p>
+            </section>
+            <section>
+                <h2>1. Font</h2>
+                <pre>
+pub struct Font { family: String, weight: FontWeight, style: FontStyle, data: Vec&lt;u8&gt;, units_per_em: u32, ascent: f64, descent: f64, line_gap: f64, glyph_count: u32 }
+pub fn load_system_font(family: &amp;str, weight: FontWeight, style: FontStyle) -> Result&lt;Font, TextError&gt;;
+pub fn load_from_file(path: &amp;str) -> Result&lt;Font, TextError&gt;;
+pub fn load_from_bytes(bytes: &amp;[u8]) -> Result&lt;Font, TextError&gt;;</pre
+                >
+            </section>
+            <section>
+                <h2>2. FontAtlas</h2>
+                <pre>
+pub struct FontAtlas { texture: wgpu::Texture, entries: Map&lt;u32, GlyphEntry&gt;, glyphs: Vec&lt;GlyphCacheInfo&gt;, next_x: u32, next_y: u32, max_row_height: u32 }
+pub fn new(font: &amp;Font, size: f64, gpu_device: &amp;GpuDevice) -> FontAtlas;</pre
+                >
+            </section>
+            <section>
+                <h2>3. TextLayout</h2>
+                <pre>
+pub struct TextLayout { glyphs: Vec&lt;PositionedGlyph&gt;, total_width: f64, total_height: f64 }
+pub struct PositionedGlyph { pub glyph_id: u32, pub x: f64, pub y: f64, pub advance_width: f64 }
+pub fn layout_text(font: &amp;Font, atlas: &amp;mut FontAtlas, text: &amp;str, font_size: f64, direction: TextDirection) -> TextLayout;</pre
+                >
+            </section>
+            <section>
+                <h2>4. Measurement</h2>
+                <pre>
+pub fn measure_text(font: &amp;Font, text: &amp;str, font_size: f64) -> (f64, f64);</pre
+                >
+            </section>
+            <section>
+                <h2>5. Rendering</h2>
+                <pre>
+pub fn draw_text(render_pass: &amp;mut wgpu::RenderPass, layout: &amp;TextLayout, atlas: &amp;FontAtlas, position: (f64, f64), color: Color);
+pub fn prepare_text_pipeline(device: &amp;wgpu::Device, config: &amp;wgpu::SurfaceConfiguration) -> wgpu::RenderPipeline;</pre
+                >
+            </section>
+            <section>
+                <h2>6. Error Handling</h2>
+                <pre>
+pub enum TextError { Io(std::io::Error), InvalidFont(Text), FontNotFound, GlyphNotFound, AtlasFull }</pre
+                >
+            </section>
+            <section>
+                <h2>7. Testing</h2>
+                <ul>
+                    <li>Font loading.</li>
+                    <li>Measurement.</li>
+                    <li>Layout.</li>
+                    <li>Atlas allocation.</li>
+                    <li>Rendering (off‑screen).</li>
+                    <li>Performance: 10k words.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-svg.html" rel="prev"
+                        >Previous: SVG</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-tls.html" rel="next"
+                        >Next: TLS</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

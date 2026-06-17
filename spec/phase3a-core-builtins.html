@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 3a – Core Library: Builtins, Memory, Strings</title>
+    </head>
+    <body>
+        <header>
+            <h1>Blaze Phase 3a – Core Library: Builtins, Memory, Strings</h1>
+        </header>
+        <nav>
+            <p>
+                <a href="phase2f-attributes.html" rel="prev"
+                    >Previous: Phase 2f</a
+                >
+                |
+                <a href="phase3a-core-clone.html" rel="next"
+                    >Next: Phase 3a – Clone</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Implement the modules <code>std::builtins</code>,
+                    <code>std::mem</code>, and <code>std::string</code> exactly
+                    as specified. Every function, struct, and trait must match
+                    the signatures and behaviour described below. Write tests
+                    for all items before implementation.
+                </p>
+            </section>
+            <section>
+                <h2>1. <code>std::builtins</code></h2>
+                <h3>1.1 <code>Option&lt;T&gt;</code></h3>
+                <pre>
+pub enum Option&lt;T&gt; {
+    Some(T),
+    None,
+}</pre
+                >
+                <p>Methods (implemented on <code>Option&lt;T&gt;</code>):</p>
+                <ul>
+                    <li>
+                        <code>pub fn is_some(&amp;self) -> bool</code> –
+                        <code>true</code> if <code>Some</code>.
+                    </li>
+                    <li>
+                        <code>pub fn is_none(&amp;self) -> bool</code> –
+                        <code>true</code> if <code>None</code>.
+                    </li>
+                    <li>
+                        <code>pub fn unwrap(self) -> T</code> – returns inner
+                        value if <code>Some</code>; panics with
+                        <code>"called Option::unwrap() on a None value"</code>
+                        if <code>None</code>. All live linear variables disposed
+                        before panic.
+                    </li>
+                    <li>
+                        <code>pub fn expect(self, msg: &amp;str) -> T</code> –
+                        like <code>unwrap</code> but panic message includes
+                        <code>msg</code>.
+                    </li>
+                    <li>
+                        <code
+                            >pub fn map&lt;U&gt;(self, f: fn(T) -> U) ->
+                            Option&lt;U&gt;</code
+                        >
+                        – <code>Some(x)</code> → <code>Some(f(x))</code>,
+                        <code>None</code> → <code>None</code>.
+                    </li>
+                    <li>
+                        <code
+                            >pub fn and_then&lt;U&gt;(self, f: fn(T) ->
+                            Option&lt;U&gt;) -> Option&lt;U&gt;</code
+                        >
+                        – <code>Some(x)</code> → <code>f(x)</code>,
+                        <code>None</code> → <code>None</code>.
+                    </li>
+                    <li>
+                        <code
+                            >pub fn or(self, optb: Option&lt;T&gt;) ->
+                            Option&lt;T&gt;</code
+                        >
+                        – <code>Some(x)</code> → <code>Some(x)</code>,
+                        <code>None</code> → <code>optb</code>.
+                    </li>
+                    <li>
+                        <code
+                            >pub fn or_else(self, f: fn() -> Option&lt;T&gt;) ->
+                            Option&lt;T&gt;</code
+                        >
+                        – <code>Some(x)</code> → <code>Some(x)</code>,
+                        <code>None</code> → <code>f()</code>.
+                    </li>
+                    <li>
+                        <code
+                            >pub fn ok_or&lt;E&gt;(self, err: E) -> Result&lt;T,
+                            E&gt;</code
+                        >
+                        – <code>Some(x)</code> → <code>Ok(x)</code>,
+                        <code>None</code> → <code>Err(err)</code>.
+                    </li>
+                    <li>
+                        <code
+                            >pub fn ok_or_else&lt;E&gt;(self, f: fn() -> E) ->
+                            Result&lt;T, E&gt;</code
+                        >
+                        – <code>Some(x)</code> → <code>Ok(x)</code>,
+                        <code>None</code> → <code>Err(f())</code>.
+                    </li>
+                    <li>
+                        <code
+                            >pub fn iter(&amp;self) -> OptionIter&lt;T&gt;</code
+                        >
+                        – returns an iterator that yields at most one
+                        <code>T</code>.
+                    </li>
+                </ul>
+                <p><code>OptionIter&lt;T&gt;</code>:</p>
+                <pre>
+pub struct OptionIter&lt;T&gt; { ptr: *const Option&lt;T&gt; }
+impl&lt;T&gt; Iterator for OptionIter&lt;T&gt; {
+    type Item = T;
+    fn next(&amp;mut self) -> Option&lt;T&gt;;
+}</pre
+                >
+                <h3>1.2 <code>Result&lt;T, E&gt;</code></h3>
+                <pre>
+pub enum Result&lt;T, E&gt; {
+    Ok(T),
+    Err(E),
+}</pre
+                >
+                <p>Methods:</p>
+                <ul>
+                    <li><code>pub fn is_ok(&amp;self) -> bool</code></li>
+                    <li><code>pub fn is_err(&amp;self) -> bool</code></li>
+                    <li>
+                        <code>pub fn unwrap(self) -> T</code> – panics with
+                        <code>"called Result::unwrap() on an Err value"</code>
+                        if <code>Err</code>, showing debug of error if possible.
+                    </li>
+                    <li>
+                        <code>pub fn expect(self, msg: &amp;str) -> T</code>
+                    </li>
+                    <li>
+                        <code>pub fn unwrap_err(self) -> E</code> – panics if
+                        <code>Ok</code>.
+                    </li>
+                    <li>
+                        <code
+                            >pub fn map&lt;U&gt;(self, f: fn(T) -> U) ->
+                            Result&lt;U, E&gt;</code
+                        >
+                        – <code>Ok(x)</code> → <code>Ok(f(x))</code>.
+                    </li>
+                    <li>
+                        <code
+                            >pub fn map_err&lt;F&gt;(self, f: fn(E) -> F) ->
+                            Result&lt;T, F&gt;</code
+                        >
+                        – <code>Err(e)</code> → <code>Err(f(e))</code>.
+                    </li>
+                    <li>
+                        <code
+                            >pub fn and_then&lt;U&gt;(self, f: fn(T) ->
+                            Result&lt;U, E&gt;) -> Result&lt;U, E&gt;</code
+                        >
+                        – <code>Ok(x)</code> → <code>f(x)</code>.
+                    </li>
+                    <li>
+                        <code
+                            >pub fn or_else&lt;F&gt;(self, f: fn(E) ->
+                            Result&lt;T, F&gt;) -> Result&lt;T, F&gt;</code
+                        >
+                        – <code>Err(e)</code> → <code>f(e)</code>.
+                    </li>
+                    <li>
+                        <code>pub fn ok(self) -> Option&lt;T&gt;</code> –
+                        <code>Ok(x)</code> → <code>Some(x)</code>,
+                        <code>Err</code> → <code>None</code>.
+                    </li>
+                    <li>
+                        <code>pub fn err(self) -> Option&lt;E&gt;</code> –
+                        <code>Err(e)</code> → <code>Some(e)</code>,
+                        <code>Ok</code> → <code>None</code>.
+                    </li>
+                    <li>
+                        <code
+                            >pub fn iter(&amp;self) -> ResultIter&lt;T,
+                            E&gt;</code
+                        >
+                        – iterator over <code>Ok</code> values.
+                    </li>
+                </ul>
+                <h3>1.3 <code>Range&lt;Idx&gt;</code></h3>
+                <pre>
+pub struct Range&lt;Idx&gt; {
+    pub start: Idx,
+    pub end: Idx,
+}
+impl&lt;Idx: PartialOrd + Step&gt; IntoIterator for Range&lt;Idx&gt; {
+    type Item = Idx;
+    type IntoIter = RangeIter&lt;Idx&gt;;
+    fn into_iter(self) -> RangeIter&lt;Idx&gt;;
+}
+pub struct RangeIter&lt;Idx&gt; { current: Idx, end: Idx }
+impl&lt;Idx: PartialOrd + Step&gt; Iterator for RangeIter&lt;Idx&gt; {
+    type Item = Idx;
+    fn next(&amp;mut self) -> Option&lt;Idx&gt;;
+}</pre
+                >
+                <p>
+                    The <code>Step</code> trait (in <code>std::iter</code>)
+                    provides:
+                </p>
+                <pre>
+pub trait Step {
+    fn succ(&amp;self) -> Self;
+    fn pred(&amp;self) -> Self;
+    fn steps(&amp;self, to: &amp;Self) -> Option&lt;usize&gt;;
+}</pre
+                >
+                <p>Integers implement <code>Step</code> with arithmetic.</p>
+                <h3>1.4 Macros</h3>
+                <ul>
+                    <li>
+                        <code>panic!(format_args...)</code> – compiler
+                        intrinsic, prints to stderr and aborts.
+                    </li>
+                    <li>
+                        <code>todo!()</code> –
+                        <code>panic!("not yet implemented")</code>.
+                    </li>
+                    <li>
+                        <code>unreachable!()</code> –
+                        <code>panic!("unreachable code reached")</code>.
+                    </li>
+                    <li>
+                        <code>format!(...)</code> – returns a
+                        <code>Text</code> (from <code>std::string</code>)
+                        containing formatted output.
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>2. <code>std::mem</code></h2>
+                <h3>2.1 <code>Allocator</code> Trait</h3>
+                <pre>
+pub trait Allocator {
+    fn allocate&lt;T&gt;(&amp;self) -> Owned&lt;T&gt;;
+    fn deallocate&lt;T&gt;(&amp;self, ptr: Owned&lt;T&gt;);
+}</pre
+                >
+                <h3>2.2 <code>Arena</code></h3>
+                <pre>
+pub struct Arena {
+    bump_ptr: *mut u8,
+    end_ptr: *mut u8,
+}
+impl Arena {
+    pub fn new() -> Arena;           // default capacity 4096
+    pub fn with_capacity(cap: usize) -> Arena;
+    pub fn allocate&lt;T&gt;(&amp;self) -> Owned&lt;T&gt;;
+    pub fn deallocate&lt;T&gt;(&amp;self, ptr: Owned&lt;T&gt;);   // no‑op
+}
+impl Allocator for Arena { }</pre
+                >
+                <p>
+                    Memory grows by allocating new blocks if bump pointer
+                    exceeds end; freeing is a no‑op, all memory released when
+                    arena is dropped.
+                </p>
+                <h3>2.3 <code>Pool&lt;T&gt;</code></h3>
+                <pre>
+pub struct Pool&lt;T&gt; {
+    slab: *mut T,
+    free_list: *mut usize,
+    capacity: usize,
+}
+impl&lt;T&gt; Pool&lt;T&gt; {
+    pub fn new(capacity: usize) -> Pool&lt;T&gt;;
+    pub fn allocate(&amp;self) -> Owned&lt;T&gt;;
+    pub fn deallocate(&amp;self, ptr: Owned&lt;T&gt;);
+}
+impl&lt;T&gt; Allocator for Pool&lt;T&gt; { }</pre
+                >
+                <h3>2.4 <code>Owned&lt;T&gt;</code></h3>
+                <pre>
+pub struct Owned&lt;T&gt; {
+    ptr: *mut T,
+    alloc: *const dyn Allocator,
+}
+impl&lt;T&gt; Owned&lt;T&gt; {
+    pub unsafe fn as_ptr(&amp;self) -> *const T;
+    pub unsafe fn as_mut_ptr(&amp;mut self) -> *mut T;
+}
+impl&lt;T&gt; Deref for Owned&lt;T&gt; { type Target = T; ... }
+impl&lt;T&gt; DerefMut for Owned&lt;T&gt; { ... }
+impl&lt;T&gt; Dispose for Owned&lt;T&gt; { ... }</pre
+                >
+                <p>
+                    <code>Dispose</code> calls
+                    <code>alloc.deallocate(self)</code>.
+                </p>
+                <h3>2.5 <code>NonNull&lt;T&gt;</code></h3>
+                <pre>
+pub struct NonNull&lt;T&gt; { ptr: *const T }
+impl&lt;T&gt; NonNull&lt;T&gt; {
+    pub unsafe fn new(ptr: *const T) -> Option&lt;NonNull&lt;T&gt;&gt;;
+    pub unsafe fn new_unchecked(ptr: *const T) -> NonNull&lt;T&gt;;
+    pub fn as_ptr(self) -> *const T;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>3. <code>std::string</code></h2>
+                <h3>3.1 <code>Text</code> (alias <code>String</code>)</h3>
+                <pre>pub struct Text { data: [u8; 24] }</pre>
+                <p>
+                    Internal layout: if <code>data[23] == 0</code> → inline
+                    string, max 23 bytes, terminated by a zero in the unused
+                    space. If <code>data[23] == 1</code> → heap allocated: bytes
+                    0‑7 pointer, 8‑15 length, 16‑23 capacity.
+                </p>
+                <p>Constructors and methods:</p>
+                <ul>
+                    <li>
+                        <code>pub fn new() -> Text</code> – empty inline string.
+                    </li>
+                    <li>
+                        <code>pub fn from_str(s: &amp;str) -> Text</code> –
+                        copies inline if <code>s.len() &lt;= 23</code>, else
+                        heap allocates.
+                    </li>
+                    <li>
+                        <code>pub fn as_str(&amp;self) -> &amp;str</code> –
+                        returns the slice.
+                    </li>
+                    <li><code>pub fn len(&amp;self) -> usize</code></li>
+                    <li><code>pub fn is_empty(&amp;self) -> bool</code></li>
+                    <li>
+                        <code>pub fn push_str(&amp;mut self, s: &amp;str)</code>
+                        – may convert to heap or reallocate if needed.
+                    </li>
+                    <li>
+                        <code>pub fn push(&amp;mut self, ch: char)</code> –
+                        encodes as UTF‑8 and pushes.
+                    </li>
+                    <li>
+                        <code>pub fn to_lowercase(&amp;self) -> Text</code>,
+                        <code>to_uppercase(&amp;self) -> Text</code>
+                    </li>
+                    <li>
+                        <code>pub fn trim(&amp;self) -> &amp;str</code> –
+                        whitespace trim.
+                    </li>
+                    <li>
+                        <code
+                            >pub fn split_whitespace(&amp;self) ->
+                            SplitWhitespace</code
+                        >
+                    </li>
+                    <li>
+                        <code>pub fn as_bytes(&amp;self) -> &amp;[u8]</code>
+                    </li>
+                    <li>
+                        <code>pub fn into_bytes(self) -> Vec&lt;u8&gt;</code>
+                    </li>
+                    <li><code>impl Clone for Text</code> – deep copy.</li>
+                    <li>
+                        <code>impl Dispose for Text</code> – frees heap if
+                        owned.
+                    </li>
+                </ul>
+                <p>Iterator implementations:</p>
+                <ul>
+                    <li>
+                        <code>impl IntoIterator for Text</code> (and for
+                        <code>&amp;Text</code>) yields <code>Chars</code>.
+                    </li>
+                    <li>
+                        <code>Chars</code> implements
+                        <code>Iterator&lt;Item = char&gt;</code>.
+                    </li>
+                </ul>
+                <h3>3.2 Other string iterators</h3>
+                <ul>
+                    <li>
+                        <code>Lines&lt;'a&gt;</code> – splits by
+                        <code>\n</code>, yields <code>&amp;'a str</code>.
+                    </li>
+                    <li>
+                        <code>SplitWhitespace&lt;'a&gt;</code> – splits by
+                        Unicode whitespace, yields <code>&amp;'a str</code>.
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>4. Testing</h2>
+                <ul>
+                    <li>
+                        <code>std::builtins</code>: unit tests for every method
+                        on <code>Option</code> and <code>Result</code>,
+                        including panic messages. Test
+                        <code>Range</code> iterator, macro output.
+                    </li>
+                    <li>
+                        <code>std::mem</code>: allocation, alignment, disposal,
+                        out‑of‑memory behaviour (when implemented),
+                        <code>NonNull</code> creation.
+                    </li>
+                    <li>
+                        <code>std::string</code>: inline vs heap strings, push
+                        across boundary, iteration over chars/lines/whitespace,
+                        cloning, disposal.
+                    </li>
+                    <li>
+                        Complexity: <code>push_str</code> amortised O(n) with
+                        growth factor ≥1.5.
+                    </li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase2f-attributes.html" rel="prev"
+                        >Previous: Phase 2f</a
+                    >
+                    |
+                    <a href="phase3a-core-clone.html" rel="next"
+                        >Next: Phase 3a – Clone</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: MIDI</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: MIDI</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-metrics.html" rel="prev"
+                    >Previous: Metrics</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-nats.html" rel="next"
+                    >Next: NATS</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Pure‑Blaze library for reading, writing, and manipulating
+                    MIDI data (SMF, real‑time I/O, simple wavetable
+                    synthesizer).
+                </p>
+            </section>
+            <section>
+                <h2>1. MidiEvent</h2>
+                <pre>
+pub enum MidiEvent {
+    NoteOff { channel: u8, key: u8, velocity: u8 },
+    NoteOn { channel: u8, key: u8, velocity: u8 },
+    PolyphonicKeyPressure { channel: u8, key: u8, pressure: u8 },
+    ControlChange { channel: u8, controller: u8, value: u8 },
+    ProgramChange { channel: u8, program: u8 },
+    ChannelPressure { channel: u8, pressure: u8 },
+    PitchBend { channel: u8, value: i16 },
+    SystemExclusive { data: Vec&lt;u8&gt; },
+    TimeCodeQuarterFrame(u8),
+    SongPositionPointer(u16),
+    SongSelect(u8),
+    TuneRequest,
+    TimingClock,
+    Start, Continue, Stop,
+    ActiveSensing,
+    Reset,
+    Meta(MetaEvent),
+}
+pub enum MetaEvent {
+    SequenceNumber(u16),
+    Text(Text),
+    CopyrightNotice(Text),
+    TrackName(Text),
+    InstrumentName(Text),
+    Lyric(Text),
+    Marker(Text),
+    CuePoint(Text),
+    ChannelPrefix(u8),
+    EndOfTrack,
+    Tempo(u32),
+    SmpteOffset(SmpteOffset),
+    TimeSignature(TimeSignature),
+    KeySignature(KeySignature),
+    SequencerSpecific(Vec&lt;u8&gt;),
+}</pre
+                >
+            </section>
+            <section>
+                <h2>2. MidiFile</h2>
+                <pre>
+pub struct MidiFile { pub format: MidiFileFormat, pub division: MidiDivision, pub tracks: Vec&lt;MidiTrack&gt; }
+pub enum MidiFileFormat { SingleTrack, MultiTrack, MultiSong }
+pub enum MidiDivision { TicksPerQuarterNote(u16), FramesPerSecond(u8, u8) }</pre
+                >
+            </section>
+            <section>
+                <h2>3. SMF Parser/Writer</h2>
+                <pre>
+impl MidiFile {
+    pub fn read_from_smf(path: &amp;str) -> Result&lt;Self, MidiError&gt;;
+    pub fn write_to_smf(&amp;self, path: &amp;str) -> Result&lt;(), MidiError&gt;;
+    pub fn to_bytes(&amp;self) -> Vec&lt;u8&gt;;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>4. Real‑time I/O (feature `midi-io`)</h2>
+                <pre>
+pub fn enumerate_input_ports() -> Vec&lt;MidiInputPort&gt;;
+pub fn enumerate_output_ports() -> Vec&lt;MidiOutputPort&gt;;
+pub fn open_input(port: &amp;MidiInputPort) -> Result&lt;MidiInput, MidiError&gt;;
+pub fn open_output(port: &amp;MidiOutputPort) -> Result&lt;MidiOutput, MidiError&gt;;</pre
+                >
+            </section>
+            <section>
+                <h2>5. Synthesizer (feature `synth`)</h2>
+                <pre>
+pub struct Synth { sample_rate: u32, voices: Vec&lt;Voice&gt;, wave_table: WaveTable }
+impl Synth {
+    pub fn new(config: &amp;SynthConfig) -> Self;
+    pub fn process_midi(&amp;mut self, events: &amp;[MidiEvent], timestamp: u64);
+    pub fn render(&amp;mut self, out: &amp;mut [f32], channels: u16);
+}</pre
+                >
+            </section>
+            <section>
+                <h2>6. Error Handling</h2>
+                <pre>
+pub enum MidiError {
+    Io(std::io::Error),
+    InvalidFormat(Text),
+    InvalidTrack,
+    TruncatedEvent,
+    UnsupportedFeature(Text),
+    PortNotFound,
+    PortBusy,
+    SynthesizerError(Text),
+}</pre
+                >
+            </section>
+            <section>
+                <h2>7. Testing</h2>
+                <ul>
+                    <li>SMF round‑trip.</li>
+                    <li>Meta events.</li>
+                    <li>Synthesizer output non‑zero.</li>
+                    <li>Real‑time I/O loopback.</li>
+                    <li>Error handling.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-metrics.html" rel="prev"
+                        >Previous: Metrics</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-nats.html" rel="next"
+                        >Next: NATS</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

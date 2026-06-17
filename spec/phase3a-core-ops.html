@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 3a – Core Library: Operator Traits</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 3a – Core Library: Operator Traits</h1></header>
+        <nav>
+            <p>
+                <a href="phase3a-core-iter.html" rel="prev"
+                    >Previous: Iterators</a
+                >
+                |
+                <a href="phase3a-core-process.html" rel="next">Next: Process</a>
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Implement <code>std::ops</code> module with traits for
+                    operator overloading. Each trait maps to a language
+                    operator.
+                </p>
+            </section>
+            <section>
+                <h2>1. Binary Operator Traits</h2>
+                <p>
+                    All define <code>Output</code> type and
+                    <code>Rhs</code> defaulting to <code>Self</code>.
+                </p>
+                <ul>
+                    <li><code>Add</code> – <code>+</code></li>
+                    <li><code>Sub</code> – <code>-</code></li>
+                    <li><code>Mul</code> – <code>*</code></li>
+                    <li>
+                        <code>Div</code> – <code>/</code> (division by zero
+                        panics for integers; infinity for floats)
+                    </li>
+                    <li><code>Rem</code> – <code>%</code></li>
+                    <li>
+                        <code>BitAnd</code> – <code>&amp;</code> (bitwise AND)
+                    </li>
+                    <li><code>BitOr</code> – <code>|</code> (bitwise OR)</li>
+                    <li><code>BitXor</code> – <code>^</code> (bitwise XOR)</li>
+                    <li>
+                        <code>Shl</code> – <code>&lt;&lt;</code> (shift left)
+                    </li>
+                    <li>
+                        <code>Shr</code> – <code>&gt;&gt;</code> (shift right;
+                        arithmetic for signed)
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>2. Unary Operator Traits</h2>
+                <ul>
+                    <li><code>Neg</code> – <code>-</code></li>
+                    <li>
+                        <code>Not</code> – <code>!</code> (logical or bitwise
+                        complement)
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>3. Compound Assignment Traits</h2>
+                <ul>
+                    <li>
+                        <code>AddAssign</code>, <code>SubAssign</code>,
+                        <code>MulAssign</code>, <code>DivAssign</code>,
+                        <code>RemAssign</code>
+                    </li>
+                    <li>
+                        <code>BitAndAssign</code>, <code>BitOrAssign</code>,
+                        <code>BitXorAssign</code>, <code>ShlAssign</code>,
+                        <code>ShrAssign</code>
+                    </li>
+                </ul>
+                <p>
+                    Compiler can synthesise from binary traits if not explicitly
+                    implemented.
+                </p>
+            </section>
+            <section>
+                <h2>4. Standard Implementations</h2>
+                <p>
+                    All primitive types implement appropriate traits. User types
+                    must implement manually.
+                </p>
+            </section>
+            <section>
+                <h2>5. Testing</h2>
+                <ul>
+                    <li>Primitive types: operators work as expected.</li>
+                    <li>
+                        Custom struct (e.g., <code>Vec2</code>) implements
+                        <code>Add</code>; <code>+</code> works.
+                    </li>
+                    <li>
+                        <code>+=</code> works if
+                        <code>AddAssign</code> implemented; otherwise
+                        synthesised from <code>Add</code>.
+                    </li>
+                    <li>
+                        Custom <code>Output</code> type (e.g.,
+                        <code>Add&lt;Duration&gt; for Instant</code>) works.
+                    </li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase3a-core-iter.html" rel="prev"
+                        >Previous: Iterators</a
+                    >
+                    |
+                    <a href="phase3a-core-process.html" rel="next"
+                        >Next: Process</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

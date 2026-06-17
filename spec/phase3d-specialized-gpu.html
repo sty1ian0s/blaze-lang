@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 3d – Specialized Library: GPU Abstractions</title>
+    </head>
+    <body>
+        <header>
+            <h1>Blaze Phase 3d – Specialized Library: GPU Abstractions</h1>
+        </header>
+        <nav>
+            <p>
+                <a href="phase3c-extended-simd.html" rel="prev"
+                    >Previous: SIMD</a
+                >
+                |
+                <a href="phase3d-specialized-l10n.html" rel="next"
+                    >Next: Localisation</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Define optional <code>std::gpu</code> module for GPU
+                    programming (device selection, memory allocation, kernel
+                    compilation, synchronisation). All operations carry
+                    <code>gpu</code> effect.
+                </p>
+            </section>
+            <section>
+                <h2>1. GPU Device Selection</h2>
+                <pre>
+pub struct Device { /* opaque */ }
+impl Device {
+    pub fn count() -> usize;
+    pub fn get(index: usize) -> Option&lt;Device&gt;;
+    pub fn name(&amp;self) -> &amp;str;
+    pub fn memory_total(&amp;self) -> usize;
+    pub fn memory_free(&amp;self) -> usize;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>2. GPU Memory</h2>
+                <pre>
+pub struct GpuBuffer&lt;T&gt; {
+    device: Device,
+    ptr: *mut T,
+    len: usize,
+}
+impl&lt;T&gt; GpuBuffer&lt;T&gt; {
+    pub fn new(device: &amp;Device, count: usize) -> Result&lt;GpuBuffer&lt;T&gt;, Error&gt;;
+    pub unsafe fn from_raw(device: &amp;Device, ptr: *mut T, len: usize) -> GpuBuffer&lt;T&gt;;
+    pub fn len(&amp;self) -> usize;
+    pub fn as_ptr(&amp;self) -> *const T;
+    pub fn as_mut_ptr(&amp;mut self) -> *mut T;
+    pub fn copy_from_host(&amp;mut self, host_data: &amp;[T]) -> Result&lt;(), Error&gt;;
+    pub fn copy_to_host(&amp;self, host_data: &amp;mut [T]) -> Result&lt;(), Error&gt;;
+}
+impl&lt;T&gt; Dispose for GpuBuffer&lt;T&gt; { ... }</pre
+                >
+            </section>
+            <section>
+                <h2>3. GPU Kernels</h2>
+                <pre>
+pub struct Kernel { /* opaque */ }
+impl Kernel {
+    pub fn from_ptx(device: &amp;Device, ptx: &amp;str, entry: &amp;str) -> Result&lt;Kernel, Error&gt;;
+    pub fn launch(&amp;self, args: &amp;[KernelArg], grid: (u32, u32, u32), block: (u32, u32, u32)) -> Result&lt;(), Error&gt;;
+}
+pub enum KernelArg&lt;'a&gt; {
+    Buffer(&amp;'a dyn GpuBufferAny),
+    Int32(i32),
+    Float32(f32),
+}</pre
+                >
+            </section>
+            <section>
+                <h2>4. Synchronization</h2>
+                <pre>pub fn sync() -> Result&lt;(), Error&gt;;</pre>
+                <p>
+                    Blocks CPU until all GPU operations complete on current
+                    device.
+                </p>
+            </section>
+            <section>
+                <h2>5. Error Handling</h2>
+                <pre>
+pub struct Error(GpuErrorKind, Text);
+pub enum GpuErrorKind {
+    OutOfMemory, InvalidDevice, KernelCompilationFailed,
+    LaunchFailed, TransferFailed, Timeout,
+}</pre
+                >
+            </section>
+            <section>
+                <h2>6. Implementation Notes</h2>
+                <ul>
+                    <li>
+                        Uses CUDA driver API (NVIDIA), Vulkan compute, or
+                        OpenCL.
+                    </li>
+                    <li>
+                        On unsupported platforms, returns
+                        <code>InvalidDevice</code>.
+                    </li>
+                    <li>
+                        Kernel compilation from source not part of this module;
+                        runtime loads compiled binaries.
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>7. Testing</h2>
+                <ul>
+                    <li>Device enumeration (if GPU present).</li>
+                    <li>Allocate buffer, copy host→device→host, verify.</li>
+                    <li>Kernel launch (minimal PTX) and verify result.</li>
+                    <li>
+                        Synchronisation: after launch,
+                        <code>sync()</code> completes.
+                    </li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase3c-extended-simd.html" rel="prev"
+                        >Previous: SIMD</a
+                    >
+                    |
+                    <a href="phase3d-specialized-l10n.html" rel="next"
+                        >Next: Localisation</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

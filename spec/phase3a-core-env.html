@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 3a – Core Library: Environment</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 3a – Core Library: Environment</h1></header>
+        <nav>
+            <p>
+                <a href="phase3a-core-default.html" rel="prev"
+                    >Previous: Default</a
+                >
+                |
+                <a href="phase3a-core-fmt.html" rel="next">Next: Formatting</a>
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Provide access to environment variables, current working
+                    directory, and program arguments.
+                </p>
+            </section>
+            <section>
+                <h2>1. Functions</h2>
+                <h3>1.1 <code>var</code></h3>
+                <pre>
+pub fn var(key: &amp;str) -> Result&lt;Text, VarError&gt;;</pre
+                >
+                <p>
+                    Retrieves environment variable; returns
+                    <code>VarError</code> if not found or invalid UTF‑8.
+                </p>
+                <h3>1.2 <code>set_var</code></h3>
+                <pre>pub fn set_var(key: &amp;str, value: &amp;str);</pre>
+                <p>Sets environment variable; panics on failure.</p>
+                <h3>1.3 <code>remove_var</code></h3>
+                <pre>pub fn remove_var(key: &amp;str);</pre>
+                <p>Removes environment variable; panics on failure.</p>
+                <h3>1.4 <code>current_dir</code></h3>
+                <pre>
+pub fn current_dir() -> Result&lt;Text, io::Error&gt;;</pre
+                >
+                <p>Returns current working directory.</p>
+                <h3>1.5 <code>args</code></h3>
+                <pre>pub fn args() -> Vec&lt;Text&gt;;</pre>
+                <p>Returns command‑line arguments (including program name).</p>
+            </section>
+            <section>
+                <h2>2. <code>VarError</code></h2>
+                <pre>pub struct VarError { /* private */ }</pre>
+                <p>
+                    Provides <code>to_text()</code> for human‑readable
+                    description.
+                </p>
+            </section>
+            <section>
+                <h2>3. Testing</h2>
+                <ul>
+                    <li>
+                        <code>var</code>: set and retrieve; missing var returns
+                        error.
+                    </li>
+                    <li>
+                        <code>set_var</code> and <code>remove_var</code>: basic
+                        cycle.
+                    </li>
+                    <li>
+                        <code>current_dir</code>: returns existing directory.
+                    </li>
+                    <li><code>args</code>: test with known arguments.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase3a-core-default.html" rel="prev"
+                        >Previous: Default</a
+                    >
+                    |
+                    <a href="phase3a-core-fmt.html" rel="next"
+                        >Next: Formatting</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

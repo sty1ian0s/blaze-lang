@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 5 – Ecosystem: Tensor</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 5 – Ecosystem: Tensor</h1></header>
+        <nav>
+            <p>
+                <a href="phase5-ecosystem-blaze-ml.html" rel="prev"
+                    >Previous: ML</a
+                >
+                |
+                <a href="phase5-ecosystem-blaze-plot.html" rel="next"
+                    >Next: Plot</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Generic n‑dimensional array library with SoA‑aware storage,
+                    device abstraction (CPU/GPU), broadcasting, slicing, linear
+                    algebra, and automatic parallelisation.
+                </p>
+            </section>
+            <section>
+                <h2>1. Core Types</h2>
+                <pre>
+pub struct Tensor&lt;T, const N: usize&gt; {
+    data: Owned&lt;[T]&gt;,
+    shape: [usize; N],
+    strides: [usize; N],
+    device: Device,
+}
+pub struct TensorView&lt;'a, T, const N: usize&gt; {
+    data: &amp;'a [T],
+    shape: [usize; N],
+    strides: [usize; N],
+}</pre
+                >
+            </section>
+            <section>
+                <h2>2. Construction</h2>
+                <pre>
+impl&lt;T: Numeric, const N: usize&gt; Tensor&lt;T, N&gt; {
+    pub fn new(shape: [usize; N], device: Device) -> Self;
+    pub fn from_slice(slice: &amp;[T], shape: [usize; N], device: Device) -> Self;
+    pub fn zeros(shape: [usize; N], device: Device) -> Self;
+    pub fn ones(shape: [usize; N], device: Device) -> Self;
+    pub fn full(shape: [usize; N], value: T, device: Device) -> Self;
+    pub fn eye(dim: usize, device: Device) -> Tensor&lt;T, 2&gt;;
+    pub fn random(shape: [usize; N], device: Device) -> Self;
+    pub fn from_fn(shape: [usize; N], f: impl Fn([usize; N]) -> T, device: Device) -> Self;
+    pub fn to_device(&amp;self, device: Device) -> Self;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>3. Operations</h2>
+                <ul>
+                    <li>
+                        Element‑wise: <code>add</code>, <code>sub</code>,
+                        <code>mul</code>, <code>div</code>, <code>rem</code>,
+                        <code>neg</code>, <code>abs</code>, <code>sqrt</code>,
+                        <code>exp</code>, <code>log</code>, <code>pow</code>,
+                        <code>sin</code>, <code>cos</code>, <code>tan</code>,
+                        <code>relu</code>, <code>sigmoid</code>,
+                        <code>tanh</code>, <code>softmax</code>.
+                    </li>
+                    <li>
+                        Linear algebra: <code>matmul</code>, <code>dot</code>,
+                        <code>transpose</code>, <code>permute</code>,
+                        <code>svd</code>, <code>inverse</code>,
+                        <code>solve</code>.
+                    </li>
+                    <li>
+                        Reductions: <code>sum</code>, <code>mean</code>,
+                        <code>max</code>, <code>min</code>, <code>argmax</code>.
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>4. Broadcasting</h2>
+                <pre>
+pub fn broadcast&lt;const M: usize&gt;(&amp;self, target_shape: [usize; M]) -> TensorView&lt;T, M&gt;;</pre
+                >
+                <p>Lazy broadcasting via strides.</p>
+            </section>
+            <section>
+                <h2>5. SoA for Structured Elements</h2>
+                <p>
+                    <code>StructuredTensor&lt;S, const N: usize&gt;</code> for
+                    structs with <code>@layout(soa)</code>.
+                </p>
+            </section>
+            <section>
+                <h2>6. Serialization</h2>
+                <pre>
+pub fn save(path: &amp;str, tensor: &amp;Tensor&lt;T, N&gt;) -> Result&lt;(), TensorError&gt;;
+pub fn load(path: &amp;str) -> Result&lt;Tensor&lt;T, N&gt;, TensorError&gt;;</pre
+                >
+            </section>
+            <section>
+                <h2>7. Error Handling</h2>
+                <pre>
+pub enum TensorError {
+    ShapeMismatch(Text), OutOfBounds, DeviceMismatch,
+    NotSupported(Text), LayoutError(Text), Io(std::io::Error),
+}</pre
+                >
+            </section>
+            <section>
+                <h2>8. Testing</h2>
+                <ul>
+                    <li>Basic creation and shapes.</li>
+                    <li>Arithmetic and broadcasting.</li>
+                    <li>Matrix multiply.</li>
+                    <li>Slicing.</li>
+                    <li>SoA conversion.</li>
+                    <li>GPU copy and operation.</li>
+                    <li>Determinism.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase5-ecosystem-blaze-ml.html" rel="prev"
+                        >Previous: ML</a
+                    >
+                    |
+                    <a href="phase5-ecosystem-blaze-plot.html" rel="next"
+                        >Next: Plot</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

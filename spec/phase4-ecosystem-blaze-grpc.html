@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: gRPC</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: gRPC</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-glob.html" rel="prev"
+                    >Previous: Glob</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-gpu-compute.html" rel="next"
+                    >Next: GPU Compute</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    gRPC client and server built on <code>blaze‑http2</code>,
+                    <code>blaze‑serde</code>, and Protocol Buffers. Supports
+                    unary, client‑stream, server‑stream, bidi‑streaming.
+                </p>
+            </section>
+            <section>
+                <h2>1. Core Concepts</h2>
+                <ul>
+                    <li><code>MethodDescriptor</code> – method metadata.</li>
+                    <li><code>ServiceDescriptor</code> – service metadata.</li>
+                    <li><code>Channel</code> – connection to gRPC server.</li>
+                    <li><code>Server</code> – gRPC server.</li>
+                </ul>
+            </section>
+            <section>
+                <h2>2. Protocol Buffers Integration</h2>
+                <pre>
+pub trait Message: Serialize + Deserialize&lt;'static&gt; + Send + Sync + 'static {
+    fn descriptor() -> MessageDescriptor;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>3. Client</h2>
+                <pre>
+pub struct Channel { /* … */ }
+impl Channel { pub async fn connect(uri: &amp;str) -> Result&lt;Self, GrpcError&gt;; pub fn create_stub&lt;S: Service&gt;(&amp;self) -> S::Stub; }
+pub struct Request&lt;T&gt; { pub message: T, pub metadata: MetadataMap, pub extensions: Extensions }
+pub struct Response&lt;T&gt; { pub message: T, pub metadata: MetadataMap, pub extensions: Extensions }</pre
+                >
+            </section>
+            <section>
+                <h2>4. Server</h2>
+                <pre>
+pub struct Server { /* … */ }
+impl Server { pub fn new() -> Self; pub fn add_service&lt;S: Service&gt;(&amp;mut self, service: S) -> &amp;mut Self; pub async fn serve(self, addr: &amp;str) -> Result&lt;(), GrpcError&gt;; }</pre
+                >
+            </section>
+            <section>
+                <h2>5. Error Handling</h2>
+                <pre>
+pub enum GrpcError { Status(Status), Transport(HttpError), Codec(Text) }
+pub struct Status { code: Code, message: Text, details: Vec&lt;u8&gt; }
+pub enum Code { Ok, Cancelled, Unknown, InvalidArgument, DeadlineExceeded, NotFound, AlreadyExists, PermissionDenied, ResourceExhausted, FailedPrecondition, Aborted, OutOfRange, Unimplemented, Internal, Unavailable, DataLoss, Unauthenticated }</pre
+                >
+            </section>
+            <section>
+                <h2>6. Testing</h2>
+                <ul>
+                    <li>Unary RPC.</li>
+                    <li>Streaming RPCs.</li>
+                    <li>Error codes.</li>
+                    <li>Metadata propagation.</li>
+                    <li>Invalid requests.</li>
+                    <li>Concurrency.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-glob.html" rel="prev"
+                        >Previous: Glob</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-gpu-compute.html" rel="next"
+                        >Next: GPU Compute</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

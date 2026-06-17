@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: Audio</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: Audio</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-async-std.html" rel="prev"
+                    >Previous: Async Std</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-backtrace.html" rel="next"
+                    >Next: Backtrace</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Provide low‑latency audio I/O, playback/recording, waveform
+                    generation, effects, and spatial audio integration with ECS.
+                </p>
+            </section>
+            <section>
+                <h2>1. Audio Devices</h2>
+                <pre>
+pub struct AudioDevice { name: Text, device_type: DeviceType, default_sample_rate: u32, num_channels: u16 }
+pub enum DeviceType { Playback, Capture }
+pub fn enumerate() -> Vec&lt;AudioDevice&gt;;</pre
+                >
+            </section>
+            <section>
+                <h2>2. Streams</h2>
+                <pre>
+pub fn open_playback_stream(device: &amp;AudioDevice, config: &amp;StreamConfig, callback: impl FnMut(&amp;mut [f32]) + Send + 'static) -> Result&lt;AudioStream, AudioError&gt;;
+pub fn open_capture_stream(device: &amp;AudioDevice, config: &amp;StreamConfig, callback: impl FnMut(&amp;[f32]) + Send + 'static) -> Result&lt;AudioStream, AudioError&gt;;</pre
+                >
+                <p>
+                    <code>StreamConfig</code>: sample rate, channels, buffer
+                    size. Callback must be pure (no I/O, no allocation).
+                </p>
+            </section>
+            <section>
+                <h2>3. Audio Buffer</h2>
+                <pre>
+pub struct AudioBuffer { samples: Vec&lt;f32&gt;, sample_rate: u32, channels: u16, duration: Duration }
+pub fn load_wav(path: &amp;str) -> Result&lt;AudioBuffer, AudioError&gt;;
+pub fn save_wav(path: &amp;str, buffer: &amp;AudioBuffer) -> Result&lt;(), AudioError&gt;;</pre
+                >
+            </section>
+            <section>
+                <h2>4. Waveform and Effects</h2>
+                <pre>
+pub enum Waveform { Sine, Square, Sawtooth, Triangle, Noise, Custom(fn(f32) -> f32) }
+pub fn generate_waveform(wave: Waveform, frequency: f32, sample_rate: u32, duration: Duration) -> AudioBuffer;</pre
+                >
+                <pre>
+pub trait AudioEffect { fn process(&amp;mut self, buffer: &amp;mut [f32], sample_rate: u32); }
+pub struct Gain { factor: f32 } /* etc */</pre
+                >
+            </section>
+            <section>
+                <h2>5. Spatial Audio</h2>
+                <p>
+                    Integration with ECS: <code>AudioEvent</code> enum
+                    (<code>PlayOneShot</code>, <code>SetListener</code>,
+                    <code>StopEmitter</code>).
+                </p>
+            </section>
+            <section>
+                <h2>6. Error Handling</h2>
+                <pre>
+pub enum AudioError {
+    Io(std::io::Error),
+    DeviceUnavailable,
+    FormatNotSupported,
+    LoadError(Text),
+    StreamClosed,
+}</pre
+                >
+            </section>
+            <section>
+                <h2>7. Testing</h2>
+                <ul>
+                    <li>Playback: fill with sine, no errors.</li>
+                    <li>Capture: record 1s, check length.</li>
+                    <li>WAV round‑trip.</li>
+                    <li>Effect chain: gain applied.</li>
+                    <li>Spatial: position attenuation.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-async-std.html" rel="prev"
+                        >Previous: Async Std</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-backtrace.html" rel="next"
+                        >Next: Backtrace</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

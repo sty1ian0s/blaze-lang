@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: Vulkan</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: Vulkan</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-toml.html" rel="prev"
+                    >Previous: TOML</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-wasm-bindgen.html" rel="next"
+                    >Next: Wasm Bindgen</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Low‑level, unsafe, data‑oriented bindings to Vulkan 1.3. All
+                    resources are linear (Instance, Device, Buffer, Image,
+                    CommandBuffer, etc.).
+                </p>
+            </section>
+            <section>
+                <h2>1. Core Types</h2>
+                <pre>
+pub struct Instance { handle: vk::Instance, entry: Entry }
+pub struct PhysicalDevice { handle: vk::PhysicalDevice }
+pub struct Device { handle: vk::Device, queues: Map&lt;u32, Queue&gt; }
+pub struct Queue { handle: vk::Queue, family: u32 }
+pub struct DeviceMemory { handle: vk::DeviceMemory, size: vk::DeviceSize }
+pub struct Buffer { handle: vk::Buffer, memory: DeviceMemory, size: vk::DeviceSize }
+pub struct Image { handle: vk::Image, memory: DeviceMemory, format: vk::Format, extent: vk::Extent3D }
+/* … and many more: ImageView, Sampler, Framebuffer, RenderPass, Pipeline, ShaderModule, DescriptorSetLayout, DescriptorPool, DescriptorSet, CommandPool, CommandBuffer, Fence, Semaphore, Event, QueryPool */</pre
+                >
+            </section>
+            <section>
+                <h2>2. Instance</h2>
+                <pre>
+impl Instance { pub fn new(create_info: &amp;InstanceCreateInfo) -> Result&lt;Self, VkError&gt;; pub fn enumerate_physical_devices(&amp;self) -> Vec&lt;PhysicalDevice&gt;; }</pre
+                >
+            </section>
+            <section>
+                <h2>3. Device</h2>
+                <pre>
+impl PhysicalDevice {
+    pub fn create_device(&amp;self, create_info: &amp;DeviceCreateInfo) -> Result&lt;Device, VkError&gt;;
+}
+impl Device {
+    pub fn allocate_memory(&amp;self, allocate_info: &amp;MemoryAllocateInfo) -> Result&lt;DeviceMemory, VkError&gt;;
+    pub fn create_buffer(&amp;self, create_info: &amp;BufferCreateInfo) -> Result&lt;Buffer, VkError&gt;;
+    pub fn create_image(&amp;self, create_info: &amp;ImageCreateInfo) -> Result&lt;Image, VkError&gt;;
+    pub fn create_command_pool(&amp;self, create_info: &amp;CommandPoolCreateInfo) -> Result&lt;CommandPool, VkError&gt;;
+    pub fn create_command_buffer(&amp;self, allocate_info: &amp;CommandBufferAllocateInfo) -> Vec&lt;CommandBuffer&gt;;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>4. Command Recording</h2>
+                <pre>
+impl CommandBuffer {
+    pub fn begin(&amp;mut self, info: &amp;CommandBufferBeginInfo);
+    pub fn end(&amp;mut self);
+    pub fn cmd_begin_render_pass(&amp;mut self, info: &amp;RenderPassBeginInfo, contents: SubpassContents);
+    pub fn cmd_end_render_pass(&amp;mut self);
+    pub fn cmd_bind_pipeline(&amp;mut self, bind_point: PipelineBindPoint, pipeline: &amp;Pipeline);
+    pub fn cmd_bind_vertex_buffers(&amp;mut self, first_binding: u32, buffers: &amp;[&amp;Buffer], offsets: &amp;[vk::DeviceSize]);
+    pub fn cmd_bind_index_buffer(&amp;mut self, buffer: &amp;Buffer, offset: vk::DeviceSize, index_type: IndexType);
+    pub fn cmd_bind_descriptor_sets(&amp;mut self, bind_point: PipelineBindPoint, layout: &amp;PipelineLayout, first_set: u32, descriptor_sets: &amp;[&amp;DescriptorSet], dynamic_offsets: &amp;[u32]);
+    pub fn cmd_draw(&amp;mut self, vertex_count: u32, instance_count: u32, first_vertex: u32, first_instance: u32);
+    pub fn cmd_draw_indexed(&amp;mut self, index_count: u32, instance_count: u32, first_index: u32, vertex_offset: i32, first_instance: u32);
+    pub fn cmd_dispatch(&amp;mut self, group_count_x: u32, group_count_y: u32, group_count_z: u32);
+    pub fn cmd_copy_buffer(&amp;mut self, src: &amp;Buffer, dst: &amp;Buffer, regions: &amp;[BufferCopy]);
+    pub fn cmd_pipeline_barrier(&amp;mut self, src_stage: PipelineStageFlags, dst_stage: PipelineStageFlags, dependency_flags: DependencyFlags, memory_barriers: &amp;[MemoryBarrier], buffer_memory_barriers: &amp;[BufferMemoryBarrier], image_memory_barriers: &amp;[ImageMemoryBarrier]);
+}</pre
+                >
+            </section>
+            <section>
+                <h2>5. Error Handling</h2>
+                <pre>
+pub enum VkError {
+    OutOfHostMemory, OutOfDeviceMemory, InitializationFailed, DeviceLost,
+    MemoryMapFailed, LayerNotPresent, ExtensionNotPresent, FeatureNotPresent,
+    IncompatibleDriver, TooManyObjects, FormatNotSupported, FragmentedPool,
+    Unknown(i32), Loader(Text),
+}</pre
+                >
+            </section>
+            <section>
+                <h2>6. Testing</h2>
+                <ul>
+                    <li>Instance creation.</li>
+                    <li>Physical device enumeration.</li>
+                    <li>Device creation.</li>
+                    <li>Buffer creation and mapping.</li>
+                    <li>Command recording.</li>
+                    <li>Error handling.</li>
+                    <li>Resource cleanup.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-toml.html" rel="prev"
+                        >Previous: TOML</a
+                    >
+                    |
+                    <a
+                        href="phase4-ecosystem-blaze-wasm-bindgen.html"
+                        rel="next"
+                        >Next: Wasm Bindgen</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

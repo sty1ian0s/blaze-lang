@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: Bench Utils</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: Bench Utils</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-backtrace.html" rel="prev"
+                    >Previous: Backtrace</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-chrono.html" rel="next"
+                    >Next: Chrono</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Provide lightweight benchmarking framework with
+                    <code>bench!</code> macro, <code>Bencher</code>,
+                    <code>black_box</code>, and reporters.
+                </p>
+            </section>
+            <section>
+                <h2>1. <code>bench!</code> Macro</h2>
+                <pre>
+bench!(name: &amp;str, iterations: u64, || { /* code */ });</pre
+                >
+                <p>
+                    Reports time per iteration via global reporter. Uses
+                    <code>black_box</code> to prevent optimisation.
+                </p>
+            </section>
+            <section>
+                <h2>2. <code>Bencher</code> (Manual)</h2>
+                <pre>
+pub struct Bencher { config: BenchConfig }
+impl Bencher {
+    pub fn new(config: BenchConfig) -> Bencher;
+    pub fn iter&lt;F&gt;(&amp;mut self, f: F) -> Duration where F: FnMut();
+    pub fn iter_with_setup&lt;F, S&gt;(&amp;mut self, setup: S, f: F) -> Duration where S: FnMut(), F: FnMut();
+}</pre
+                >
+            </section>
+            <section>
+                <h2>3. <code>BenchConfig</code></h2>
+                <pre>
+pub struct BenchConfig {
+    pub iterations: u64,
+    pub warm_up: u64,
+    pub min_time: Option&lt;Duration&gt;,
+    pub max_time: Option&lt;Duration&gt;,
+    pub report_format: ReportFormat,
+}</pre
+                >
+            </section>
+            <section>
+                <h2>4. <code>black_box</code></h2>
+                <pre>pub fn black_box&lt;T&gt;(val: T) -> T;</pre>
+                <p>Prevents compiler optimising away the value.</p>
+            </section>
+            <section>
+                <h2>5. Reporters</h2>
+                <pre>
+pub trait BenchReporter: Send + Sync + 'static { fn report(&amp;self, name: &amp;str, duration: Duration, iterations: u64); }
+pub struct ConsoleReporter; pub struct JsonReporter; pub struct CsvReporter; pub struct NullReporter;</pre
+                >
+                <p>Global reporter set via <code>set_global_reporter</code>.</p>
+            </section>
+            <section>
+                <h2>6. Integration with <code>@bench</code></h2>
+                <p>
+                    <code>@bench</code> attribute generates code using
+                    <code>Bencher</code>. <code>blaze bench</code> discovers and
+                    runs them.
+                </p>
+            </section>
+            <section>
+                <h2>7. Determinism</h2>
+                <p>Under <code>--reproducible</code>, PRNG seed is fixed.</p>
+            </section>
+            <section>
+                <h2>8. Testing</h2>
+                <ul>
+                    <li>Basic bench runs without error.</li>
+                    <li><code>black_box</code> prevents elimination.</li>
+                    <li>Configuration respected.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-backtrace.html" rel="prev"
+                        >Previous: Backtrace</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-chrono.html" rel="next"
+                        >Next: Chrono</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

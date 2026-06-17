@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: OpenGL</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: OpenGL</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-nats.html" rel="prev"
+                    >Previous: NATS</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-physics2d.html" rel="next"
+                    >Next: Physics2D</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Low‑level, unsafe, data‑oriented bindings to OpenGL 4.6 Core
+                    Profile. All objects are linear types (Buffer, Texture,
+                    Shader, Program, VertexArray, Framebuffer, etc.).
+                </p>
+            </section>
+            <section>
+                <h2>1. Object Handles</h2>
+                <pre>
+pub struct Buffer { name: GLuint }
+pub struct Texture { name: GLuint, target: TextureTarget }
+pub struct VertexArray { name: GLuint }
+pub struct Shader { name: GLuint, shader_type: ShaderType }
+pub struct Program { name: GLuint }
+pub struct Renderbuffer { name: GLuint }
+pub struct Framebuffer { name: GLuint }
+pub struct Query { name: GLuint, query_type: QueryType }
+pub struct Sampler { name: GLuint }
+pub struct Sync { ptr: *mut c_void }</pre
+                >
+                <p>
+                    All implement <code>Dispose</code> calling
+                    <code>glDelete*</code>. Linear; not <code>@copy</code>.
+                </p>
+            </section>
+            <section>
+                <h2>2. Buffer</h2>
+                <pre>
+impl Buffer {
+    pub fn new() -> Result&lt;Self, GLError&gt;;
+    pub fn bind(&amp;self, target: BufferTarget);
+    pub fn buffer_data(target: BufferTarget, size: GLsizeiptr, data: *const c_void, usage: Usage);
+    pub fn set_sub_data(target: BufferTarget, offset: GLintptr, size: GLsizeiptr, data: *const c_void);
+    pub fn map(target: BufferTarget, access: Access) -> *mut c_void;
+    pub fn unmap(target: BufferTarget) -> bool;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>3. Texture</h2>
+                <pre>
+impl Texture {
+    pub fn new(target: TextureTarget) -> Result&lt;Self, GLError&gt;;
+    pub fn bind(&amp;self);
+    pub fn tex_image2d(target: TextureTarget, level: GLint, internal_format: InternalFormat, width: GLsizei, height: GLsizei, border: GLint, format: Format, pixel_type: PixelType, pixels: *const c_void);
+    pub fn generate_mipmap(target: TextureTarget);
+}</pre
+                >
+            </section>
+            <section>
+                <h2>4. Shader and Program</h2>
+                <pre>
+impl Shader {
+    pub fn new(shader_type: ShaderType) -> Result&lt;Self, GLError&gt;;
+    pub fn source(&amp;self, source: &amp;str);
+    pub fn compile(&amp;self);
+    pub fn get_compile_status(&amp;self) -> bool;
+}
+impl Program {
+    pub fn new() -> Result&lt;Self, GLError&gt;;
+    pub fn attach_shader(&amp;self, shader: &amp;Shader);
+    pub fn link(&amp;self);
+    pub fn get_link_status(&amp;self) -> bool;
+    pub fn use_program(&amp;self);
+    pub fn get_uniform_location(&amp;self, name: &amp;str) -> Option&lt;UniformLocation&gt;;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>5. Error Handling</h2>
+                <pre>
+pub enum GLError {
+    InvalidEnum, InvalidValue, InvalidOperation,
+    StackOverflow, StackUnderflow, OutOfMemory,
+    InvalidFramebufferOperation, Unknown(GLenum),
+}
+pub fn get_error() -> Option&lt;GLError&gt;;</pre
+                >
+            </section>
+            <section>
+                <h2>6. Testing</h2>
+                <ul>
+                    <li>Object lifecycle: create/drop Buffer.</li>
+                    <li>Shader compilation.</li>
+                    <li>Program linking.</li>
+                    <li>Invalid shader → error.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-nats.html" rel="prev"
+                        >Previous: NATS</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-physics2d.html" rel="next"
+                        >Next: Physics2D</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

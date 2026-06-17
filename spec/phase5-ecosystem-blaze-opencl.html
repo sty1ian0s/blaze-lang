@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 5 – Ecosystem: OpenCL</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 5 – Ecosystem: OpenCL</h1></header>
+        <nav>
+            <p>
+                <a href="phase5-ecosystem-blaze-cuda.html" rel="prev"
+                    >Previous: CUDA</a
+                >
+                |
+                <a href="appendix-a-optional-extensions.html" rel="next"
+                    >Next: Appendix A</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Low‑level, unsafe, data‑oriented bindings to OpenCL 3.0
+                    heterogeneous computing API. Wraps platform, device,
+                    context, command queue, memory objects (buffer, image),
+                    program, kernel, event.
+                </p>
+            </section>
+            <section>
+                <h2>1. Core Types</h2>
+                <pre>
+pub struct Platform { id: cl_platform_id }
+pub struct Device { id: cl_device_id }
+pub struct Context { inner: cl_context }
+pub struct CommandQueue { inner: cl_command_queue }
+pub struct Event { inner: cl_event }
+pub struct Buffer&lt;T&gt; { inner: cl_mem, size: usize, phantom: PhantomData&lt;T&gt; }
+pub struct Image { inner: cl_mem, format: ImageFormat, width: usize, height: usize, depth: usize }
+pub struct Sampler { inner: cl_sampler }
+pub struct Program { inner: cl_program }
+pub struct Kernel { inner: cl_kernel }</pre
+                >
+            </section>
+            <section>
+                <h2>2. Platform and Device</h2>
+                <pre>
+impl Platform { pub fn enumerate() -> Result&lt;Vec&lt;Self&gt;, OpenCLError&gt;; pub fn devices(&amp;self, device_type: DeviceType) -> Result&lt;Vec&lt;Device&gt;, OpenCLError&gt;; }
+impl Device { pub fn name(&amp;self) -> Result&lt;Text, OpenCLError&gt;; pub fn vendor(&amp;self) -> Result&lt;Text, OpenCLError&gt;; pub fn version(&amp;self) -> Result&lt;Text, OpenCLError&gt;; }</pre
+                >
+            </section>
+            <section>
+                <h2>3. Context and Queue</h2>
+                <pre>
+impl Context { pub fn new(devices: &amp;[&amp;Device]) -> Result&lt;Self, OpenCLError&gt;; pub fn create_queue(&amp;self, device: &amp;Device, properties: QueueProperties) -> Result&lt;CommandQueue, OpenCLError&gt;; }
+impl CommandQueue { pub fn finish(&amp;self) -> Result&lt;(), OpenCLError&gt;; pub fn flush(&amp;self) -> Result&lt;(), OpenCLError&gt;; }</pre
+                >
+            </section>
+            <section>
+                <h2>4. Memory Objects</h2>
+                <pre>
+impl&lt;T&gt; Buffer&lt;T&gt; {
+    pub fn size(&amp;self) -> usize;
+    pub unsafe fn enqueue_write(&amp;self, queue: &amp;CommandQueue, blocking: bool, offset: usize, data: &amp;[T], events_wait: &amp;[&amp;Event]) -> Result&lt;Event, OpenCLError&gt;;
+    pub unsafe fn enqueue_read(&amp;self, queue: &amp;CommandQueue, blocking: bool, offset: usize, data: &amp;mut [T], events_wait: &amp;[&amp;Event]) -> Result&lt;Event, OpenCLError&gt;;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>5. Program and Kernel</h2>
+                <pre>
+impl Program {
+    pub fn create_program_with_source(context: &amp;Context, source: &amp;str) -> Result&lt;Self, OpenCLError&gt;;
+    pub fn build(&amp;self, devices: &amp;[&amp;Device], options: Option&lt;&amp;str&gt;) -> Result&lt;(), OpenCLError&gt;;
+    pub fn create_kernel(&amp;self, name: &amp;str) -> Result&lt;Kernel, OpenCLError&gt;;
+}
+impl Kernel {
+    pub unsafe fn set_arg&lt;T: Sized&gt;(&amp;self, index: u32, arg: &amp;T) -> Result&lt;(), OpenCLError&gt;;
+    pub unsafe fn set_arg_buffer&lt;T&gt;(&amp;self, index: u32, buffer: &amp;Buffer&lt;T&gt;) -> Result&lt;(), OpenCLError&gt;;
+    pub unsafe fn enqueue_nd_range(&amp;self, queue: &amp;CommandQueue, global_work_size: &amp;[usize], local_work_size: Option&lt;&amp;[usize]&gt;, events_wait: &amp;[&amp;Event]) -> Result&lt;Event, OpenCLError&gt;;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>6. Error Handling</h2>
+                <pre>
+pub enum OpenCLError {
+    DeviceNotFound, DeviceNotAvailable, CompilerNotAvailable,
+    OutOfHostMemory, OutOfResources, OutOfMemory, InvalidValue,
+    InvalidDevice, InvalidBufferSize, InvalidGlobalWorkSize,
+    InvalidWorkGroupSize, InvalidWorkItemSize, InvalidProgram,
+    InvalidProgramExecutable, InvalidKernel, InvalidKernelArgs,
+    InvalidCommandQueue, InvalidContext, InvalidEvent, InvalidOperation,
+    BuildProgramFailure, MapFailure, UnmapFailure, ProfilingInfoNotAvailable,
+    Unknown(i32), Loader(Text),
+}</pre
+                >
+            </section>
+            <section>
+                <h2>7. Testing</h2>
+                <ul>
+                    <li>Platform and device enumeration.</li>
+                    <li>Context and queue creation.</li>
+                    <li>Program compilation.</li>
+                    <li>Kernel launch.</li>
+                    <li>Events and synchronisation.</li>
+                    <li>Error handling.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase5-ecosystem-blaze-cuda.html" rel="prev"
+                        >Previous: CUDA</a
+                    >
+                    |
+                    <a href="appendix-a-optional-extensions.html" rel="next"
+                        >Next: Appendix A</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

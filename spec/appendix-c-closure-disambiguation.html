@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Appendix C – Closure Disambiguation</title>
+    </head>
+    <body>
+        <header><h1>Appendix C – Closure Disambiguation</h1></header>
+        <nav>
+            <p>
+                <a href="appendix-b-full-grammar-summary.html" rel="prev"
+                    >Previous: Appendix B</a
+                >
+                |
+                <a href="appendix-d-coherence-and-orphan-rules.html" rel="next"
+                    >Next: Appendix D</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Status</h2>
+                <p>
+                    Normative. Defines the exact lexical and syntactic
+                    disambiguation rules for closure expressions in Blaze.
+                </p>
+            </section>
+            <section>
+                <h2>C.1 Lexical Introduction</h2>
+                <p>
+                    A closure expression begins with the token
+                    <code>|</code> (U+007C, VERTICAL LINE). This token is also
+                    used as the bitwise OR operator, but the parser
+                    distinguishes the two contexts unambiguously.
+                </p>
+            </section>
+            <section>
+                <h2>C.2 Syntax</h2>
+                <pre>closure_expr = "|" param_list "|" expr</pre>
+                <ul>
+                    <li>
+                        After <code>|</code>, the parser expects a
+                        <code>param_list</code> (identical to function parameter
+                        lists, but with optional type annotations).
+                    </li>
+                    <li>
+                        The token <code>|</code> separates the parameter list
+                        from the closure body.
+                    </li>
+                    <li>
+                        The body is an arbitrary expression, which may be a
+                        block expression <code>{ … }</code>.
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>C.3 Parameter List</h2>
+                <p>
+                    The parameter list may be empty, written as <code>||</code>:
+                </p>
+                <pre>
+|| expr
+|x| expr
+|x, y| expr
+|x: i32, y: i32| { x + y }</pre
+                >
+                <p>
+                    Types on parameters are optional. If omitted, the compiler
+                    infers them from the closure body.
+                </p>
+            </section>
+            <section>
+                <h2>C.4 Disambiguation from Bitwise OR</h2>
+                <p>The closure syntax is unambiguous because:</p>
+                <ul>
+                    <li>
+                        A bitwise OR expression always has a left operand. At
+                        the start of an expression (or after an opening
+                        parenthesis, brace, or operator that expects an
+                        operand), <code>|</code> cannot be a binary operator.
+                    </li>
+                    <li>
+                        After the closing <code>|</code> of a closure, the
+                        parser expects an expression; if it sees another
+                        <code>|</code>, that would be part of the next
+                        expression (e.g., <code>|x| x | y</code> – the second
+                        <code>|</code> is the bitwise OR operator).
+                    </li>
+                </ul>
+                <p>
+                    Thus, the parser never needs more than one token of
+                    lookahead to decide whether a <code>|</code> begins a
+                    closure.
+                </p>
+            </section>
+            <section>
+                <h2>C.5 Examples</h2>
+                <pre>
+let add_one = |x| x + 1;
+let sum = |a, b| a + b;
+let run = || { println("Hello"); };
+let complex = |x: i32, y: i32| { let z = x + y; z * z };
+let bitwise = a | b;   // not a closure, because 'a' is a left operand</pre
+                >
+            </section>
+            <nav>
+                <p>
+                    <a href="appendix-b-full-grammar-summary.html" rel="prev"
+                        >Previous: Appendix B</a
+                    >
+                    |
+                    <a
+                        href="appendix-d-coherence-and-orphan-rules.html"
+                        rel="next"
+                        >Next: Appendix D</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

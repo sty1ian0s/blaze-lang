@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: Async Std</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: Async Std</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-arch.html" rel="prev"
+                    >Previous: Arch</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-audio.html" rel="next"
+                    >Next: Audio</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Provide a multi‑threaded async executor, timers, I/O
+                    helpers, and synchronisation primitives for applications
+                    that don't need the full actor model.
+                </p>
+            </section>
+            <section>
+                <h2>1. Core Concepts</h2>
+                <ul>
+                    <li><code>Executor</code> – work‑stealing thread pool.</li>
+                    <li><code>block_on</code> – run future to completion.</li>
+                    <li>
+                        <code>spawn</code> – spawn task onto global executor.
+                    </li>
+                    <li>Timers: <code>sleep</code>, <code>interval</code>.</li>
+                    <li>
+                        Async I/O: <code>AsyncRead</code>,
+                        <code>AsyncWrite</code> traits.
+                    </li>
+                    <li>
+                        Sync primitives: async <code>Mutex</code>,
+                        <code>RwLock</code>, <code>Semaphore</code>,
+                        <code>Channel</code>.
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>2. Executor and Spawning</h2>
+                <pre>
+pub struct Executor { /* work‑stealing pool */ }
+impl Executor {
+    pub fn new() -> Result&lt;Executor, IoError&gt;;
+    pub fn block_on&lt;F: Future&gt;(&amp;self, future: F) -> F::Output;
+    pub fn spawn&lt;F: Future + Send + 'static&gt;(&amp;self, future: F) -> JoinHandle&lt;F::Output&gt;;
+}
+pub struct JoinHandle&lt;T&gt; { /* … */ }
+impl&lt;T&gt; Future for JoinHandle&lt;T&gt; { type Output = T; … }</pre
+                >
+                <p>
+                    Global executor initialised lazily: <code>spawn</code> and
+                    <code>block_on</code> use it.
+                </p>
+            </section>
+            <section>
+                <h2>3. Async I/O</h2>
+                <pre>
+pub trait AsyncRead {
+    async fn read(&amp;mut self, buf: &amp;mut [u8]) -> Result&lt;usize, io::Error&gt;;
+    async fn read_to_end(&amp;mut self, buf: &amp;mut Vec&lt;u8&gt;) -> Result&lt;usize, io::Error&gt;;
+}
+pub trait AsyncWrite {
+    async fn write(&amp;mut self, buf: &amp;[u8]) -> Result&lt;usize, io::Error&gt;;
+    async fn flush(&amp;mut self) -> Result&lt;(), io::Error&gt;;
+}</pre
+                >
+                <p>
+                    Blanket implementations for types that implement synchronous
+                    <code>Read</code>/<code>Write</code> using blocking pool.
+                </p>
+                <p>
+                    Wrappers: <code>AsyncFile</code>,
+                    <code>AsyncTcpStream</code>, <code>AsyncTcpListener</code>.
+                </p>
+            </section>
+            <section>
+                <h2>4. Timers and Intervals</h2>
+                <pre>
+pub fn sleep(duration: Duration) -> Sleep;
+pub struct Sleep { /* … */ }
+impl Future for Sleep { type Output = (); … }</pre
+                >
+                <pre>
+pub fn interval(period: Duration) -> Interval;
+pub struct Interval { /* … */ }
+impl Stream for Interval { type Item = (); … }</pre
+                >
+            </section>
+            <section>
+                <h2>5. Synchronisation Primitives</h2>
+                <ul>
+                    <li>
+                        <code>Mutex&lt;T&gt;</code> – async <code>lock</code>.
+                    </li>
+                    <li><code>RwLock&lt;T&gt;</code> – async read‑write.</li>
+                    <li><code>Semaphore</code> – counting semaphore.</li>
+                    <li>
+                        <code>Channel&lt;T&gt;</code> – MPSC with async
+                        send/recv.
+                    </li>
+                </ul>
+                <p>All linear, implement <code>Dispose</code>.</p>
+            </section>
+            <section>
+                <h2>6. Integration with Actor Runtime</h2>
+                <p>
+                    Compatible with Blaze's actor model; actors can be spawned
+                    on the same thread pool.
+                </p>
+            </section>
+            <section>
+                <h2>7. Error Handling</h2>
+                <pre>
+pub enum IoError {
+    Io(std::io::Error),
+    Timeout,
+    Canceled,
+}</pre
+                >
+            </section>
+            <section>
+                <h2>8. Testing</h2>
+                <ul>
+                    <li>Executor: spawn futures, collect results.</li>
+                    <li>Timer: sleep wakes after duration.</li>
+                    <li>Async I/O: write to file, read back.</li>
+                    <li>Mutex: locked by one task at a time.</li>
+                    <li>Channel: send/receive ordering.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-arch.html" rel="prev"
+                        >Previous: Arch</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-audio.html" rel="next"
+                        >Next: Audio</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

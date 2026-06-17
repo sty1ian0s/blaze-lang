@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: HTTP</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: HTTP</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-gui.html" rel="prev"
+                    >Previous: GUI</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-http2.html" rel="next"
+                    >Next: HTTP/2</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    HTTP client and actor‑based server built on Blaze's core I/O
+                    and async primitives.
+                </p>
+            </section>
+            <section>
+                <h2>1. Core Types</h2>
+                <pre>
+pub enum HttpError { Io(std::io::Error), Parse(ParseError), Protocol(Text), Timeout }
+pub enum Method { Get, Post, Put, Delete, Head, Options, Patch, Connect, Trace }
+pub struct StatusCode(u16);
+pub struct Headers { /* small‑vector */ }
+pub struct Uri { scheme: Text, host: Text, port: u16, path: Text, query: Option&lt;Text&gt; }
+pub enum Body { Empty, Bytes(Vec&lt;u8&gt;), Text(Text), Stream(Box&lt;dyn BodyStream&gt;) }</pre
+                >
+            </section>
+            <section>
+                <h2>2. Client</h2>
+                <pre>
+pub struct Client { /* connection pool */ }
+impl Client { pub fn new() -> Self; pub fn with_config(config: ClientConfig) -> Self; pub async fn send(&amp;self, request: Request) -> Result&lt;Response, HttpError&gt;; pub async fn get(&amp;self, uri: &amp;str) -> Result&lt;Response, HttpError&gt;; }</pre
+                >
+            </section>
+            <section>
+                <h2>3. Server</h2>
+                <pre>
+pub struct HttpServer { /* listens */ }
+impl HttpServer { pub fn bind(addr: &amp;str) -> Result&lt;Self, HttpError&gt;; pub async fn serve(self, handler: impl HttpHandler + Send + 'static) -> Result&lt;(), HttpError&gt;; }
+pub trait HttpHandler: Send + 'static { fn handle(&amp;self, request: Request) -> Response; }
+pub struct Router { /* routes */ }
+impl Router { pub fn new() -> Self; pub fn route(mut self, method: Method, path: &amp;str, handler: fn(Request) -> Response) -> Self; }</pre
+                >
+            </section>
+            <section>
+                <h2>4. Serde Integration</h2>
+                <pre>
+#[cfg(feature = "serde")] impl Request { pub fn json&lt;T: Deserialize&lt;'static&gt;&gt;(&amp;self) -> Result&lt;T, Error&gt;; }
+#[cfg(feature = "serde")] impl Response { pub fn json&lt;T: Serialize&gt;(body: &amp;T) -> Response; }</pre
+                >
+            </section>
+            <section>
+                <h2>5. Testing</h2>
+                <ul>
+                    <li>Client: mock server, GET/POST, redirects, timeouts.</li>
+                    <li>Server: bind, handler, response.</li>
+                    <li>Router: route matching.</li>
+                    <li>Error handling.</li>
+                    <li>Actor isolation.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-gui.html" rel="prev"
+                        >Previous: GUI</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-http2.html" rel="next"
+                        >Next: HTTP/2</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

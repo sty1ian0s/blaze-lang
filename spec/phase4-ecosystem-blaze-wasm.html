@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: Wasm</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: Wasm</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-wasm-bindgen.html" rel="prev"
+                    >Previous: Wasm Bindgen</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-web.html" rel="next"
+                    >Next: Web</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    WebAssembly runtime embedded in Blaze: load, compile,
+                    instantiate, and execute .wasm modules. Supports MVP,
+                    sign‑extension, mutable globals, SIMD.
+                </p>
+            </section>
+            <section>
+                <h2>1. Core Types</h2>
+                <pre>
+pub struct Engine { /* … */ }
+pub struct Module { /* compiled */ }
+pub struct Instance { module: Module, memory: Option&lt;Memory&gt;, exports: Exports }
+pub struct Memory { buf: Vec&lt;u8&gt;, max_pages: u32 }
+pub struct Func { /* … */ }
+pub enum Value { I32(i32), I64(i64), F32(f32), F64(f64), V128(u128) }</pre
+                >
+            </section>
+            <section>
+                <h2>2. Engine</h2>
+                <pre>
+impl Engine {
+    pub fn new(config: &amp;EngineConfig) -> Self;
+    pub fn compile(&amp;self, wasm_bytes: &amp;[u8]) -> Result&lt;Module, WasmError&gt;;
+    pub fn instantiate(&amp;self, module: &amp;Module, imports: &amp;Imports) -> Result&lt;Instance, WasmError&gt;;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>3. Imports</h2>
+                <pre>
+pub struct Imports {
+    functions: Map&lt;(Text, Text), Func&gt;,
+    memories: Map&lt;(Text, Text), Memory&gt;,
+    globals: Map&lt;(Text, Text), Global&gt;,
+    tables: Map&lt;(Text, Text), Table&gt;,
+}
+impl Imports {
+    pub fn new() -> Self;
+    pub fn func(mut self, module: &amp;str, name: &amp;str, f: Func) -> Self;
+    pub fn memory(mut self, module: &amp;str, name: &amp;str, m: Memory) -> Self;
+    pub fn done(self) -> Self;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>4. Instance</h2>
+                <pre>
+impl Instance {
+    pub fn get_export(&amp;self, name: &amp;str) -> Option&lt;&amp;Extern&gt;;
+    pub fn memory(&amp;self) -> Option&lt;&amp;Memory&gt;;
+    pub fn call(&amp;self, func_name: &amp;str, args: &amp;[Value]) -> Result&lt;Vec&lt;Value&gt;, WasmError&gt;;
+}
+pub enum Extern { Func(Func), Memory(Memory), Global(Global), Table(Table) }</pre
+                >
+            </section>
+            <section>
+                <h2>5. Host Functions</h2>
+                <pre>
+impl Func {
+    pub fn new&lt;F&gt;(f: F) -> Self where F: Fn(&amp;[Value]) -> Result&lt;Vec&lt;Value&gt;, WasmError&gt; + Send + 'static;
+    pub fn call(&amp;self, args: &amp;[Value]) -> Result&lt;Vec&lt;Value&gt;, WasmError&gt;;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>6. Error Handling</h2>
+                <pre>
+pub enum WasmError {
+    Compile(Text), Instantiate(Text), Runtime(RuntimeError),
+    MemoryOutOfBounds, Unreachable, TypeMismatch(Text), ImportNotFound(Text),
+}
+pub struct RuntimeError { message: Text, function: Option&lt;Text&gt;, wasm_stack_trace: Vec&lt;Frame&gt; }</pre
+                >
+            </section>
+            <section>
+                <h2>7. Testing</h2>
+                <ul>
+                    <li>Compile and instantiate a simple Wasm module.</li>
+                    <li>Memory access.</li>
+                    <li>Host functions.</li>
+                    <li>Error handling (malformed Wasm, type mismatch).</li>
+                    <li>Dispose.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a
+                        href="phase4-ecosystem-blaze-wasm-bindgen.html"
+                        rel="prev"
+                        >Previous: Wasm Bindgen</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-web.html" rel="next"
+                        >Next: Web</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

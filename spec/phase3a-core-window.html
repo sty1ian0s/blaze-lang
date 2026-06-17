@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 3a – Core Library: Sliding Windows</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 3a – Core Library: Sliding Windows</h1></header>
+        <nav>
+            <p>
+                <a href="phase3a-core-units.html" rel="prev">Previous: Units</a>
+                |
+                <a href="phase3a-core-deduplicate.html" rel="next"
+                    >Next: Deduplicate</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Zero‑cost abstractions for fixed‑size overlapping/strided
+                    windows of slices, with SoA integration.
+                </p>
+            </section>
+            <section>
+                <h2>1. Core Traits</h2>
+                <h3>1.1 <code>Windowable</code></h3>
+                <pre>
+pub trait Windowable&lt;const N: usize&gt; {
+    type WindowIter: Iterator&lt;Item = &amp;[Self::Item; N]&gt;;
+    fn window(&amp;self) -> Self::WindowIter;
+}</pre
+                >
+                <h3>1.2 <code>SoAWindowable</code></h3>
+                <pre>
+pub trait SoAWindowable&lt;const N: usize&gt; {
+    type WindowIter: Iterator&lt;Item = WindowedView&lt;Self, N&gt;&gt;;
+    fn window_soa(&amp;self) -> Self::WindowIter;
+}</pre
+                >
+                <p>
+                    Automatically implemented for
+                    <code>@layout(soa)</code> structs.
+                </p>
+            </section>
+            <section>
+                <h2>2. Iterator Types</h2>
+                <ul>
+                    <li>
+                        <code>Window&lt;T, const N: usize&gt;</code> – yields
+                        <code>&amp;[T; N]</code>.
+                    </li>
+                    <li>
+                        <code>WindowMut&lt;T, const N: usize&gt;</code> – yields
+                        <code>&amp;mut [T; N]</code>.
+                    </li>
+                    <li>
+                        <code
+                            >StridedWindow&lt;T, const N: usize, const S:
+                            usize&gt;</code
+                        >
+                        – stride S.
+                    </li>
+                    <li>
+                        <code>WindowSoA&lt;S, const N: usize&gt;</code> –
+                        compiler‑generated for SoA.
+                    </li>
+                </ul>
+                <p>
+                    All provide <code>Iterator</code> implementations with
+                    bounds checks in debug, elided in release.
+                </p>
+            </section>
+            <section>
+                <h2>3. <code>WindowedView&lt;S, N&gt;</code></h2>
+                <p>
+                    Compiler‑synthesized type for SoA. Provides per‑field slice
+                    access:
+                    <code>pub fn field(&amp;self) -> &amp;[Type; N];</code>
+                </p>
+            </section>
+            <section>
+                <h2>4. Window Hints</h2>
+                <ul>
+                    <li><code>@slide(N)</code> – optimise for window width.</li>
+                    <li><code>@window_nobounds</code> – omit bounds checks.</li>
+                    <li>
+                        <code>@window_accumulate</code> – associative reduction,
+                        may replace with prefix‑sum.
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>5. Testing</h2>
+                <ul>
+                    <li><code>Window</code>: overlapping sequences.</li>
+                    <li>
+                        <code>WindowMut</code>: mutate and verify original
+                        changed.
+                    </li>
+                    <li><code>StridedWindow</code>: various strides.</li>
+                    <li>
+                        <code>SoAWindowable</code>: with
+                        <code>@layout(soa)</code> struct.
+                    </li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase3a-core-units.html" rel="prev"
+                        >Previous: Units</a
+                    >
+                    |
+                    <a href="phase3a-core-deduplicate.html" rel="next"
+                        >Next: Deduplicate</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

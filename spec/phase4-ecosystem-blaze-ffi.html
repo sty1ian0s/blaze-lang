@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: FFI</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: FFI</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-esp32.html" rel="prev"
+                    >Previous: ESP32</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-glob.html" rel="next"
+                    >Next: Glob</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Safe FFI builder: <code>#[ffi_export]</code> and
+                    <code>#[ffi_import]</code> attributes, automatic generation
+                    of C headers and shared library exports,
+                    <code>CType</code> trait, <code>blaze‑ffi‑tool</code>.
+                </p>
+            </section>
+            <section>
+                <h2>1. Attributes</h2>
+                <pre>
+#[ffi_export] fn add(a: i32, b: i32) -> i32 { a + b }
+#[ffi_export] #[repr(C)] struct Point { x: f64, y: f64 }
+#[ffi_export] enum Status { Ok, Error }</pre
+                >
+                <p>
+                    Generates C wrappers, headers, and shared library exports.
+                </p>
+            </section>
+            <section>
+                <h2>2. Import</h2>
+                <pre>
+#[ffi_import] extern "C" { fn malloc(size: usize) -> *mut u8; fn free(ptr: *mut u8); }</pre
+                >
+            </section>
+            <section>
+                <h2>3. <code>CType</code> Trait</h2>
+                <pre>
+pub trait CType { type CEquivalent; fn to_c(self) -> Self::CEquivalent; unsafe fn from_c(c: Self::CEquivalent) -> Self; }</pre
+                >
+            </section>
+            <section>
+                <h2>4. <code>blaze‑ffi‑tool</code></h2>
+                <pre>blaze ffi --crate mylib --out-dir ffi/</pre>
+            </section>
+            <section>
+                <h2>5. Safety Guarantees</h2>
+                <p>
+                    Linear types transferred across FFI must be consumed;
+                    references require explicit lifetimes.
+                </p>
+            </section>
+            <section>
+                <h2>6. Error Handling</h2>
+                <pre>
+pub enum FfiError {
+    Io(std::io::Error),
+    UnsupportedType(Text),
+    LayoutMismatch(Text),
+    LinkError(Text),
+}</pre
+                >
+            </section>
+            <section>
+                <h2>7. Testing</h2>
+                <ul>
+                    <li>Export add function, call from C.</li>
+                    <li>Export struct, call from C.</li>
+                    <li>Import C function (abs).</li>
+                    <li>Reject unsound signatures.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-esp32.html" rel="prev"
+                        >Previous: ESP32</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-glob.html" rel="next"
+                        >Next: Glob</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

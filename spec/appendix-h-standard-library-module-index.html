@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Appendix H – Standard Library Module Index</title>
+    </head>
+    <body>
+        <header><h1>Appendix H – Standard Library Module Index</h1></header>
+        <nav>
+            <p>
+                <a href="appendix-g-compiler-algorithms.html" rel="prev"
+                    >Previous: Appendix G</a
+                >
+                |
+                <a
+                    href="appendix-i-compiler-implementation-details.html"
+                    rel="next"
+                    >Next: Appendix I</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Status</h2>
+                <p>
+                    Normative. Alphabetically sorted list of every public name
+                    exported by the Blaze standard library, with module path.
+                </p>
+            </section>
+            <section>
+                <h2>H.1 Conventions</h2>
+                <ul>
+                    <li>Entries: <code>name → module_path</code>.</li>
+                    <li>
+                        Types, traits, functions, macros all listed together.
+                    </li>
+                    <li>
+                        Re‑exports through multiple paths are listed multiple
+                        times.
+                    </li>
+                    <li>
+                        Index covers normative standard library; ecosystem
+                        crates not included.
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>H.2 Index</h2>
+                <pre>
+abs → std::cmp, std::ops
+Add → std::ops
+AddAssign → std::ops
+Arena → std::mem
+Allocator → std::mem
+ApproxEq → std::cmp
+args → std::env
+AsMut → std::ops
+AsRef → std::ops
+Binary → std::ops
+BitAnd → std::ops
+BitAndAssign → std::ops
+BitOr → std::ops
+BitOrAssign → std::ops
+BitXor → std::ops
+BitXorAssign → std::ops
+bool → (primitive type)
+Box → std::mem (Owned&lt;T&gt;)
+Capability → std::sync
+Channel → std::sync
+char → (primitive type)
+Clone → std::clone
+Command → std::process
+const → (keyword)
+continue → (keyword)
+CString → std::ffi
+Default → std::default
+Debug → std::debug
+defer → (keyword)
+Deduplicate → std::deduplicate
+Display → std::fmt
+Dispose → std::mem
+Div → std::ops
+DivAssign → std::ops
+Duration → std::time
+dyn → (keyword)
+else → (keyword)
+ensures → (contract attribute)
+Error → std::fmt, std::io
+ErrorKind → std::io
+Eq → std::cmp
+ExitStatus → std::process
+extern → (keyword)
+f16, f32, f64, f128 → (primitive types)
+false → (literal)
+File → std::io
+FnDef → std::meta
+fmt → std::fmt
+for → (keyword)
+format! → std::builtins
+From → std::ops
+FromIterator → std::iter
+FromRow → std::ops
+FromValue → std::sql
+Future → std::future
+Gauge → std::metrics
+gpu → (effect)
+Hash → std::hash
+Hasher → std::hash
+HashMap → std::collections (Map)
+i8, i16, i32, i64, i128, isize → (primitive types)
+if → (keyword)
+impl → (keyword)
+in → (keyword)
+Instant → std::time
+Into → std::ops
+IntoIterator → std::iter
+Iterator → std::iter
+Key → std::collections
+let → (keyword)
+List → std::collections
+loop → (keyword)
+Map → std::collections
+match → (keyword)
+Metadata → std::io
+mod → (keyword)
+move → (keyword)
+Mul → std::ops
+MulAssign → std::ops
+mut → (keyword)
+Neg → std::ops
+None → std::builtins
+NonNull → std::mem
+Not → std::ops
+Ok → std::builtins
+Option → std::builtins
+Ord → std::cmp
+Ordering → std::cmp
+Output → std::process
+Owned → std::mem
+panic! → std::builtins
+PartialEq → std::cmp
+PartialOrd → std::cmp
+Path → std::path
+Poll → std::future
+pool → (attribute)
+print → std::fmt
+println → std::fmt
+pub → (keyword)
+Range → std::builtins
+Read → std::io
+Receiver → std::sync
+ref → (keyword)
+region → (keyword)
+Rem → std::ops
+RemAssign → std::ops
+requires → (contract attribute)
+Result → std::builtins
+return → (keyword)
+RingBuf → std::collections
+Send → std::marker
+Sender → std::sync
+seq → (keyword)
+Shl → std::ops
+ShlAssign → std::ops
+Shr → std::ops
+ShrAssign → std::ops
+SizeConstraint → std::layout
+SlotMap → std::collections
+Some → std::builtins
+Split → std::string
+static → (keyword)
+Step → std::iter
+str → (primitive type)
+String → std::string
+struct → (keyword)
+Sub → std::ops
+SubAssign → std::ops
+Sync → std::marker
+Text → std::string
+Time → std::time
+todo! → std::builtins
+trait → (keyword)
+true → (literal)
+try → (keyword)
+type → (keyword)
+Type → std::meta
+u8, u16, u32, u64, u128, usize → (primitive types)
+union → (keyword)
+unreachable! → std::builtins
+unsafe → (keyword)
+use → (keyword)
+VarError → std::env
+Vec → std::collections
+Variant → std::meta
+Version → std::env
+Wake → std::future
+where → (keyword)
+while → (keyword)
+Window → std::window
+WindowedView → std::window
+Windowable → std::window
+Write → std::io
+yield → (keyword)</pre
+                >
+            </section>
+            <section>
+                <h2>H.3 Notes</h2>
+                <ul>
+                    <li>
+                        Not exhaustive of internal helpers; covers public API
+                        surface required for conformance.
+                    </li>
+                    <li>
+                        Compiler generates precise JSON index during standard
+                        library build, used by <code>blaze doc</code> and LSP.
+                    </li>
+                    <li>
+                        Entries added in Version 1.0:
+                        <code>Deduplicate</code> in
+                        <code>std::deduplicate</code>.
+                    </li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="appendix-g-compiler-algorithms.html" rel="prev"
+                        >Previous: Appendix G</a
+                    >
+                    |
+                    <a
+                        href="appendix-i-compiler-implementation-details.html"
+                        rel="next"
+                        >Next: Appendix I</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

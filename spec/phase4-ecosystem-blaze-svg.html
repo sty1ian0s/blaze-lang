@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: SVG</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: SVG</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-sqlite.html" rel="prev"
+                    >Previous: SQLite</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-text.html" rel="next"
+                    >Next: Text</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Pure‑Blaze library for parsing, generating, and manipulating
+                    SVG documents (SVG 1.1 static, subset of 2.0).
+                </p>
+            </section>
+            <section>
+                <h2>1. Core Types</h2>
+                <pre>
+pub struct SvgDocument { view_box: Rect, width: f32, height: f32, elements: Vec&lt;SvgElement&gt;, defs: Map&lt;Text, SvgElement&gt;, css: Option&lt;Text&gt;, metadata: Option&lt;Text&gt; }
+pub enum SvgElement {
+    Group(Group), Path(Path), Rect(RectElement), Circle(Circle), Ellipse(Ellipse),
+    Line(Line), Polyline(Polyline), Polygon(Polygon), Text(TextElement), Image(SvgImage),
+    Use(Use), Defs(Vec&lt;SvgElement&gt;), LinearGradient(Gradient), RadialGradient(Gradient),
+    Filter(Filter), ClipPath(Vec&lt;SvgElement&gt;), Mask(Vec&lt;SvgElement&gt;),
+}</pre
+                >
+            </section>
+            <section>
+                <h2>2. Parsing</h2>
+                <pre>
+pub fn from_str(svg: &amp;str) -> Result&lt;SvgDocument, SvgError&gt;;
+pub fn from_bytes(bytes: &amp;[u8]) -> Result&lt;SvgDocument, SvgError&gt;;</pre
+                >
+            </section>
+            <section>
+                <h2>3. Writing</h2>
+                <pre>
+pub fn to_string(doc: &amp;SvgDocument) -> Text;
+pub fn to_string_pretty(doc: &amp;SvgDocument) -> Text;
+pub fn to_writer&lt;W: Write&gt;(writer: &amp;mut W, doc: &amp;SvgDocument) -> Result&lt;(), io::Error&gt;;</pre
+                >
+            </section>
+            <section>
+                <h2>4. Path Data</h2>
+                <pre>
+pub enum PathCommand {
+    MoveTo { abs: bool, x: f32, y: f32 },
+    LineTo { abs: bool, x: f32, y: f32 },
+    HorizontalLineTo { abs: bool, x: f32 },
+    VerticalLineTo { abs: bool, y: f32 },
+    CurveTo { abs: bool, x1: f32, y1: f32, x2: f32, y2: f32, x: f32, y: f32 },
+    SmoothCurveTo { abs: bool, x2: f32, y2: f32, x: f32, y: f32 },
+    QuadraticBezierTo { abs: bool, x1: f32, y1: f32, x: f32, y: f32 },
+    SmoothQuadraticBezierTo { abs: bool, x: f32, y: f32 },
+    EllipticalArc { abs: bool, rx: f32, ry: f32, x_axis_rotation: f32, large_arc: bool, sweep: bool, x: f32, y: f32 },
+    ClosePath,
+}</pre
+                >
+            </section>
+            <section>
+                <h2>5. Builder API</h2>
+                <pre>
+pub struct SvgBuilder { doc: SvgDocument }
+impl SvgBuilder {
+    pub fn new(width: f32, height: f32) -> Self;
+    pub fn view_box(mut self, vb: Rect) -> Self;
+    pub fn group(mut self, g: Group) -> Self;
+    pub fn rect(mut self, r: RectElement) -> Self;
+    pub fn circle(mut self, c: Circle) -> Self;
+    pub fn text(mut self, t: TextElement) -> Self;
+    pub fn build(self) -> SvgDocument;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>6. Rendering (feature `render`)</h2>
+                <pre>
+pub fn render_to_image(doc: &amp;SvgDocument, scale: f32) -> Result&lt;Image, SvgError&gt;;
+pub fn render_to_file(doc: &amp;SvgDocument, path: &amp;str, scale: f32, format: ImageFormat) -> Result&lt;(), SvgError&gt;;</pre
+                >
+            </section>
+            <section>
+                <h2>7. Error Handling</h2>
+                <pre>
+pub enum SvgError { Parse(Text), InvalidAttribute(Text), InvalidPathData(Text), RenderError(Text), Io(std::io::Error) }</pre
+                >
+            </section>
+            <section>
+                <h2>8. Testing</h2>
+                <ul>
+                    <li>Parse and write.</li>
+                    <li>Path data parsing.</li>
+                    <li>Builder.</li>
+                    <li>Rendering (feature).</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-sqlite.html" rel="prev"
+                        >Previous: SQLite</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-text.html" rel="next"
+                        >Next: Text</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

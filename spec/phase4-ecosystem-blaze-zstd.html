@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: Zstd</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: Zstd</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-yaml.html" rel="prev"
+                    >Previous: YAML</a
+                >
+                |
+                <a href="phase5-ecosystem-blaze-asset.html" rel="next"
+                    >Next: Asset</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Standalone, zero‑copy Zstandard (Zstd) compression and
+                    decompression library with dictionary support.
+                </p>
+            </section>
+            <section>
+                <h2>1. Core Types</h2>
+                <pre>
+pub struct ZstdEncoder { level: i32 }
+impl ZstdEncoder {
+    pub fn new(level: i32) -> Self;
+    pub fn compress(&amp;mut self, input: &amp;[u8], output: &amp;mut Vec&lt;u8&gt;) -> Result&lt;usize, ZstdError&gt;;
+    pub fn finish(&amp;mut self, output: &amp;mut Vec&lt;u8&gt;) -> Result&lt;(), ZstdError&gt;;
+}
+pub struct ZstdDecoder { /* … */ }
+impl ZstdDecoder {
+    pub fn new() -> Self;
+    pub fn decompress(&amp;mut self, input: &amp;[u8], output: &amp;mut Vec&lt;u8&gt;) -> Result&lt;(), ZstdError&gt;;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>2. Dictionary Support</h2>
+                <pre>
+pub fn train_dictionary(samples: &amp;[&amp;[u8]], max_size: usize) -> Result&lt;Vec&lt;u8&gt;, ZstdError&gt;;
+pub fn compress_with_dictionary(data: &amp;[u8], dict: &amp;[u8], level: i32) -> Result&lt;Vec&lt;u8&gt;, ZstdError&gt;;
+pub fn decompress_with_dictionary(data: &amp;[u8], dict: &amp;[u8]) -> Result&lt;Vec&lt;u8&gt;, ZstdError&gt;;</pre
+                >
+            </section>
+            <section>
+                <h2>3. Convenience Functions</h2>
+                <pre>
+pub fn compress(data: &amp;[u8], level: i32) -> Result&lt;Vec&lt;u8&gt;, ZstdError&gt;;
+pub fn decompress(data: &amp;[u8]) -> Result&lt;Vec&lt;u8&gt;, ZstdError&gt;;</pre
+                >
+            </section>
+            <section>
+                <h2>4. Streaming Interface</h2>
+                <p>
+                    <code>ZstdWriter&lt;W: Write&gt;</code> and
+                    <code>ZstdReader&lt;R: Read&gt;</code> adaptors.
+                </p>
+            </section>
+            <section>
+                <h2>5. Error Handling</h2>
+                <pre>
+pub enum ZstdError { InvalidInput, CompressionFailed, DecompressionFailed, OutputBufferTooSmall, DictionaryTooLarge, TrainingFailed }</pre
+                >
+            </section>
+            <section>
+                <h2>6. Testing</h2>
+                <ul>
+                    <li>Compress/decompress round‑trip.</li>
+                    <li>Levels: compare sizes.</li>
+                    <li>Dictionary training and usage.</li>
+                    <li>Empty input.</li>
+                    <li>Corrupted data → error.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-yaml.html" rel="prev"
+                        >Previous: YAML</a
+                    >
+                    |
+                    <a href="phase5-ecosystem-blaze-asset.html" rel="next"
+                        >Next: Asset</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

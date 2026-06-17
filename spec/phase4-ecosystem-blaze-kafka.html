@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: Kafka</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: Kafka</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-jwt.html" rel="prev"
+                    >Previous: JWT</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-layout.html" rel="next"
+                    >Next: Layout</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Async Kafka client with native wire protocol support for
+                    producers, consumers, consumer groups, and administrative
+                    operations. Built on Blaze's async I/O and actor model.
+                </p>
+            </section>
+            <section>
+                <h2>1. Core Types</h2>
+                <pre>
+pub struct KafkaClient { /* … */ }
+pub struct Producer&lt;K, V&gt; { /* … */ }
+pub struct Consumer&lt;K, V&gt; { /* … */ }
+pub struct KafkaRecord&lt;K, V&gt; { pub topic: Text, pub partition: i32, pub offset: Offset, pub timestamp: i64, pub key: Option&lt;K&gt;, pub value: V, pub headers: Vec&lt;(Text, Vec&lt;u8&gt;)&gt; }
+pub struct TopicPartition { pub topic: Text, pub partition: i32 }
+pub struct Offset(i64);</pre
+                >
+            </section>
+            <section>
+                <h2>2. Client</h2>
+                <pre>
+impl KafkaClient {
+    pub async fn connect(brokers: &amp;str, config: &amp;KafkaConfig) -> Result&lt;Self, KafkaError&gt;;
+    pub fn create_producer&lt;K: Serialize, V: Serialize&gt;(&amp;self, topic: &amp;str) -> Producer&lt;K, V&gt;;
+    pub fn create_consumer&lt;K: Deserialize&lt;'static&gt;, V: Deserialize&lt;'static&gt;&gt;(&amp;self, topic: &amp;str, group: &amp;str) -> Consumer&lt;K, V&gt;;
+    pub fn admin(&amp;self) -> AdminClient;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>3. Producer</h2>
+                <pre>
+impl&lt;K: Serialize, V: Serialize&gt; Producer&lt;K, V&gt; {
+    pub async fn send(&amp;self, record: KafkaRecord&lt;K, V&gt;) -> Result&lt;(), KafkaError&gt;;
+    pub fn send_batch(&amp;self, records: Vec&lt;KafkaRecord&lt;K, V&gt;&gt;) -> Result&lt;(), KafkaError&gt;;
+    pub async fn flush(&amp;self);
+    pub async fn close(self);
+}</pre
+                >
+            </section>
+            <section>
+                <h2>4. Consumer</h2>
+                <pre>
+impl&lt;K: Deserialize&lt;'static&gt;, V: Deserialize&lt;'static&gt;&gt; Consumer&lt;K, V&gt; {
+    pub async fn recv(&amp;self) -> Option&lt;KafkaRecord&lt;K, V&gt;&gt;;
+    pub async fn commit(&amp;self);
+    pub async fn seek(&amp;self, tp: TopicPartition, offset: Offset);
+    pub async fn close(self);
+}</pre
+                >
+            </section>
+            <section>
+                <h2>5. Admin</h2>
+                <pre>
+impl AdminClient {
+    pub async fn create_topic(&amp;self, name: &amp;str, partitions: i32, replication_factor: i16) -> Result&lt;(), KafkaError&gt;;
+    pub async fn delete_topic(&amp;self, name: &amp;str) -> Result&lt;(), KafkaError&gt;;
+    pub async fn list_topics(&amp;self) -> Result&lt;Vec&lt;TopicInfo&gt;, KafkaError&gt;;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>6. Wire Protocol</h2>
+                <p>
+                    Implements API keys: Metadata, Produce, Fetch, OffsetFetch,
+                    OffsetCommit, GroupCoordinator, JoinGroup, SyncGroup,
+                    Heartbeat, LeaveGroup, ApiVersions, CreateTopics,
+                    DeleteTopics.
+                </p>
+            </section>
+            <section>
+                <h2>7. Error Handling</h2>
+                <pre>
+pub enum KafkaError {
+    Io(std::io::Error),
+    Protocol(Text),
+    ApiVersionNotSupported,
+    CoordinatorNotAvailable,
+    NotCoordinator,
+    OffsetOutOfRange,
+    UnknownTopicOrPartition,
+    LeaderNotAvailable,
+    NotLeaderForPartition,
+    RequestTimedOut,
+    ConsumerRebalanceInProgress,
+    Serialization(Text),
+    Deserialization(Text),
+    AuthenticationFailed,
+    AuthorizationFailed,
+}</pre
+                >
+            </section>
+            <section>
+                <h2>8. Testing</h2>
+                <ul>
+                    <li>Connect and metadata fetch.</li>
+                    <li>Produce and consume.</li>
+                    <li>Consumer group rebalancing.</li>
+                    <li>Offset commit.</li>
+                    <li>Error handling.</li>
+                    <li>Admin operations.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-jwt.html" rel="prev"
+                        >Previous: JWT</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-layout.html" rel="next"
+                        >Next: Layout</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: JNI</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: JNI</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-input.html" rel="prev"
+                    >Previous: Input</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-json.html" rel="next"
+                    >Next: JSON</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Safe, data‑oriented interface for calling Java code and
+                    writing Java native methods in Blaze. Wraps JNI with linear
+                    types.
+                </p>
+            </section>
+            <section>
+                <h2>1. Core Types</h2>
+                <pre>
+pub struct Jvm { /* … */ }
+pub struct JClass { /* … */ }
+pub struct JObject { /* … */ }
+pub enum JValue {
+    Bool(bool), Byte(i8), Char(u16), Short(i16), Int(i32), Long(i64), Float(f32), Double(f64), Object(JObject), Null,
+}</pre
+                >
+            </section>
+            <section>
+                <h2>2. Jvm Operations</h2>
+                <pre>
+impl Jvm {
+    pub fn new() -> Result&lt;Self, JniError&gt;;
+    pub fn attach_current_thread() -> Result&lt;Self, JniError&gt;;
+    pub fn find_class(&amp;self, name: &amp;str) -> Result&lt;JClass, JniError&gt;;
+    pub fn new_object(&amp;self, class: &amp;JClass, constructor_sig: &amp;str, args: &amp;[JValue]) -> Result&lt;JObject, JniError&gt;;
+    pub fn call_method(&amp;self, obj: &amp;JObject, name: &amp;str, sig: &amp;str, args: &amp;[JValue]) -> Result&lt;JValue, JniError&gt;;
+    pub fn call_static_method(&amp;self, class: &amp;JClass, name: &amp;str, sig: &amp;str, args: &amp;[JValue]) -> Result&lt;JValue, JniError&gt;;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>3. Native Methods</h2>
+                <pre>
+#[jni_export]
+fn Java_com_example_MyClass_add(env: &amp;JniEnv, _class: &amp;JClass, a: i32, b: i32) -> i32 {
+    a + b
+}</pre
+                >
+            </section>
+            <section>
+                <h2>4. Error Handling</h2>
+                <pre>
+pub enum JniError {
+    JvmInitFailed, ClassNotFound, MethodNotFound, FieldNotFound,
+    ExceptionThrown(Text), InvalidArgument, Io(std::io::Error),
+}</pre
+                >
+            </section>
+            <section>
+                <h2>5. Testing</h2>
+                <ul>
+                    <li>
+                        Create JVM, call
+                        <code>System.getProperty("java.version")</code>.
+                    </li>
+                    <li>Call <code>java.lang.Math.abs(-1)</code>.</li>
+                    <li>Native method exported and called from Java.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-input.html" rel="prev"
+                        >Previous: Input</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-json.html" rel="next"
+                        >Next: JSON</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: Cortex‑M</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: Cortex‑M</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-config.html" rel="prev"
+                    >Previous: Config</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-crypto.html" rel="next"
+                    >Next: Crypto</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    HAL for ARM Cortex‑M microcontrollers (M0, M3, M4, M7, M33)
+                    – NVIC, SysTick, GPIO, USART, SPI, I2C, ADC, PWM.
+                    <code>#![no_std]</code>, linear types,
+                    <code>hal</code> effect.
+                </p>
+            </section>
+            <section>
+                <h2>1. Core Concepts</h2>
+                <ul>
+                    <li>
+                        <code>CortexM</code> context holding NVIC and SysTick.
+                    </li>
+                    <li>
+                        <code>SysTick</code> – implements <code>Timer</code>.
+                    </li>
+                    <li>
+                        <code>NVIC</code> – implements
+                        <code>InterruptController</code>.
+                    </li>
+                    <li><code>GpioPort</code>, <code>GpioPin</code> – GPIO.</li>
+                    <li><code>Usart</code> – serial.</li>
+                    <li>
+                        <code>Spi</code>, <code>I2c</code>, <code>Adc</code>,
+                        <code>Pwm</code> peripherals.
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>2. <code>CortexM</code> Context</h2>
+                <pre>
+pub struct CortexM { pub systick: SysTick, pub nvic: NVIC }
+impl CortexM { pub fn new() -> CortexM; pub fn reset(&amp;self); pub fn disable_interrupts() -> bool; pub fn enable_interrupts(); }</pre
+                >
+            </section>
+            <section>
+                <h2>3. <code>SysTick</code> Timer</h2>
+                <p>
+                    24‑bit counter; methods: <code>now</code>,
+                    <code>delay_us</code>, <code>delay_ms</code>,
+                    <code>set_alarm</code>, <code>clear_alarm</code>.
+                </p>
+            </section>
+            <section>
+                <h2>4. <code>NVIC</code></h2>
+                <p>
+                    Methods: <code>enable_irq</code>, <code>disable_irq</code>,
+                    <code>set_priority</code>, <code>pending_irq</code>,
+                    <code>end_of_interrupt</code>.
+                </p>
+            </section>
+            <section>
+                <h2>5. GPIO</h2>
+                <pre>
+pub struct GpioPort { base: *mut GpioRegisters, port_letter: char }
+impl GpioPort { pub fn pin(&amp;self, pin: u8, mode: PinMode) -> GpioPin; }
+pub struct GpioPin { port: GpioPort, pin: u8 }
+impl GpioPin { pub fn set_high(&amp;mut self); pub fn set_low(&amp;mut self); pub fn toggle(&amp;mut self); pub fn is_high(&amp;self) -> bool; pub fn is_low(&amp;self) -> bool; pub fn set_mode(&amp;mut self, mode: PinMode); }</pre
+                >
+            </section>
+            <section>
+                <h2>6. Serial (USART)</h2>
+                <pre>
+pub struct Usart { base: *mut UsartRegisters, baud_rate: u32 }
+impl Usart { pub fn new(usart: UsartPeripheral, baud_rate: u32, clock_freq: u32) -> Usart; }
+impl Serial for Usart { … }</pre
+                >
+            </section>
+            <section>
+                <h2>7. Other Peripherals</h2>
+                <p>
+                    <code>Spi</code>, <code>I2c</code>, <code>Adc</code>,
+                    <code>Pwm</code> each follow similar pattern with register
+                    blocks and linear ownership.
+                </p>
+            </section>
+            <section>
+                <h2>8. Startup and Vector Table</h2>
+                <p>
+                    <code>#[entry]</code> macro initialises `.bss`/`.data`, sets
+                    VTOR, calls <code>main</code> (actor). Default exception
+                    handlers.
+                </p>
+            </section>
+            <section>
+                <h2>9. Integration with <code>blaze‑embedded</code></h2>
+                <p>
+                    Implements traits from <code>blaze‑embedded</code>. Example
+                    application structure shown.
+                </p>
+            </section>
+            <section>
+                <h2>10. Error Handling</h2>
+                <pre>
+pub enum CmError {
+    InvalidPeripheral,
+    RegisterAccess,
+    Timeout,
+    SerialError(SerialError),
+    AdcOverrun,
+    I2cNak,
+    I2cBusError,
+    SpiModeFault,
+}</pre
+                >
+            </section>
+            <section>
+                <h2>11. Testing</h2>
+                <p>
+                    QEMU or real hardware; mock HAL for unit tests. Tests: GPIO,
+                    Serial, SysTick, NVIC, interrupt handler.
+                </p>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-config.html" rel="prev"
+                        >Previous: Config</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-crypto.html" rel="next"
+                        >Next: Crypto</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

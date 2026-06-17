@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 3d – Specialized Library: Localisation</title>
+    </head>
+    <body>
+        <header>
+            <h1>Blaze Phase 3d – Specialized Library: Localisation</h1>
+        </header>
+        <nav>
+            <p>
+                <a href="phase3d-specialized-gpu.html" rel="prev"
+                    >Previous: GPU</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-accessibility.html" rel="next"
+                    >Next: Accessibility</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Define optional <code>std::l10n</code> module for
+                    locale‑specific formatting, message translation, plural
+                    rules, and resource bundles.
+                </p>
+            </section>
+            <section>
+                <h2>1. Locale</h2>
+                <pre>
+pub struct Locale {
+    language: Text,
+    region: Option&lt;Text&gt;,
+    script: Option&lt;Text&gt;,
+    variant: Option&lt;Text&gt;,
+}
+impl Locale {
+    pub fn new(language: &amp;str) -> Locale;
+    pub fn with_region(language: &amp;str, region: &amp;str) -> Locale;
+    pub fn from_tag(tag: &amp;str) -> Result&lt;Locale, Error&gt;;
+    pub fn default_locale() -> Locale;
+    pub fn to_tag(&amp;self) -> Text;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>2. Message Formatting</h2>
+                <pre>
+pub struct Message { locale: Locale, text: Text }
+impl Message {
+    pub fn new(locale: &amp;Locale, pattern: &amp;str) -> Result&lt;Message, Error&gt;;
+    pub fn format(&amp;self, args: &amp;[impl Display]) -> Text;
+}</pre
+                >
+                <p>
+                    Supports ICU MessageFormat subset: placeholders
+                    <code>{0}</code>, number/plural/select forms.
+                </p>
+            </section>
+            <section>
+                <h2>3. Number and Date Formatting</h2>
+                <pre>
+pub struct NumberFormatter { locale: Locale, style: NumberStyle }
+impl NumberFormatter { pub fn format_i64(&amp;self, value: i64) -> Text; pub fn format_f64(&amp;self, value: f64) -> Text; }
+pub enum NumberStyle { Decimal, Percent, Currency(Text), Scientific }</pre
+                >
+                <pre>
+pub struct DateFormatter { locale: Locale, date_style: DateStyle, time_style: TimeStyle }
+impl DateFormatter { pub fn format(&amp;self, timestamp: i64) -> Text; }
+pub enum DateStyle { Full, Long, Medium, Short, None }
+pub enum TimeStyle { Full, Long, Medium, Short, None }</pre
+                >
+            </section>
+            <section>
+                <h2>4. Plural Rules</h2>
+                <pre>
+pub struct PluralRule { locale: Locale }
+impl PluralRule { pub fn select(&amp;self, n: f64) -> PluralCategory; }
+pub enum PluralCategory { Zero, One, Two, Few, Many, Other }</pre
+                >
+            </section>
+            <section>
+                <h2>5. Resource Bundles</h2>
+                <pre>
+pub struct Bundle { locale: Locale, entries: Map&lt;Text, Text&gt; }
+impl Bundle { pub fn load_from_file(path: &amp;str) -> Result&lt;Bundle, Error&gt;; pub fn get(&amp;self, key: &amp;str) -> Option&lt;&amp;str&gt;; }</pre
+                >
+                <p>
+                    <code>@bundle("path.json")</code> attribute embeds bundle at
+                    compile time.
+                </p>
+            </section>
+            <section>
+                <h2>6. Testing</h2>
+                <ul>
+                    <li>Locale construction/parsing.</li>
+                    <li>Message formatting with plural/select.</li>
+                    <li>
+                        Number formatting for <code>"en‑US"</code> (grouping,
+                        decimal).
+                    </li>
+                    <li>Date formatting (consistent timezone).</li>
+                    <li>
+                        Plural rule selection (English: one for 1, other for
+                        0,2,…).
+                    </li>
+                    <li>Bundle loading and retrieval.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase3d-specialized-gpu.html" rel="prev"
+                        >Previous: GPU</a
+                    >
+                    |
+                    <a
+                        href="phase4-ecosystem-blaze-accessibility.html"
+                        rel="next"
+                        >Next: Accessibility</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

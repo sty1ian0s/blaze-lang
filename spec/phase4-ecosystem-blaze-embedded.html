@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: Embedded</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: Embedded</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-ecs.html" rel="prev"
+                    >Previous: ECS</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-esp32.html" rel="next"
+                    >Next: ESP32</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Foundational layer for bare‑metal and resource‑constrained
+                    embedded systems: <code>#![no_std]</code> runtime, panic
+                    handler, region‑based allocator, cooperative actor
+                    scheduler, and hardware abstraction traits (GPIO, Serial,
+                    Timer, InterruptController).
+                </p>
+            </section>
+            <section>
+                <h2>1. Core Concepts</h2>
+                <ul>
+                    <li>
+                        <code>#![no_std]</code> and <code>#![no_runtime]</code>.
+                    </li>
+                    <li>Minimal panic handler (halts).</li>
+                    <li><code>StaticArena</code> bump allocator.</li>
+                    <li>Cooperative scheduler for actors.</li>
+                    <li>
+                        Traits: <code>GpioPin</code>, <code>Serial</code>,
+                        <code>Timer</code>, <code>InterruptController</code>.
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>2. Allocator</h2>
+                <pre>
+pub struct StaticArena { start: *mut u8, end: *mut u8, current: AtomicPtr&lt;u8&gt; }
+impl StaticArena { pub const fn new(start: *mut u8, size: usize) -> Self; pub unsafe fn allocate(&amp;self, layout: Layout) -> *mut u8; pub fn reset(&amp;self); }</pre
+                >
+            </section>
+            <section>
+                <h2>3. Hardware Abstraction Traits</h2>
+                <pre>
+pub trait GpioPin { fn set_high(&amp;mut self); fn set_low(&amp;mut self); fn toggle(&amp;mut self); fn is_high(&amp;self) -> bool; fn is_low(&amp;self) -> bool; fn set_mode(&amp;mut self, mode: PinMode); }
+pub trait Serial { fn write(&amp;mut self, byte: u8) -> Result&lt;(), SerialError&gt;; fn read(&amp;mut self) -> Result&lt;u8, SerialError&gt;; fn write_all(&amp;mut self, data: &amp;[u8]) -> Result&lt;(), SerialError&gt;; fn set_baud_rate(&amp;mut self, baud: u32); }
+pub trait Timer { fn now(&amp;self) -> u64; fn delay_us(&amp;mut self, us: u64); fn delay_ms(&amp;mut self, ms: u64); fn set_alarm(&amp;mut self, ticks: u64, callback: fn()); fn clear_alarm(&amp;mut self); }
+pub trait InterruptController { fn enable_irq(&amp;self, irq: u16); fn disable_irq(&amp;self, irq: u16); fn set_priority(&amp;self, irq: u16, priority: u8); fn pending_irq(&amp;self) -> Option&lt;u16&gt;; fn end_of_interrupt(&amp;self, irq: u16); }</pre
+                >
+            </section>
+            <section>
+                <h2>4. Scheduler</h2>
+                <pre>
+pub struct Scheduler { actors: Vec&lt;SpawnedActor&gt; }
+impl Scheduler { pub fn new() -> Self; pub fn spawn&lt;A: Actor&gt;(&amp;mut self, actor: A) -> Result&lt;Capability&lt;A&gt;, SchedulerError&gt;; pub fn tick(&amp;mut self) -> bool; pub fn run(&amp;mut self) -> !; }</pre
+                >
+            </section>
+            <section>
+                <h2>5. Panic Handler</h2>
+                <p>
+                    Default <code>#[panic_handler]</code> calls HAL's
+                    <code>halt()</code>. Can be overridden.
+                </p>
+            </section>
+            <section>
+                <h2>6. Startup</h2>
+                <p>
+                    <code>#[entry]</code> macro initialises allocator, calls
+                    <code>main</code> (actor).
+                </p>
+            </section>
+            <section>
+                <h2>7. Error Handling</h2>
+                <pre>
+pub enum EmbeddedError {
+    OutOfMemory,
+    InvalidAlignment,
+    SerialError(SerialError),
+    NoInterrupt,
+    SchedulerFull,
+    ActorPanicked,
+}</pre
+                >
+            </section>
+            <section>
+                <h2>8. Testing</h2>
+                <p>
+                    Uses mock HAL via feature <code>mock‑hal</code>. Tests:
+                    allocator, GPIO mock, Serial mock, scheduler, panic handler.
+                </p>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-ecs.html" rel="prev"
+                        >Previous: ECS</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-esp32.html" rel="next"
+                        >Next: ESP32</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: Glob</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: Glob</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-ffi.html" rel="prev"
+                    >Previous: FFI</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-grpc.html" rel="next"
+                    >Next: gRPC</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Provide pure‑Blaze library for matching file paths against
+                    glob patterns (wildcards) with support for <code>*</code>,
+                    <code>?</code>, <code>[abc]</code>, <code>[a‑z]</code>,
+                    <code>{a,b}</code>, <code>**</code> recursive matching.
+                </p>
+            </section>
+            <section>
+                <h2>1. Core Types</h2>
+                <pre>
+pub struct Pattern { text: Text, tokens: Vec&lt;PatternToken&gt; }
+enum PatternToken {
+    Char(char),
+    AnyChar,
+    AnySequence,
+    RecursiveSequence,
+    Class { chars: Vec&lt;ClassChar&gt;, negated: bool },
+    Alternation(Vec&lt;Pattern&gt;),
+    Literal(Text),
+}</pre
+                >
+            </section>
+            <section>
+                <h2>2. Compilation</h2>
+                <pre>
+impl Pattern { pub fn new(glob: &amp;str) -> Result&lt;Pattern, GlobError&gt;; }</pre
+                >
+                <p>
+                    Parses glob string; supports escaping with <code>\</code>.
+                </p>
+            </section>
+            <section>
+                <h2>3. Matching</h2>
+                <pre>
+impl Pattern { pub fn matches(&amp;self, path: &amp;str) -> bool; pub fn matches_path(&amp;self, path: &amp;Path) -> bool; }</pre
+                >
+                <p>
+                    Case‑sensitive by default;
+                    <code>case_insensitive()</code> builder. Anchors: matches
+                    entire path; if no <code>/</code> matches base name.
+                </p>
+            </section>
+            <section>
+                <h2>4. Iteration (feature `fs`)</h2>
+                <pre>
+pub fn glob(pattern: &amp;Pattern, root: &amp;Path) -> Result&lt;impl Iterator&lt;Item = Path&gt;, GlobError&gt;;
+pub struct GlobEntry { path: Path, is_dir: bool }</pre
+                >
+            </section>
+            <section>
+                <h2>5. Error Handling</h2>
+                <pre>
+pub enum GlobError { Parse(Text), Io(std::io::Error) }</pre
+                >
+            </section>
+            <section>
+                <h2>6. Testing</h2>
+                <ul>
+                    <li><code>*.txt</code> matches <code>foo.txt</code>.</li>
+                    <li>
+                        <code>[a‑z]*.txt</code> matches <code>abc.txt</code>.
+                    </li>
+                    <li><code>{*.rs,*.blz}</code> matches both.</li>
+                    <li><code>src/**/*.rs</code> recursive.</li>
+                    <li>Case‑insensitive flag.</li>
+                    <li>File‑system iteration.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-ffi.html" rel="prev"
+                        >Previous: FFI</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-grpc.html" rel="next"
+                        >Next: gRPC</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

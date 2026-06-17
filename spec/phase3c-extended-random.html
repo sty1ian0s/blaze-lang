@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 3c – Extended Library: Random</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 3c – Extended Library: Random</h1></header>
+        <nav>
+            <p>
+                <a href="phase3c-extended-meta.html" rel="prev"
+                    >Previous: Meta</a
+                >
+                |
+                <a href="phase3c-extended-regex.html" rel="next">Next: Regex</a>
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Provide traits for random number generators, a thread‑local
+                    source of randomness, and functions for generating random
+                    values of primitive types. All generators are deterministic
+                    given a seed.
+                </p>
+            </section>
+            <section>
+                <h2>1. <code>Rng</code> Trait</h2>
+                <pre>
+pub trait Rng {
+    fn next_u32(&amp;mut self) -> u32;
+    fn next_u64(&amp;mut self) -> u64;
+}</pre
+                >
+                <p>
+                    Provided methods: <code>gen_range</code>,
+                    <code>gen_range_f</code>, <code>fill_bytes</code>,
+                    <code>gen::&lt;T: Random&gt;</code>.
+                </p>
+                <h3><code>Random</code> Trait</h3>
+                <pre>
+pub trait Random {
+    fn random&lt;R: Rng&gt;(rng: &amp;mut R) -> Self;
+}</pre
+                >
+                <p>
+                    Implemented for all primitive integer/floating types,
+                    <code>bool</code>, <code>char</code>, <code>()</code>.
+                </p>
+            </section>
+            <section>
+                <h2>2. <code>SeedableRng</code> Trait</h2>
+                <pre>
+pub trait SeedableRng: Rng {
+    fn from_seed(seed: u64) -> Self;
+    fn seed(&amp;self) -> u64;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>3. Default Generator</h2>
+                <p>
+                    <code>DefaultRng</code> – cryptographically secure if
+                    hardware RNG available, else fast non‑crypto fallback.
+                    <code>thread_rng() -> impl Rng</code> returns thread‑local
+                    generator.
+                </p>
+            </section>
+            <section>
+                <h2>4. Additional PRNGs</h2>
+                <ul>
+                    <li>
+                        <code>Lcg128</code> – linear congruential generator with
+                        128‑bit state.
+                    </li>
+                    <li>
+                        <code>Xoshiro256StarStar</code> – fast high‑quality
+                        xoshiro256** algorithm.
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>5. Testing</h2>
+                <ul>
+                    <li>Determinism: known seed → known sequence.</li>
+                    <li><code>thread_rng</code> independent per thread.</li>
+                    <li>
+                        <code>gen_range</code> bounds checked; uniform
+                        distribution (chi‑square test).
+                    </li>
+                    <li><code>fill_bytes</code> fills correctly.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase3c-extended-meta.html" rel="prev"
+                        >Previous: Meta</a
+                    >
+                    |
+                    <a href="phase3c-extended-regex.html" rel="next"
+                        >Next: Regex</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

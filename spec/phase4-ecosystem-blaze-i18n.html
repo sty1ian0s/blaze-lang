@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: I18n</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: I18n</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-http2.html" rel="prev"
+                    >Previous: HTTP/2</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-image.html" rel="next"
+                    >Next: Image</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    High‑level internationalisation framework with compile‑time
+                    message extraction, plural‑aware catalogs, locale fallback
+                    chains, integration with GUI and CLI.
+                </p>
+            </section>
+            <section>
+                <h2>1. Catalog</h2>
+                <pre>
+pub struct Catalog { locale: Locale, entries: Map&lt;Text, Text&gt;, plurals: Map&lt;Text, PluralForm&gt; }
+impl Catalog { pub fn load(path: &amp;str) -> Result&lt;Self, I18nError&gt;; pub fn from_po(po: &amp;str) -> Self; pub fn get(&amp;self, msgid: &amp;str) -> Option&lt;&amp;str&gt;; pub fn get_plural(&amp;self, msgid: &amp;str, count: u64) -> Option&lt;&amp;str&gt;; }</pre
+                >
+            </section>
+            <section>
+                <h2>2. Translator</h2>
+                <pre>
+pub struct Translator { locale_chain: LocaleChain, catalogs: Map&lt;Locale, Catalog&gt; }
+impl Translator { pub fn new(default_locale: &amp;Locale) -> Self; pub fn add_catalog(&amp;mut self, locale: Locale, catalog: Catalog); pub fn translate(&amp;self, msgid: &amp;str) -> Text; pub fn translate_plural(&amp;self, msgid: &amp;str, msgid_plural: &amp;str, count: u64) -> Text; }</pre
+                >
+            </section>
+            <section>
+                <h2>3. Message Extraction</h2>
+                <pre>
+#[i18n]
+fn greet(name: &amp;str) -> Text { i18n!("Hello, {}", name) }</pre
+                >
+                <p>
+                    <code>blaze‑i18n‑extract</code> tool scans sources and
+                    produces <code>.pot</code> templates.
+                </p>
+            </section>
+            <section>
+                <h2>4. Error Handling</h2>
+                <pre>
+pub enum I18nError { Io(std::io::Error), InvalidCatalog, MissingTranslation }</pre
+                >
+            </section>
+            <section>
+                <h2>5. Testing</h2>
+                <ul>
+                    <li>Load catalog.</li>
+                    <li>Plurals (English vs Russian).</li>
+                    <li>Fallback chain.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-http2.html" rel="prev"
+                        >Previous: HTTP/2</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-image.html" rel="next"
+                        >Next: Image</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

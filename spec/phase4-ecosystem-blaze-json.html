@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: JSON</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: JSON</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-jni.html" rel="prev"
+                    >Previous: JNI</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-jwt.html" rel="next"
+                    >Next: JWT</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Fast, zero‑copy JSON parser and writer integrating with
+                    <code>blaze‑serde</code>. Supports RFC 8259.
+                </p>
+            </section>
+            <section>
+                <h2>1. JSON Value</h2>
+                <pre>
+pub enum JsonValue {
+    Null,
+    Bool(bool),
+    Number(JsonNumber),
+    String(Text),
+    Array(Vec&lt;JsonValue&gt;),
+    Object(Map&lt;Text, JsonValue&gt;),
+}
+pub struct JsonNumber { value: f64, raw: Text }
+impl JsonNumber {
+    pub fn to_i64(&amp;self) -> Option&lt;i64&gt;;
+    pub fn to_u64(&amp;self) -> Option&lt;u64&gt;;
+    pub fn to_f64(&amp;self) -> f64;
+    pub fn to_string(&amp;self) -> &amp;str;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>2. Parsing</h2>
+                <pre>
+pub fn from_str(s: &amp;str) -> Result&lt;JsonValue, Error&gt;;
+pub fn from_bytes(bytes: &amp;[u8]) -> Result&lt;JsonValue, Error&gt;;
+pub fn from_reader&lt;R: Read&gt;(reader: R) -> Result&lt;JsonValue, Error&gt;;</pre
+                >
+            </section>
+            <section>
+                <h2>3. Writing</h2>
+                <pre>
+pub fn to_string(value: &amp;JsonValue) -> Text;
+pub fn to_string_pretty(value: &amp;JsonValue) -> Text;
+pub fn to_writer&lt;W: Write&gt;(writer: &amp;mut W, value: &amp;JsonValue) -> Result&lt;(), io::Error&gt;;
+pub fn to_writer_pretty&lt;W: Write&gt;(writer: &amp;mut W, value: &amp;JsonValue) -> Result&lt;(), io::Error&gt;;</pre
+                >
+            </section>
+            <section>
+                <h2>4. Serde Integration</h2>
+                <pre>
+pub struct Serializer&lt;W: Write&gt; { /* … */ }
+impl&lt;W: Write&gt; serde::Serializer for Serializer&lt;W&gt; { … }
+pub struct Deserializer&lt;'de&gt; { /* … */ }
+impl&lt;'de&gt; serde::Deserializer&lt;'de&gt; for Deserializer&lt;'de&gt; { … }
+pub fn to_writer&lt;W: Write, T: Serialize&gt;(writer: W, value: &amp;T) -> Result&lt;()&gt;;
+pub fn to_string&lt;T: Serialize&gt;(value: &amp;T) -> Result&lt;Text&gt;;
+pub fn from_str&lt;'a, T: Deserialize&lt;'a&gt;&gt;(s: &amp;'a str) -> Result&lt;T&gt;;</pre
+                >
+            </section>
+            <section>
+                <h2>5. Error Handling</h2>
+                <pre>
+pub struct Error { msg: Text, line: usize, column: usize }
+impl Error { pub fn line(&amp;self) -> usize; pub fn column(&amp;self) -> usize; pub fn message(&amp;self) -> &amp;str; }</pre
+                >
+            </section>
+            <section>
+                <h2>6. Testing</h2>
+                <ul>
+                    <li>Valid JSON parse/write round‑trip.</li>
+                    <li>Invalid JSON errors with line/column.</li>
+                    <li>Deep nesting (100 levels).</li>
+                    <li>Serde derive integration.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-jni.html" rel="prev"
+                        >Previous: JNI</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-jwt.html" rel="next"
+                        >Next: JWT</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

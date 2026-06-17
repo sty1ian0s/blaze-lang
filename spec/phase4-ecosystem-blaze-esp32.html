@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: ESP32</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: ESP32</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-embedded.html" rel="prev"
+                    >Previous: Embedded</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-ffi.html" rel="next"
+                    >Next: FFI</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    HAL for Espressif ESP32 series (ESP32, S2, S3, C3): GPIO,
+                    UART, SPI, I2C, ADC, PWM, Wi‑Fi, Bluetooth. Integrates with
+                    <code>blaze‑embedded</code>, actor model,
+                    <code>#![no_std]</code>.
+                </p>
+            </section>
+            <section>
+                <h2>1. <code>Esp32</code> Context</h2>
+                <pre>
+pub struct Esp32 {
+    pub gpio: GpioManager,
+    pub uart0: Option&lt;Uart&gt;,
+    pub uart1: Option&lt;Uart&gt;,
+    pub spi0: Option&lt;Spi&gt;,
+    pub i2c0: Option&lt;I2c&gt;,
+    pub adc1: Option&lt;Adc&gt;,
+    pub timer0: SystemTimer,
+    pub intc: InterruptController,
+    pub wifi: Option&lt;WiFi&gt;,
+    pub bluetooth: Option&lt;Bluetooth&gt;,
+}
+impl Esp32 { pub fn new() -> Self; }</pre
+                >
+            </section>
+            <section>
+                <h2>2. GPIO</h2>
+                <pre>
+pub struct GpioManager { /* private */ }
+impl GpioManager { pub fn pin(&amp;mut self, number: u8, mode: PinMode) -> Option&lt;GpioPin&gt;; pub fn release(&amp;mut self, pin: GpioPin) -> u8; }
+pub struct GpioPin { pad: u8 }
+impl GpioPin { /* set_high, set_low, toggle, is_high, is_low, set_mode */ }</pre
+                >
+            </section>
+            <section>
+                <h2>3. UART</h2>
+                <pre>
+pub struct Uart { uart_num: u8 }
+impl Uart { pub fn new(uart_num: u8, baud: u32, pins: (u8, u8), config: &amp;UartConfig) -> Result&lt;Self, EspError&gt;; }
+impl Serial for Uart { … }</pre
+                >
+            </section>
+            <section>
+                <h2>4. SPI, I2C, ADC, PWM</h2>
+                <p>
+                    Each follows similar pattern with linear ownership and
+                    <code>blaze‑embedded</code> traits.
+                </p>
+            </section>
+            <section>
+                <h2>5. Wi‑Fi</h2>
+                <pre>
+pub struct WiFi { sender: Sender&lt;WifiCommand&gt;, receiver: Receiver&lt;WifiEvent&gt; }
+impl WiFi { pub async fn connect(&amp;self); pub async fn disconnect(&amp;self); pub async fn scan(&amp;self) -> Result&lt;Vec&lt;AccessPoint&gt;, WifiError&gt;; }</pre
+                >
+            </section>
+            <section>
+                <h2>6. Bluetooth (feature `ble`)</h2>
+                <p>Similar pattern for BLE.</p>
+            </section>
+            <section>
+                <h2>7. Timer and InterruptController</h2>
+                <p>
+                    Implement <code>Timer</code> and
+                    <code>InterruptController</code> traits.
+                </p>
+            </section>
+            <section>
+                <h2>8. Error Handling</h2>
+                <pre>
+pub enum EspError {
+    InvalidPeripheral,
+    InvalidPin,
+    AlreadyInUse,
+    RegisterAccess,
+    Timeout,
+    WifiError(WifiError),
+    BleError(BleError),
+    SerialError(SerialError),
+    IoError,
+}</pre
+                >
+            </section>
+            <section>
+                <h2>9. Testing</h2>
+                <p>
+                    Real hardware or QEMU. Tests: GPIO, UART, Wi‑Fi, Timer,
+                    Actor integration.
+                </p>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-embedded.html" rel="prev"
+                        >Previous: Embedded</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-ffi.html" rel="next"
+                        >Next: FFI</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

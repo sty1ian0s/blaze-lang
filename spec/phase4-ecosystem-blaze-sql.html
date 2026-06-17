@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: SQL</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: SQL</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-smol.html" rel="prev"
+                    >Previous: Smol</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-sqlite.html" rel="next"
+                    >Next: SQLite</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Common, data‑oriented interface for SQL databases. Defines
+                    <code>Database</code>, <code>Connection</code>,
+                    <code>Transaction</code>, <code>Row</code>,
+                    <code>Value</code>, <code>Query</code> traits and types.
+                </p>
+            </section>
+            <section>
+                <h2>1. Database Trait</h2>
+                <pre>
+pub trait Database: Sized { type Connection: Connection&lt;Database = Self&gt;; fn connect(uri: &amp;str) -> Result&lt;Self::Connection, Error&gt;; }</pre
+                >
+            </section>
+            <section>
+                <h2>2. Connection Trait</h2>
+                <pre>
+pub trait Connection: Send + Sync + 'static + Dispose {
+    type Database: Database&lt;Connection = Self&gt;;
+    async fn execute(&amp;self, query: &amp;Query) -> Result&lt;ExecuteResult, Error&gt;;
+    async fn query(&amp;self, query: &amp;Query) -> Result&lt;Rows, Error&gt;;
+    async fn transaction(&amp;self) -> Result&lt;Transaction&lt;'_, Self&gt;, Error&gt;;
+    fn is_autocommit(&amp;self) -> bool;
+    fn set_autocommit(&amp;mut self, value: bool) -> Result&lt;(), Error&gt;;
+    fn close(self) -> Result&lt;(), Error&gt;;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>3. Transaction</h2>
+                <pre>
+pub struct Transaction&lt;'a, C: Connection&gt; { conn: &amp;'a mut C, committed: bool }
+impl&lt;'a, C: Connection&gt; Transaction&lt;'a, C&gt; {
+    pub async fn commit(self) -> Result&lt;(), Error&gt;;
+    pub async fn rollback(self) -> Result&lt;(), Error&gt;;
+}
+impl&lt;'a, C: Connection&gt; Dispose for Transaction&lt;'a, C&gt; { … }</pre
+                >
+            </section>
+            <section>
+                <h2>4. Query</h2>
+                <pre>
+pub struct Query { sql: Text, params: Vec&lt;Value&gt; }
+impl Query {
+    pub fn new(sql: &amp;str) -> Self;
+    pub fn bind&lt;T: ToValue&gt;(&amp;mut self, value: T) -> &amp;mut Self;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>5. Rows and Row</h2>
+                <pre>
+pub struct Rows { columns: Vec&lt;ColumnInfo&gt;, data: Vec&lt;Row&gt;, affected: u64 }
+pub struct Row { values: Vec&lt;Value&gt; }
+impl Row {
+    pub fn get&lt;T: FromValue&gt;(&amp;self, index: usize) -> Result&lt;T, Error&gt;;
+    pub fn get_by_name&lt;T: FromValue&gt;(&amp;self, name: &amp;str) -> Result&lt;T, Error&gt;;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>6. Value</h2>
+                <pre>
+pub enum Value {
+    Null, Bool(bool), I8(i8), I16(i16), I32(i32), I64(i64),
+    U8(u8), U16(u16), U32(u32), U64(u64),
+    F32(f32), F64(f64),
+    Text(Text), Bytes(Vec&lt;u8&gt;), Array(Vec&lt;Value&gt;),
+}</pre
+                >
+            </section>
+            <section>
+                <h2>7. Error Handling</h2>
+                <pre>
+pub enum Error {
+    ConnectionFailed(Text), QueryError(Text), DecodeError(Text),
+    EncodeError(Text), TransactionError(Text), Protocol(Text), Io(std::io::Error),
+}</pre
+                >
+            </section>
+            <section>
+                <h2>8. Testing</h2>
+                <ul>
+                    <li>Mock Database.</li>
+                    <li>Each driver integration tests.</li>
+                    <li>Error handling.</li>
+                    <li>Transaction semantics.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-smol.html" rel="prev"
+                        >Previous: Smol</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-sqlite.html" rel="next"
+                        >Next: SQLite</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

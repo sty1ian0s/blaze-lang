@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 3a – Core Library: Collections</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 3a – Core Library: Collections</h1></header>
+        <nav>
+            <p>
+                <a href="phase3a-core-cmp.html" rel="prev"
+                    >Previous: Comparison</a
+                >
+                | <a href="phase3a-core-debug.html" rel="next">Next: Debug</a>
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Implement fundamental data structures:
+                    <code>List&lt;T&gt;</code> (doubly‑linked list),
+                    <code>Map&lt;K,V&gt;</code> (B‑tree),
+                    <code>SlotMap&lt;K,T&gt;</code> (generational arena), and
+                    <code>RingBuf&lt;T&gt;</code> (ring buffer). All respect
+                    linear ownership and implement <code>Dispose</code>.
+                </p>
+            </section>
+            <section>
+                <h2>1. <code>List&lt;T&gt;</code> – Doubly‑Linked List</h2>
+                <pre>
+pub struct List&lt;T&gt; { /* private */ }
+impl&lt;T&gt; List&lt;T&gt; {
+    pub fn new() -> Self;
+    pub fn push_front(&amp;mut self, value: T);
+    pub fn push_back(&amp;mut self, value: T);
+    pub fn pop_front(&amp;mut self) -> Option&lt;T&gt;;
+    pub fn pop_back(&amp;mut self) -> Option&lt;T&gt;;
+    pub fn front(&amp;self) -> Option&lt;&amp;T&gt;;
+    pub fn back(&amp;self) -> Option&lt;&amp;T&gt;;
+    pub fn len(&amp;self) -> usize;
+    pub fn is_empty(&amp;self) -> bool;
+}
+impl&lt;T&gt; Dispose for List&lt;T&gt; { ... }
+impl&lt;T&gt; IntoIterator for List&lt;T&gt; { ... }</pre
+                >
+                <p>
+                    Nodes allocated in current region. Iterator consumes the
+                    list.
+                </p>
+            </section>
+            <section>
+                <h2>2. <code>Map&lt;K,V&gt;</code> – B‑Tree Map</h2>
+                <pre>
+pub struct Map&lt;K, V&gt; { /* private B‑tree fields */ }
+impl&lt;K: Ord, V&gt; Map&lt;K, V&gt; {
+    pub fn new() -> Self;
+    pub fn insert(&amp;mut self, key: K, value: V) -> Option&lt;V&gt;;
+    pub fn get(&amp;self, key: &amp;K) -> Option&lt;&amp;V&gt;;
+    pub fn get_mut(&amp;mut self, key: &amp;K) -> Option&lt;&amp;mut V&gt;;
+    pub fn remove(&amp;mut self, key: &amp;K) -> Option&lt;V&gt;;
+    pub fn contains_key(&amp;self, key: &amp;K) -> bool;
+    pub fn len(&amp;self) -> usize;
+    pub fn is_empty(&amp;self) -> bool;
+    pub fn iter(&amp;self) -> MapIter&lt;K, V&gt;;
+}
+impl&lt;K: Ord, V&gt; Dispose for Map&lt;K, V&gt; { ... }
+impl&lt;K: Ord, V&gt; IntoIterator for Map&lt;K, V&gt; { ... }</pre
+                >
+                <p>
+                    B‑tree with order 16 (configurable). Keys must be
+                    <code>Ord</code>.
+                </p>
+                <p>
+                    <strong>Complexity verification</strong>: Insert/lookup
+                    O(log n); after 100k random inserts, height ≤5; iteration
+                    O(n) sorted.
+                </p>
+            </section>
+            <section>
+                <h2>
+                    3. <code>SlotMap&lt;K, T&gt;</code> – Generational Arena
+                </h2>
+                <pre>
+pub struct SlotMap&lt;K, T&gt; { /* private */ }
+pub trait Key: Copy + Eq {}
+impl&lt;K: Key, T&gt; SlotMap&lt;K, T&gt; {
+    pub fn new() -> Self;
+    pub fn insert(&amp;mut self, value: T) -> K;
+    pub fn get(&amp;self, key: K) -> Option&lt;&amp;T&gt;;
+    pub fn get_mut(&amp;mut self, key: K) -> Option&lt;&amp;mut T&gt;;
+    pub fn remove(&amp;mut self, key: K) -> Option&lt;T&gt;;
+    pub fn contains(&amp;self, key: K) -> bool;
+    pub fn len(&amp;self) -> usize;
+}
+impl&lt;K: Key, T&gt; Dispose for SlotMap&lt;K, T&gt; { ... }</pre
+                >
+                <p>
+                    Keys are copyable and include generation; removals
+                    invalidate key (generation bump).
+                </p>
+            </section>
+            <section>
+                <h2>4. <code>RingBuf&lt;T&gt;</code> – Ring Buffer</h2>
+                <pre>
+pub struct RingBuf&lt;T&gt; { /* private */ }
+impl&lt;T&gt; RingBuf&lt;T&gt; {
+    pub fn new(capacity: usize) -> Self;
+    pub fn push_back(&amp;mut self, value: T) -> Result&lt;(), T&gt;;
+    pub fn pop_front(&amp;mut self) -> Option&lt;T&gt;;
+    pub fn front(&amp;self) -> Option&lt;&amp;T&gt;;
+    pub fn back(&amp;self) -> Option&lt;&amp;T&gt;;
+    pub fn len(&amp;self) -> usize;
+    pub fn is_empty(&amp;self) -> bool;
+    pub fn capacity(&amp;self) -> usize;
+}
+impl&lt;T&gt; Dispose for RingBuf&lt;T&gt; { ... }</pre
+                >
+                <p>
+                    Fixed capacity; <code>push_back</code> returns
+                    <code>Err(value)</code> when full.
+                </p>
+            </section>
+            <section>
+                <h2>5. Testing</h2>
+                <ul>
+                    <li>List: push/pop, iterator, disposal.</li>
+                    <li>Map: insert/get/remove, iterator order, disposal.</li>
+                    <li>
+                        SlotMap: insert/retrieve, key invalidation, disposal.
+                    </li>
+                    <li>RingBuf: circular fill/overflow, front/back.</li>
+                    <li>
+                        Complexity: B‑tree lookup O(log n), verify with 100k
+                        keys.
+                    </li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase3a-core-cmp.html" rel="prev"
+                        >Previous: Comparison</a
+                    >
+                    |
+                    <a href="phase3a-core-debug.html" rel="next">Next: Debug</a>
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 3a – Core Library: Formatting</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 3a – Core Library: Formatting</h1></header>
+        <nav>
+            <p>
+                <a href="phase3a-core-env.html" rel="prev"
+                    >Previous: Environment</a
+                >
+                | <a href="phase3a-core-hash.html" rel="next">Next: Hashing</a>
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Provide string formatting, the <code>Display</code> and
+                    <code>Debug</code> traits, and <code>print</code>/<code
+                        >println</code
+                    >
+                    functions.
+                </p>
+            </section>
+            <section>
+                <h2>1. Public Functions</h2>
+                <pre>
+pub fn print(args: Arguments);
+pub fn println(args: Arguments);</pre
+                >
+                <p>
+                    Write formatted output to stdout; <code>println</code> adds
+                    newline. Panic on write failure.
+                </p>
+            </section>
+            <section>
+                <h2>2. <code>Arguments</code> Type</h2>
+                <pre>pub struct Arguments { /* opaque */ }</pre>
+                <p>
+                    Produced by <code>format!</code> macro; compiler‑generated
+                    representation.
+                </p>
+            </section>
+            <section>
+                <h2>3. <code>Formatter</code> Type</h2>
+                <pre>
+pub struct Formatter { /* private */ }
+impl Formatter {
+    pub fn write_str(&amp;mut self, s: &amp;str) -> Result&lt;(), Error&gt;;
+    pub fn write_fmt(&amp;mut self, args: Arguments) -> Result&lt;(), Error&gt;;
+}</pre
+                >
+                <p>
+                    Accumulates output into a buffer;
+                    <code>write_fmt</code> formats arguments.
+                </p>
+            </section>
+            <section>
+                <h2>4. <code>Error</code> Type</h2>
+                <pre>pub type Error = ();</pre>
+                <p>Infallible formatting; always <code>Ok(())</code>.</p>
+            </section>
+            <section>
+                <h2>5. Traits</h2>
+                <h3>5.1 <code>Display</code></h3>
+                <pre>
+pub trait Display {
+    fn fmt(&amp;self, f: &amp;mut Formatter) -> Result&lt;(), Error&gt;;
+}</pre
+                >
+                <h3>5.2 <code>Debug</code></h3>
+                <pre>
+pub trait Debug {
+    fn fmt(&amp;self, f: &amp;mut Formatter) -> Result&lt;(), Error&gt;;
+}</pre
+                >
+                <p>
+                    <code>@derive(Display)</code> and
+                    <code>@derive(Debug)</code> generate implementations.
+                </p>
+            </section>
+            <section>
+                <h2>6. Implementation</h2>
+                <p>
+                    <code>Formatter</code> uses a
+                    <code>Vec&lt;u8&gt;</code> buffer. <code>print</code>/<code
+                        >println</code
+                    >
+                    create a <code>Formatter</code>, call
+                    <code>args.write_fmt</code>, then write buffer to stdout.
+                </p>
+            </section>
+            <section>
+                <h2>7. Testing</h2>
+                <ul>
+                    <li>
+                        <code>print</code>/<code>println</code> output captured.
+                    </li>
+                    <li>
+                        <code>Display</code> and <code>Debug</code> for
+                        built‑ins produce expected strings.
+                    </li>
+                    <li>Manual implementations for test structs.</li>
+                    <li>All formatting returns <code>Ok(())</code>.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase3a-core-env.html" rel="prev"
+                        >Previous: Environment</a
+                    >
+                    |
+                    <a href="phase3a-core-hash.html" rel="next"
+                        >Next: Hashing</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: Crypto</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: Crypto</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-cortex-m.html" rel="prev"
+                    >Previous: Cortex‑M</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-debug-info.html" rel="next"
+                    >Next: Debug Info</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Comprehensive cryptographic primitives: secure random,
+                    hashing (SHA‑2, SHA‑3, BLAKE3), HMAC, AEAD (AES‑GCM,
+                    ChaCha20‑Poly1305), asymmetric (RSA, ECC), key derivation
+                    (HKDF, PBKDF2). Linear secret keys, constant‑time
+                    operations.
+                </p>
+            </section>
+            <section>
+                <h2>1. Secure Random</h2>
+                <pre>
+pub struct SecureRandom { /* … */ }
+impl SecureRandom { pub fn new() -> SecureRandom; pub fn fill_bytes(&amp;mut self, dest: &amp;mut [u8]); }</pre
+                >
+            </section>
+            <section>
+                <h2>2. Hashing</h2>
+                <pre>
+pub trait Hash {
+    fn update(&amp;mut self, data: &amp;[u8]);
+    fn finalize(self) -> Vec&lt;u8&gt;;
+    fn output_size() -> usize;
+    fn block_size() -> usize;
+}
+pub struct Sha256; pub struct Sha512; pub struct Sha3_256; pub struct Sha3_512; pub struct Blake3;</pre
+                >
+                <p>
+                    One‑shot convenience functions: <code>sha256</code>,
+                    <code>sha512</code>, etc.
+                </p>
+            </section>
+            <section>
+                <h2>3. Message Authentication</h2>
+                <pre>
+pub struct Hmac&lt;H: Hash&gt; { /* … */ }
+impl&lt;H: Hash&gt; Hmac&lt;H&gt; {
+    pub fn new(key: &amp;[u8]) -> Self;
+    pub fn update(&amp;mut self, data: &amp;[u8]);
+    pub fn finalize(self) -> Vec&lt;u8&gt;;
+    pub fn verify(self, tag: &amp;[u8]) -> Result&lt;(), MacError&gt;;
+}
+pub struct Poly1305 { /* … */ }</pre
+                >
+            </section>
+            <section>
+                <h2>4. Authenticated Encryption (AEAD)</h2>
+                <pre>
+pub trait Aead {
+    fn seal(&amp;self, nonce: &amp;[u8], plaintext: &amp;[u8], aad: &amp;[u8]) -> Vec&lt;u8&gt;;
+    fn open(&amp;self, nonce: &amp;[u8], ciphertext: &amp;[u8], aad: &amp;[u8]) -> Result&lt;Vec&lt;u8&gt;, CryptoError&gt;;
+}
+pub struct Aes128Gcm; pub struct Aes256Gcm; pub struct ChaCha20Poly1305;</pre
+                >
+            </section>
+            <section>
+                <h2>5. Asymmetric</h2>
+                <pre>
+pub trait PrivateKey: Sized + Dispose { type PublicKeyType: PublicKey; … }
+pub trait PublicKey: Sized + Copy { … }
+pub struct RsaPrivateKey; pub struct RsaPublicKey;
+pub struct EcPrivateKey; pub struct EcPublicKey;
+pub enum Curve { P256, P384, P521, Ed25519, X25519 }</pre
+                >
+            </section>
+            <section>
+                <h2>6. Key Derivation</h2>
+                <pre>
+pub struct Hkdf&lt;H: Hash&gt; { … }
+pub fn pbkdf2(password: &amp;[u8], salt: &amp;[u8], iterations: u32, out_len: usize) -> Vec&lt;u8&gt;;</pre
+                >
+            </section>
+            <section>
+                <h2>7. Error Handling</h2>
+                <pre>
+pub enum CryptoError {
+    InvalidKeyLength,
+    InvalidNonceLength,
+    DecryptionFailed,
+    SignatureInvalid,
+    VerificationFailed,
+    RandomGenerationFailed,
+    Parameter(String),
+}</pre
+                >
+            </section>
+            <section>
+                <h2>8. Testing</h2>
+                <ul>
+                    <li>Hashing: test vectors.</li>
+                    <li>HMAC: RFC 4231.</li>
+                    <li>
+                        AEAD: encrypt/decrypt round‑trip; tampered ciphertext
+                        fails.
+                    </li>
+                    <li>RSA: keygen, sign/verify.</li>
+                    <li>ECC: sign/verify, X25519 DH.</li>
+                    <li>HKDF/PBKDF2: test vectors.</li>
+                    <li>Zeroisation: private keys zeroed on drop.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-cortex-m.html" rel="prev"
+                        >Previous: Cortex‑M</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-debug-info.html" rel="next"
+                        >Next: Debug Info</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

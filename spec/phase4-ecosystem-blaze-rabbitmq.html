@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: RabbitMQ</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: RabbitMQ</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-postgres.html" rel="prev"
+                    >Previous: Postgres</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-redis.html" rel="next"
+                    >Next: Redis</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Async RabbitMQ client with native AMQP 0‑9‑1 wire protocol.
+                    Supports publishers, consumers, exchanges, queues, bindings,
+                    acknowledgements, publisher confirms.
+                </p>
+            </section>
+            <section>
+                <h2>1. Connection</h2>
+                <pre>
+pub struct Connection { /* TCP/TLS, channels */ }
+impl Connection {
+    pub async fn connect(uri: &amp;str, config: &amp;ConnectionConfig) -> Result&lt;Self, RabbitError&gt;;
+    pub async fn open_channel(&amp;mut self) -> Result&lt;Channel, RabbitError&gt;;
+    pub async fn close(self) -> Result&lt;(), RabbitError&gt;;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>2. Channel</h2>
+                <pre>
+pub struct Channel { id: u16, sender: Sender&lt;ChannelCommand&gt;, receiver: Receiver&lt;ChannelResponse&gt; }
+impl Channel {
+    pub async fn declare_exchange(&amp;self, name: &amp;str, kind: ExchangeKind, options: &amp;ExchangeOptions) -> Result&lt;(), RabbitError&gt;;
+    pub async fn declare_queue(&amp;self, name: &amp;str, options: &amp;QueueOptions) -> Result&lt;QueueInfo, RabbitError&gt;;
+    pub async fn bind_queue(&amp;self, queue: &amp;str, exchange: &amp;str, routing_key: &amp;str) -> Result&lt;(), RabbitError&gt;;
+    pub async fn publish(&amp;self, exchange: &amp;str, routing_key: &amp;str, message: &amp;Message) -> Result&lt;(), RabbitError&gt;;
+    pub async fn consume(&amp;self, queue: &amp;str, consumer_tag: &amp;str, config: &amp;ConsumerConfig) -> Result&lt;Consumer, RabbitError&gt;;
+    pub async fn ack(&amp;self, delivery_tag: u64) -> Result&lt;(), RabbitError&gt;;
+    pub async fn nack(&amp;self, delivery_tag: u64, requeue: bool) -> Result&lt;(), RabbitError&gt;;
+    pub async fn qos(&amp;self, prefetch_count: u16, prefetch_size: u32, global: bool) -> Result&lt;(), RabbitError&gt;;
+    pub async fn confirm_select(&amp;self) -> Result&lt;(), RabbitError&gt;;
+    pub fn publisher_confirm(&amp;self) -> Receiver&lt;bool&gt;;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>3. Exchange, Queue, Bindings</h2>
+                <pre>
+pub enum ExchangeKind { Direct, Fanout, Topic, Headers, Custom(Text) }
+pub struct ExchangeOptions { durable: bool, auto_delete: bool, internal: bool, arguments: Map&lt;Text, AmqpValue&gt; }
+pub struct QueueOptions { durable: bool, exclusive: bool, auto_delete: bool, arguments: Map&lt;Text, AmqpValue&gt; }
+pub struct QueueInfo { name: Text, message_count: u32, consumer_count: u32 }</pre
+                >
+            </section>
+            <section>
+                <h2>4. Message</h2>
+                <pre>
+pub struct Message {
+    body: Vec&lt;u8&gt;,
+    content_type: Option&lt;Text&gt;,
+    content_encoding: Option&lt;Text&gt;,
+    headers: Map&lt;Text, AmqpValue&gt;,
+    delivery_mode: DeliveryMode,
+    priority: u8,
+    correlation_id: Option&lt;Text&gt;,
+    reply_to: Option&lt;Text&gt;,
+    expiration: Option&lt;Text&gt;,
+    message_id: Option&lt;Text&gt;,
+    timestamp: Option&lt;SystemTime&gt;,
+    type_name: Option&lt;Text&gt;,
+    user_id: Option&lt;Text&gt;,
+    app_id: Option&lt;Text&gt;,
+}
+pub enum DeliveryMode { NonPersistent = 1, Persistent = 2 }</pre
+                >
+            </section>
+            <section>
+                <h2>5. Consumer</h2>
+                <pre>
+pub struct Consumer { receiver: Receiver&lt;Delivery&gt;, channel: Channel, consumer_tag: Text }
+impl Consumer {
+    pub async fn recv(&amp;self) -> Option&lt;Delivery&gt;;
+    pub async fn cancel(self) -> Result&lt;(), RabbitError&gt;;
+}
+impl Iterator for Consumer { type Item = Delivery; fn next(&amp;mut self) -> Option&lt;Delivery&gt;; }</pre
+                >
+            </section>
+            <section>
+                <h2>6. Error Handling</h2>
+                <pre>
+pub enum RabbitError {
+    Io(std::io::Error),
+    Protocol(Text),
+    AuthenticationFailed,
+    ConnectionRefused,
+    ChannelClosed(u16, Text),
+    ConsumerCancelled,
+    Timeout,
+    Serialization(Text),
+}</pre
+                >
+            </section>
+            <section>
+                <h2>7. Testing</h2>
+                <ul>
+                    <li>Connection handshake.</li>
+                    <li>Publish and consume.</li>
+                    <li>Acknowledgements.</li>
+                    <li>QoS.</li>
+                    <li>Error handling.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-postgres.html" rel="prev"
+                        >Previous: Postgres</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-redis.html" rel="next"
+                        >Next: Redis</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

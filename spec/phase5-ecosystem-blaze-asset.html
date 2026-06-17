@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 5 – Ecosystem: Asset</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 5 – Ecosystem: Asset</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-zstd.html" rel="prev"
+                    >Previous: Zstd</a
+                >
+                |
+                <a href="phase5-ecosystem-blaze-autobalance.html" rel="next"
+                    >Next: Autobalance</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Compile‑time and runtime asset pipeline for textures,
+                    meshes, audio, and arbitrary data. Integrates with
+                    <code>@texture</code>, <code>@generate</code>,
+                    <code>@streaming</code>, and
+                    <code>@derive(Deduplicate)</code>.
+                </p>
+            </section>
+            <section>
+                <h2>1. Core Types</h2>
+                <pre>
+pub struct Texture { /* GPU handle */ }
+pub struct Mesh { /* vertex/index buffers */ }
+pub struct AudioClip { /* compressed audio */ }
+pub struct AssetCache { /* streaming cache */ }
+pub struct AssetId { /* typed identifier */ }</pre
+                >
+            </section>
+            <section>
+                <h2>2. <code>@texture</code> Attribute</h2>
+                <pre>
+@texture(compression = "auto", format = "bc7", mipmaps = "generate", srgb = true)
+static DIFFUSE_MAP: Texture = include_texture!("wall_diffuse.png");</pre
+                >
+                <p>
+                    Compresses texture at build time to GPU‑native format (BCn,
+                    ASTC). Stores directly in binary; no runtime decompression.
+                </p>
+            </section>
+            <section>
+                <h2>3. <code>@generate</code> Attribute</h2>
+                <pre>
+@generate(from = "diffuse.png", algorithm = "sobel") static NORMAL_MAP: Texture;
+@generate(algorithm = "terrain", seed = 42, size = 1024) static TERRAIN_HEIGHTMAP: Texture;</pre
+                >
+                <p>
+                    Runs procedural generation at compile time. Built‑in
+                    algorithms: <code>sobel</code>,
+                    <code>normal_from_height</code>, <code>mipmap</code>,
+                    <code>lod</code>, <code>terrain</code>,
+                    <code>cube_from_2d</code>.
+                </p>
+            </section>
+            <section>
+                <h2>4. <code>@streaming</code> Attribute</h2>
+                <pre>
+@streaming(threshold = "4MB", prefetch = 2) static LEVEL_DATA: &amp;[u8] = include_bytes!("level.bin");</pre
+                >
+                <p>
+                    Marks asset for automatic runtime paging.
+                    <code>StreamingSlice&lt;T&gt;</code> with
+                    <code>get</code> (non‑blocking) and
+                    <code>fetch</code> (async).
+                </p>
+            </section>
+            <section>
+                <h2>5. <code>@derive(Deduplicate)</code></h2>
+                <p>
+                    Globally deduplicates constant instances of the type at
+                    compile time. Used by asset types to eliminate duplicate
+                    textures, meshes, materials.
+                </p>
+            </section>
+            <section>
+                <h2>6. Runtime Asset Cache</h2>
+                <pre>
+pub struct AssetCache { /* … */ }
+impl AssetCache {
+    pub fn new(config: CacheConfig) -> Self;
+    pub fn get&lt;T: Asset&gt;(&amp;self, id: &amp;AssetId) -> Option&lt;Arc&lt;T&gt;&gt;;
+    pub fn insert&lt;T: Asset&gt;(&amp;self, id: AssetId, asset: T) -> Arc&lt;T&gt;;
+    pub fn evict(&amp;self, id: &amp;AssetId);
+}</pre
+                >
+            </section>
+            <section>
+                <h2>7. Error Handling</h2>
+                <pre>
+pub enum AssetError { Io(std::io::Error), InvalidFormat(Text), GenerationFailed(Text), OutOfMemory, StreamingNotAvailable }</pre
+                >
+            </section>
+            <section>
+                <h2>8. Testing</h2>
+                <ul>
+                    <li>Texture compilation: BC7 format and mipmaps.</li>
+                    <li>Deduplication: two identical constants → one copy.</li>
+                    <li>Generation: sobel produces normal map.</li>
+                    <li>Streaming: pages loaded on demand; prefetch works.</li>
+                    <li>Asset cache: insert/retrieve/evict.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-zstd.html" rel="prev"
+                        >Previous: Zstd</a
+                    >
+                    |
+                    <a href="phase5-ecosystem-blaze-autobalance.html" rel="next"
+                        >Next: Autobalance</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

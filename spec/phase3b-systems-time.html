@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 3b – Systems Library: Time</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 3b – Systems Library: Time</h1></header>
+        <nav>
+            <p>
+                <a href="phase3b-systems-sync.html" rel="prev"
+                    >Previous: Synchronization</a
+                >
+                |
+                <a href="phase3c-extended-dynamic.html" rel="next"
+                    >Next: Extended – Dynamic</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Provide <code>Duration</code> and <code>Instant</code> for
+                    measuring time intervals and monotonic clocks.
+                </p>
+            </section>
+            <section>
+                <h2>1. <code>Duration</code></h2>
+                <pre>pub struct Duration { secs: u64, nanos: u32 }</pre>
+                <p>Represents span; <code>nanos</code> &lt; 1_000_000_000.</p>
+                <h3>Constructors</h3>
+                <pre>
+pub fn new(secs: u64, nanos: u32) -> Duration;
+pub fn from_secs(secs: u64) -> Duration;
+pub fn from_millis(millis: u64) -> Duration;
+pub fn from_micros(micros: u64) -> Duration;
+pub fn from_nanos(nanos: u64) -> Duration;</pre
+                >
+                <h3>Accessors</h3>
+                <pre>
+pub fn as_secs(&amp;self) -> u64;
+pub fn subsec_millis(&amp;self) -> u32;
+pub fn subsec_micros(&amp;self) -> u32;
+pub fn subsec_nanos(&amp;self) -> u32;</pre
+                >
+                <h3>Arithmetic</h3>
+                <p>
+                    Implements <code>Add</code>, <code>Sub</code>,
+                    <code>Mul</code>, <code>Div</code>, and assignment variants.
+                    Overflow panics in debug, wraps in release.
+                </p>
+                <p>
+                    Comparisons: <code>PartialEq</code>, <code>Eq</code>,
+                    <code>PartialOrd</code>, <code>Ord</code>.
+                </p>
+                <p><code>@copy</code>, <code>Default</code> (zero).</p>
+            </section>
+            <section>
+                <h2>2. <code>Instant</code></h2>
+                <pre>pub struct Instant { t: u64 }</pre>
+                <p>Monotonic timestamp (nanoseconds from arbitrary epoch).</p>
+                <h3>Constructor</h3>
+                <pre>pub fn now() -> Instant;</pre>
+                <h3>Operations</h3>
+                <pre>
+impl Sub&lt;Instant&gt; for Instant { type Output = Duration; ... }
+impl Add&lt;Duration&gt; for Instant { type Output = Instant; ... }</pre
+                >
+                <p>
+                    <code>PartialEq</code>, <code>Eq</code>,
+                    <code>PartialOrd</code>, <code>Ord</code>.
+                </p>
+                <h3><code>elapsed</code></h3>
+                <pre>pub fn elapsed(&amp;self) -> Duration;</pre>
+                <p><code>@copy</code>.</p>
+            </section>
+            <section>
+                <h2>3. Implementation Notes</h2>
+                <ul>
+                    <li>Unix: <code>clock_gettime(CLOCK_MONOTONIC)</code>.</li>
+                    <li>Windows: <code>QueryPerformanceCounter</code>.</li>
+                    <li>
+                        <code>Instant</code> stores nanoseconds; conversion from
+                        raw ticks.
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>4. Testing</h2>
+                <ul>
+                    <li>
+                        Duration: arithmetic, sub‑second components,
+                        comparisons.
+                    </li>
+                    <li>
+                        Instant: <code>now()</code>, sleep, elapsed within
+                        bounds.
+                    </li>
+                    <li>Monotonicity: consecutive calls non‑decreasing.</li>
+                    <li>Overflow: panics in debug, wraps in release.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase3b-systems-sync.html" rel="prev"
+                        >Previous: Synchronization</a
+                    >
+                    |
+                    <a href="phase3c-extended-dynamic.html" rel="next"
+                        >Next: Extended – Dynamic</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

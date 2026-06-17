@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: GPU Compute</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: GPU Compute</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-grpc.html" rel="prev"
+                    >Previous: gRPC</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-gui.html" rel="next"
+                    >Next: GUI</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Unified abstraction over GPU compute backends (CUDA, OpenCL,
+                    Vulkan compute, WebGPU) for safe, data‑oriented GPU
+                    programming.
+                </p>
+            </section>
+            <section>
+                <h2>1. Device and Context</h2>
+                <pre>
+pub struct GpuDevice { id: u32, name: Text, backend: GpuBackend, total_memory: usize, max_compute_units: u32, max_work_group_size: u32, max_shared_memory: usize, supports_unified_memory: bool, supports_fp16: bool, supports_fp64: bool }
+pub enum GpuBackend { Cuda, OpenCL, Vulkan, WebGPU }
+impl GpuDevice { pub fn enumerate() -> Vec&lt;GpuDevice&gt;; pub fn default() -> Result&lt;Self, GpuError&gt;; pub fn create_context(&amp;self) -> Result&lt;GpuContext, GpuError&gt;; }
+pub struct GpuContext { /* … */ }
+impl GpuContext { pub fn create_stream(&amp;self) -> GpuStream; pub fn create_buffer&lt;T: GpuScalar&gt;(&amp;self, count: usize, usage: BufferUsage) -> GpuBuffer&lt;T&gt;; pub fn create_kernel(&amp;self, source: &amp;str, entry: &amp;str) -> Result&lt;GpuKernel, GpuError&gt;; }</pre
+                >
+            </section>
+            <section>
+                <h2>2. Buffers</h2>
+                <pre>
+pub struct GpuBuffer&lt;T: GpuScalar&gt; { ptr: *mut T, count: usize, context: GpuContext }
+impl&lt;T: GpuScalar&gt; GpuBuffer&lt;T&gt; { pub fn len(&amp;self) -> usize; pub fn as_ptr(&amp;self) -> *const T; pub fn as_mut_ptr(&amp;mut self) -> *mut T; pub fn copy_from_host(&amp;mut self, data: &amp;[T], stream: &amp;GpuStream) -> Result&lt;(), GpuError&gt;; pub fn copy_to_host(&amp;self, data: &amp;mut [T], stream: &amp;GpuStream) -> Result&lt;(), GpuError&gt;; }</pre
+                >
+            </section>
+            <section>
+                <h2>3. Kernels</h2>
+                <pre>
+pub struct GpuKernel { inner: Box&lt;dyn GpuKernelImpl&gt;, entry: Text, work_group_size: (u32, u32, u32), optimal_block_dim: (u32, u32, u32) }
+impl GpuKernel { pub fn dispatch(&amp;self, stream: &amp;GpuStream, global_size: (u32, u32, u32), args: &amp;[GpuKernelArg]) -> Result&lt;(), GpuError&gt;; }
+pub enum GpuKernelArg&lt;'a&gt; { Buffer(&amp;'a GpuBuffer&lt;dyn GpuScalarTrait&gt;), ScalarU32(u32), ScalarI32(i32), ScalarF32(f32), ScalarF64(f64) }</pre
+                >
+                <p>
+                    <code>@branchless</code> enforcement: kernels annotated
+                    <code>@branchless</code> must be branch‑free; compile error
+                    otherwise.
+                </p>
+            </section>
+            <section>
+                <h2>4. Streams and Events</h2>
+                <pre>
+pub struct GpuStream { /* … */ }
+impl GpuStream { pub fn synchronize(&amp;self) -> Result&lt;(), GpuError&gt;; pub fn record_event(&amp;self) -> GpuEvent; pub fn wait_event(&amp;self, event: &amp;GpuEvent); }
+pub struct GpuEvent { /* … */ }
+impl GpuEvent { pub fn synchronize(&amp;self); pub fn elapsed_time(&amp;self, other: &amp;GpuEvent) -> f32; }</pre
+                >
+            </section>
+            <section>
+                <h2>5. Error Handling</h2>
+                <pre>
+pub enum GpuError {
+    NoDevice, OutOfMemory, InvalidOperation,
+    KernelCompilation(Text), KernelLaunchFailed(Text), StreamExecutionFailed(Text),
+    CopyError(Text), UnsupportedFeature(Text), BackendError(Text), BranchfulCode,
+}</pre
+                >
+            </section>
+            <section>
+                <h2>6. Testing</h2>
+                <ul>
+                    <li>Enumeration.</li>
+                    <li>Memory copy.</li>
+                    <li>Kernel execution.</li>
+                    <li>Multiple streams.</li>
+                    <li><code>@branchless</code> enforcement.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-grpc.html" rel="prev"
+                        >Previous: gRPC</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-gui.html" rel="next"
+                        >Next: GUI</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

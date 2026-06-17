@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 3b – Systems Library: Binary Data</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 3b – Systems Library: Binary Data</h1></header>
+        <nav>
+            <p>
+                <a href="phase3a-core-deduplicate.html" rel="prev"
+                    >Previous: Deduplicate</a
+                >
+                |
+                <a href="phase3b-systems-endian.html" rel="next"
+                    >Next: Endianness</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Provide utilities for encoding/decoding binary data,
+                    reading/writing primitive types from byte slices.
+                </p>
+            </section>
+            <section>
+                <h2>1. Reading Functions</h2>
+                <pre>
+pub fn read_u8(buf: &amp;[u8]) -> Option&lt;(u8, &amp;[u8])&gt;;
+pub fn read_u16_be(buf: &amp;[u8]) -> Option&lt;(u16, &amp;[u8])&gt;;
+pub fn read_u16_le(buf: &amp;[u8]) -> Option&lt;(u16, &amp;[u8])&gt;;
+pub fn read_u32_be(buf: &amp;[u8]) -> Option&lt;(u32, &amp;[u8])&gt;;
+pub fn read_u32_le(buf: &amp;[u8]) -> Option&lt;(u32, &amp;[u8])&gt;;
+pub fn read_u64_be(buf: &amp;[u8]) -> Option&lt;(u64, &amp;[u8])&gt;;
+pub fn read_u64_le(buf: &amp;[u8]) -> Option&lt;(u64, &amp;[u8])&gt;;
+pub fn read_i8(buf: &amp;[u8]) -> Option&lt;(i8, &amp;[u8])&gt;;
+pub fn read_i16_be(buf: &amp;[u8]) -> Option&lt;(i16, &amp;[u8])&gt;;
+pub fn read_i16_le(buf: &amp;[u8]) -> Option&lt;(i16, &amp;[u8])&gt;;
+pub fn read_i32_be(buf: &amp;[u8]) -> Option&lt;(i32, &amp;[u8])&gt;;
+pub fn read_i32_le(buf: &amp;[u8]) -> Option&lt;(i32, &amp;[u8])&gt;;
+pub fn read_i64_be(buf: &amp;[u8]) -> Option&lt;(i64, &amp;[u8])&gt;;
+pub fn read_i64_le(buf: &amp;[u8]) -> Option&lt;(i64, &amp;[u8])&gt;;
+pub fn read_f32_be(buf: &amp;[u8]) -> Option&lt;(f32, &amp;[u8])&gt;;
+pub fn read_f32_le(buf: &amp;[u8]) -> Option&lt;(f32, &amp;[u8])&gt;;
+pub fn read_f64_be(buf: &amp;[u8]) -> Option&lt;(f64, &amp;[u8])&gt;;
+pub fn read_f64_le(buf: &amp;[u8]) -> Option&lt;(f64, &amp;[u8])&gt;;</pre
+                >
+                <p>
+                    Return <code>None</code> if insufficient bytes. Remainder
+                    slice returned.
+                </p>
+            </section>
+            <section>
+                <h2>2. Writing Functions</h2>
+                <pre>
+pub fn write_u8(buf: &amp;mut [u8], val: u8) -> Option&lt;&amp;mut [u8]&gt;;
+pub fn write_u16_be(buf: &amp;mut [u8], val: u16) -> Option&lt;&amp;mut [u8]&gt;;
+pub fn write_u16_le(buf: &amp;mut [u8], val: u16) -> Option&lt;&amp;mut [u8]&gt;;
+pub fn write_u32_be(buf: &amp;mut [u8], val: u32) -> Option&lt;&amp;mut [u8]&gt;;
+pub fn write_u32_le(buf: &amp;mut [u8], val: u32) -> Option&lt;&amp;mut [u8]&gt;;
+pub fn write_u64_be(buf: &amp;mut [u8], val: u64) -> Option&lt;&amp;mut [u8]&gt;;
+pub fn write_u64_le(buf: &amp;mut [u8], val: u64) -> Option&lt;&amp;mut [u8]&gt;;
+pub fn write_i8(buf: &amp;mut [u8], val: i8) -> Option&lt;&amp;mut [u8]&gt;;
+pub fn write_i16_be(buf: &amp;mut [u8], val: i16) -> Option&lt;&amp;mut [u8]&gt;;
+pub fn write_i16_le(buf: &amp;mut [u8], val: i16) -> Option&lt;&amp;mut [u8]&gt;;
+pub fn write_i32_be(buf: &amp;mut [u8], val: i32) -> Option&lt;&amp;mut [u8]&gt;;
+pub fn write_i32_le(buf: &amp;mut [u8], val: i32) -> Option&lt;&amp;mut [u8]&gt;;
+pub fn write_i64_be(buf: &amp;mut [u8], val: i64) -> Option&lt;&amp;mut [u8]&gt;;
+pub fn write_i64_le(buf: &amp;mut [u8], val: i64) -> Option&lt;&amp;mut [u8]&gt;;
+pub fn write_f32_be(buf: &amp;mut [u8], val: f32) -> Option&lt;&amp;mut [u8]&gt;;
+pub fn write_f32_le(buf: &amp;mut [u8], val: f32) -> Option&lt;&amp;mut [u8]&gt;;
+pub fn write_f64_be(buf: &amp;mut [u8], val: f64) -> Option&lt;&amp;mut [u8]&gt;;
+pub fn write_f64_le(buf: &amp;mut [u8], val: f64) -> Option&lt;&amp;mut [u8]&gt;;</pre
+                >
+                <p>
+                    Return <code>None</code> if insufficient space; remainder
+                    mutable slice returned.
+                </p>
+            </section>
+            <section>
+                <h2>3. Implementation Notes</h2>
+                <ul>
+                    <li>Functions are pure (no effect).</li>
+                    <li>
+                        Use unsafe pointer casting; respect alignment and
+                        aliasing.
+                    </li>
+                    <li>
+                        Endianness: <code>_be</code> and
+                        <code>_le</code> explicit; host endianness handled via
+                        <code>std::endian</code>.
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>4. Testing</h2>
+                <ul>
+                    <li>
+                        Read known byte patterns; verify value and remaining
+                        slice.
+                    </li>
+                    <li>Write values; verify byte contents.</li>
+                    <li>Edge: empty buffer, exactly sized, one byte short.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase3a-core-deduplicate.html" rel="prev"
+                        >Previous: Deduplicate</a
+                    >
+                    |
+                    <a href="phase3b-systems-endian.html" rel="next"
+                        >Next: Endianness</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

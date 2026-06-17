@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>
+            Blaze Phase 3c – Extended Library: Dynamic Dispatch Helpers
+        </title>
+    </head>
+    <body>
+        <header>
+            <h1>Blaze Phase 3c – Extended Library: Dynamic Dispatch Helpers</h1>
+        </header>
+        <nav>
+            <p>
+                <a href="phase3b-systems-time.html" rel="prev"
+                    >Previous: Time</a
+                >
+                |
+                <a href="phase3c-extended-fixed.html" rel="next"
+                    >Next: Fixed‑Point</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Utilities for <code>dyn Trait</code>: downcasting, type
+                    checking, vtable introspection.
+                </p>
+            </section>
+            <section>
+                <h2>1. <code>DynTrait</code> Type</h2>
+                <pre>
+pub struct DynTrait&lt;T: ?Sized&gt; { data: *mut u8, vtable: *const VTable }</pre
+                >
+                <p>
+                    Internal representation; compiler constructs automatically.
+                </p>
+                <h3>Raw Creation (unsafe)</h3>
+                <pre>
+pub unsafe fn from_raw_parts(data: *mut u8, vtable: *const VTable) -> Self;
+pub fn data_ptr(&amp;self) -> *mut u8;
+pub fn vtable_ptr(&amp;self) -> *const VTable;</pre
+                >
+            </section>
+            <section>
+                <h2>2. VTable</h2>
+                <pre>
+pub struct VTable {
+    drop: unsafe fn(*mut u8),
+    size: usize,
+    align: usize,
+    methods: *const MethodTable,
+}</pre
+                >
+                <p><code>MethodTable</code> is opaque, compiler‑generated.</p>
+            </section>
+            <section>
+                <h2>3. Downcasting</h2>
+                <h3>3.1 <code>Any</code> Trait</h3>
+                <pre>pub trait Any: 'static {}</pre>
+                <p>
+                    Blanket implementation for all <code>'static</code> types.
+                </p>
+                <h3>
+                    3.2 <code>downcast_ref</code> and <code>downcast_mut</code>
+                </h3>
+                <pre>
+pub fn downcast_ref&lt;T: Any&gt;(obj: &amp;dyn Any) -> Option&lt;&amp;T&gt;;
+pub fn downcast_mut&lt;T: Any&gt;(obj: &amp;mut dyn Any) -> Option&lt;&amp;mut T&gt;;</pre
+                >
+                <p>Uses <code>TypeId</code> stored in vtable.</p>
+                <h3>3.3 <code>TypeId</code></h3>
+                <pre>
+pub struct TypeId(u64);
+impl TypeId {
+    pub fn of&lt;T: Any&gt;() -> TypeId;
+}</pre
+                >
+                <p>Generated from mangled name hash (FNV‑1a).</p>
+            </section>
+            <section>
+                <h2>4. Implementation Notes</h2>
+                <ul>
+                    <li>
+                        Vtable includes <code>TypeId</code> for types
+                        implementing <code>Any</code>.
+                    </li>
+                    <li>
+                        <code>downcast</code> compares
+                        <code>TypeId</code> stored in vtable with requested.
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>5. Testing</h2>
+                <ul>
+                    <li>
+                        Coerce concrete type to <code>dyn Trait</code>, call
+                        method.
+                    </li>
+                    <li>Downcast <code>dyn Any</code> back to concrete.</li>
+                    <li>Incorrect downcast returns <code>None</code>.</li>
+                    <li><code>TypeId</code> uniqueness.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase3b-systems-time.html" rel="prev"
+                        >Previous: Time</a
+                    >
+                    |
+                    <a href="phase3c-extended-fixed.html" rel="next"
+                        >Next: Fixed‑Point</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

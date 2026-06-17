@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 3a – Core Library: Deduplicate</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 3a – Core Library: Deduplicate</h1></header>
+        <nav>
+            <p>
+                <a href="phase3a-core-window.html" rel="prev"
+                    >Previous: Sliding Windows</a
+                >
+                |
+                <a href="phase3b-systems-binary.html" rel="next"
+                    >Next: Systems – Binary</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Define <code>Deduplicate</code> trait and compile‑time
+                    deduplication mechanism for constant values.
+                </p>
+            </section>
+            <section>
+                <h2>1. <code>Deduplicate</code> Trait</h2>
+                <pre>pub trait Deduplicate {}</pre>
+                <p>
+                    Marker trait. Signals compiler to globally deduplicate
+                    constants of this type.
+                </p>
+                <p>
+                    Compiler: after monomorphisation, collects constants; if
+                    bit‑identical, emits one copy and redirects references.
+                    Recursively compares referenced data (<code>Vec</code>,
+                    <code>Text</code>, <code>Owned</code>).
+                </p>
+                <h3>Derivation</h3>
+                <pre>@derive(Deduplicate) struct MaterialParams { ... }</pre>
+                <p>
+                    Available for struct, enum, union (union deduplicated by
+                    comparing all fields).
+                </p>
+                <h3>Limitations</h3>
+                <ul>
+                    <li>Only constants (compile‑time known).</li>
+                    <li>Per monomorphised instantiation for generics.</li>
+                    <li>
+                        Size threshold (default 1 MB) – compiler may refuse to
+                        deduplicate larger types.
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>2. Compiler Implementation</h2>
+                <p>
+                    Pass runs after monomorphisation and constant folding,
+                    before code generation.
+                </p>
+                <ol>
+                    <li>
+                        Collect constants of types with
+                        <code>Deduplicate</code>.
+                    </li>
+                    <li>
+                        Compute hash (e.g., SHA‑256) of each constant's data
+                        representation.
+                    </li>
+                    <li>Group by hash; verify bit‑identity.</li>
+                    <li>
+                        Emit a single copy per group; replace references with
+                        pointer to canonical copy.
+                    </li>
+                </ol>
+                <p>Deterministic.</p>
+            </section>
+            <section>
+                <h2>3. Integration with Asset Pipeline</h2>
+                <p>
+                    <code>blaze‑asset</code> uses
+                    <code>@derive(Deduplicate)</code> for texture, mesh,
+                    material constants to eliminate duplicates across levels.
+                </p>
+            </section>
+            <section>
+                <h2>4. Testing</h2>
+                <ul>
+                    <li>
+                        Two identical constants → one copy in binary (check via
+                        addresses or object file inspection).
+                    </li>
+                    <li>Non‑identical constants → two copies.</li>
+                    <li>
+                        Recursive deduplication (<code>Vec</code>,
+                        <code>Text</code>).
+                    </li>
+                    <li>Large constants: threshold respected.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase3a-core-window.html" rel="prev"
+                        >Previous: Sliding Windows</a
+                    >
+                    |
+                    <a href="phase3b-systems-binary.html" rel="next"
+                        >Next: Systems – Binary</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

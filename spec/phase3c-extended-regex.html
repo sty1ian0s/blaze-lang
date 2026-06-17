@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 3c – Extended Library: Regular Expressions</title>
+    </head>
+    <body>
+        <header>
+            <h1>Blaze Phase 3c – Extended Library: Regular Expressions</h1>
+        </header>
+        <nav>
+            <p>
+                <a href="phase3c-extended-random.html" rel="prev"
+                    >Previous: Random</a
+                >
+                | <a href="phase3c-extended-simd.html" rel="next">Next: SIMD</a>
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Provide a regular expression engine (NFA/DFA) supporting
+                    common regex syntax with linear‑time search, avoiding
+                    catastrophic backtracking.
+                </p>
+            </section>
+            <section>
+                <h2>1. <code>Regex</code> Type</h2>
+                <pre>
+pub struct Regex { /* compiled representation */ }
+impl Regex {
+    pub fn new(pattern: &amp;str) -> Result&lt;Regex, Error&gt;;
+}</pre
+                >
+                <p>Linear; not cloneable.</p>
+            </section>
+            <section>
+                <h2>2. Matching Methods</h2>
+                <ul>
+                    <li>
+                        <code>is_match(&amp;self, text: &amp;str) -> bool</code>
+                    </li>
+                    <li>
+                        <code
+                            >find(&amp;self, text: &amp;str) ->
+                            Option&lt;Match&gt;</code
+                        >
+                    </li>
+                    <li>
+                        <code
+                            >captures(&amp;self, text: &amp;str) ->
+                            Option&lt;Captures&gt;</code
+                        >
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>3. Match Types</h2>
+                <pre>
+pub struct Match { start: usize, end: usize, text: Text }
+impl Match { pub fn start(&amp;self) -> usize; pub fn end(&amp;self) -> usize; pub fn as_str(&amp;self) -> &amp;str; }</pre
+                >
+                <pre>
+pub struct Captures { /* captures: Vec&lt;Option&lt;Match&gt;&gt; */ }
+impl Captures { pub fn get(&amp;self, index: usize) -> Option&lt;Match&gt;; pub fn len(&amp;self) -> usize; }</pre
+                >
+            </section>
+            <section>
+                <h2>4. Regex Syntax</h2>
+                <p>
+                    Subset of Perl‑compatible: literals, classes
+                    (<code>[abc]</code>, <code>[a‑z]</code>, <code>\d</code>,
+                    <code>\w</code>, <code>\s</code>), repetition
+                    (<code>*</code>, <code>+</code>, <code>?</code>,
+                    <code>{n,m}</code>, greedy/lazy), alternation
+                    (<code>|</code>), anchors (<code>^</code>, <code>$</code>),
+                    grouping (<code>(...)</code> capturing,
+                    <code>(?:...)</code> non‑capturing). No backreferences,
+                    look‑ahead, etc. (unsupported features produce error).
+                </p>
+            </section>
+            <section>
+                <h2>5. Error Handling</h2>
+                <pre>
+pub struct Error { message: Text, pos: usize }
+impl Error { pub fn message(&amp;self) -> &amp;str; pub fn pos(&amp;self) -> usize; }</pre
+                >
+            </section>
+            <section>
+                <h2>6. Implementation Notes</h2>
+                <ul>
+                    <li>
+                        Compiles pattern to NFA, optionally to DFA for forward
+                        scan.
+                    </li>
+                    <li>Uses tagged NFA states for capture groups.</li>
+                    <li>Linear‑time worst‑case (no exponential blow‑up).</li>
+                </ul>
+            </section>
+            <section>
+                <h2>7. Testing</h2>
+                <ul>
+                    <li>
+                        Valid patterns: literal, classes, repetition, anchors,
+                        groups, alternation.
+                    </li>
+                    <li>Invalid patterns: syntax error with position.</li>
+                    <li>
+                        Capture groups: correct sub‑matches; non‑participating
+                        groups return <code>None</code>.
+                    </li>
+                    <li>
+                        Performance: <code>(a*)*b</code> on 1000 'a' → linear
+                        time (test via timeout).
+                    </li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase3c-extended-random.html" rel="prev"
+                        >Previous: Random</a
+                    >
+                    |
+                    <a href="phase3c-extended-simd.html" rel="next"
+                        >Next: SIMD</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

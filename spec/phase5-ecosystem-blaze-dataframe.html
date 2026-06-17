@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 5 – Ecosystem: Dataframe</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 5 – Ecosystem: Dataframe</h1></header>
+        <nav>
+            <p>
+                <a href="phase5-ecosystem-blaze-autobalance.html" rel="prev"
+                    >Previous: Autobalance</a
+                >
+                |
+                <a href="phase5-ecosystem-blaze-ml.html" rel="next">Next: ML</a>
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    High‑performance, columnar data frame library (inspired by
+                    Pandas/Polars) built on <code>blaze‑tensor</code>,
+                    <code>blaze‑serde</code>, and ECS storage model.
+                </p>
+            </section>
+            <section>
+                <h2>1. Core Types</h2>
+                <pre>
+pub struct DataFrame { columns: Map&lt;Text, Column&gt;, row_count: usize }
+pub struct Series&lt;T: SeriesElement&gt; { data: Tensor&lt;T, 1&gt;, name: Text }
+pub enum Column { Int8(Series&lt;i8&gt;), Int16(Series&lt;i16&gt;), … Float32(Series&lt;f32&gt;), Bool(Series&lt;bool&gt;), String(Series&lt;Text&gt;), DateTime(Series&lt;DateTime&gt;), Categorical(Series&lt;Categorical&gt;), List(Box&lt;Column&gt;), Struct(Map&lt;Text, Box&lt;Column&gt;&gt;) }</pre
+                >
+            </section>
+            <section>
+                <h2>2. DataFrame Operations</h2>
+                <pre>
+impl DataFrame {
+    pub fn new() -> Self;
+    pub fn from_columns(columns: Vec&lt;(Text, Column)&gt;) -> Result&lt;Self, DataError&gt;;
+    pub fn with_column(&amp;mut self, name: &amp;str, column: Column) -> &amp;mut Self;
+    pub fn row_count(&amp;self) -> usize;
+    pub fn column_names(&amp;self) -> Vec&lt;&amp;str&gt;;
+    pub fn get_column&lt;T: SeriesElement&gt;(&amp;self, name: &amp;str) -> Option&lt;Series&lt;T&gt;&gt;;
+    pub fn drop_column(mut self, name: &amp;str) -> Self;
+    pub fn slice(&amp;self, range: Range&lt;usize&gt;) -> DataFrameView;
+    pub fn head(&amp;self, n: usize) -> DataFrameView;
+    pub fn filter(&amp;self, predicate: impl Fn(&amp;DataFrameRow) -> bool) -> DataFrame;
+    pub fn select(&amp;self, columns: &amp;[&amp;str]) -> DataFrameView;
+    pub fn group_by(&amp;self, by: &amp;[&amp;str]) -> GroupBy;
+    pub fn agg(&amp;self, agg_exprs: &amp;[(Text, Aggregation)]) -> DataFrame;
+    pub fn sort(&amp;self, by: &amp;[&amp;str], ascending: bool) -> DataFrame;
+    pub fn join(&amp;self, other: &amp;DataFrame, on: &amp;[&amp;str], how: JoinType) -> DataFrame;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>3. GroupBy</h2>
+                <pre>
+pub struct GroupBy { df: DataFrame, groups: Map&lt;GroupKey, Vec&lt;usize&gt;&gt; }
+impl GroupBy {
+    pub fn agg(self, agg_exprs: &amp;[(Text, Aggregation)]) -> DataFrame;
+    pub fn apply(self, f: impl Fn(DataFrameView) -> DataFrame) -> DataFrame;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>4. I/O</h2>
+                <pre>
+pub struct CsvReader { /* … */ } impl CsvReader { pub fn read(self) -> Result&lt;DataFrame, DataError&gt;; }
+pub struct JsonReader { /* … */ }
+pub struct ParquetReader { /* … */ } // feature `parquet`
+pub struct SqlReader { /* … */ }
+impl DataFrame {
+    pub fn to_csv(&amp;self, path: &amp;str) -> Result&lt;(), DataError&gt;;
+    pub fn to_json(&amp;self, path: &amp;str) -> Result&lt;(), DataError&gt;;
+    pub fn to_parquet(&amp;self, path: &amp;str) -> Result&lt;(), DataError&gt;; // feature
+}</pre
+                >
+            </section>
+            <section>
+                <h2>5. Error Handling</h2>
+                <pre>
+pub enum DataError {
+    Io(std::io::Error), InvalidSchema(Text), TypeMismatch(Text),
+    MissingColumn(Text), DuplicateColumn(Text), ParseError(Text),
+    LengthMismatch(Text), NotYetImplemented(Text),
+}</pre
+                >
+            </section>
+            <section>
+                <h2>6. Testing</h2>
+                <ul>
+                    <li>CSV round‑trip.</li>
+                    <li>Filter.</li>
+                    <li>GroupBy + agg.</li>
+                    <li>Join.</li>
+                    <li>Series ops (numeric, string, datetime).</li>
+                    <li>Large file (1M rows).</li>
+                    <li>Error handling.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase5-ecosystem-blaze-autobalance.html" rel="prev"
+                        >Previous: Autobalance</a
+                    >
+                    |
+                    <a href="phase5-ecosystem-blaze-ml.html" rel="next"
+                        >Next: ML</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

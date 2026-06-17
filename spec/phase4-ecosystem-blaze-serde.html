@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: Serde</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: Serde</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-redis.html" rel="prev"
+                    >Previous: Redis</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-smol.html" rel="next"
+                    >Next: Smol</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Data‑oriented serialization/deserialization framework with
+                    traits, derive macros, and JSON/binary formats.
+                </p>
+            </section>
+            <section>
+                <h2>1. Core Traits</h2>
+                <pre>
+pub trait Serialize { fn serialize&lt;S: Serializer&gt;(&amp;self, serializer: S) -> Result&lt;S::Ok, S::Error&gt;; }
+pub trait Deserialize&lt;'de&gt;: Sized { fn deserialize&lt;D: Deserializer&lt;'de&gt;&gt;(deserializer: D) -> Result&lt;Self, D::Error&gt;; }</pre
+                >
+            </section>
+            <section>
+                <h2>2. Serializer and Deserializer</h2>
+                <pre>
+pub trait Serializer: Sized { type Ok; type Error: Error; /* … serialize_bool, serialize_i8, …, serialize_struct, … */ }
+pub trait Deserializer&lt;'de&gt;: Sized { type Error: Error; /* … deserialize_bool, deserialize_i8, …, deserialize_struct, … */ }
+pub trait Visitor&lt;'de&gt;: Sized { type Value; fn expecting(&amp;self, formatter: &amp;mut Formatter) -> fmt::Result; /* … visit_bool, visit_i8, …, visit_seq, visit_map, … */ }</pre
+                >
+            </section>
+            <section>
+                <h2>3. JSON Support</h2>
+                <pre>
+pub mod serde_json {
+    pub struct Serializer&lt;W: Write&gt; { /* … */ }
+    pub struct Deserializer&lt;'de&gt; { /* … */ }
+    pub fn to_string&lt;T: Serialize&gt;(value: &amp;T) -> Result&lt;Text&gt;;
+    pub fn from_str&lt;'a, T: Deserialize&lt;'a&gt;&gt;(s: &amp;'a str) -> Result&lt;T&gt;;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>4. Binary Support</h2>
+                <pre>
+pub mod serde_binary {
+    pub struct Serializer&lt;W: Write&gt; { /* … */ }
+    pub struct Deserializer&lt;'de&gt; { /* … */ }
+}</pre
+                >
+            </section>
+            <section>
+                <h2>5. Derive Macros</h2>
+                <pre>
+@derive(Serialize, Deserialize)
+struct Point { x: f64, y: f64 }</pre
+                >
+            </section>
+            <section>
+                <h2>6. Error Handling</h2>
+                <pre>
+pub struct Error { message: Text, line: Option&lt;usize&gt;, column: Option&lt;usize&gt; }
+impl Error { pub fn new(msg: &amp;str) -> Self; pub fn with_location(mut self, line: usize, col: usize) -> Self; }</pre
+                >
+            </section>
+            <section>
+                <h2>7. Testing</h2>
+                <ul>
+                    <li>Round‑trip: JSON, binary.</li>
+                    <li>Edge cases: large ints, floats, nested structures.</li>
+                    <li>Malformed JSON → error.</li>
+                    <li>Derive correctness.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-redis.html" rel="prev"
+                        >Previous: Redis</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-smol.html" rel="next"
+                        >Next: Smol</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: Smol</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: Smol</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-serde.html" rel="prev"
+                    >Previous: Serde</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-sql.html" rel="next"
+                    >Next: SQL</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Lightweight, single‑threaded async executor for embedded,
+                    WASM, and minimal runtime scenarios.
+                    <code>#![no_std]</code>‑friendly.
+                </p>
+            </section>
+            <section>
+                <h2>1. LocalExecutor</h2>
+                <pre>
+pub struct LocalExecutor { /* task queue, timer wheel */ }
+impl LocalExecutor {
+    pub fn new() -> Self;
+    pub fn spawn_local&lt;F: Future + 'static&gt;(&amp;self, future: F) -> JoinHandle&lt;F::Output&gt;;
+    pub fn block_on&lt;F: Future&gt;(&amp;self, future: F) -> F::Output;
+    pub fn run_until_stalled(&amp;self);
+}</pre
+                >
+            </section>
+            <section>
+                <h2>2. Timers</h2>
+                <pre>
+pub fn sleep(duration: Duration) -> Sleep;
+pub struct Sleep { /* … */ }
+impl Future for Sleep { type Output = (); … }
+pub fn interval(period: Duration) -> Interval;
+pub struct Interval { /* … */ }
+impl Stream for Interval { type Item = (); … }</pre
+                >
+            </section>
+            <section>
+                <h2>3. Async I/O</h2>
+                <pre>
+pub struct Async&lt;T&gt; { inner: T }
+impl&lt;T: Read + Write&gt; Async&lt;T&gt; {
+    pub async fn read(&amp;mut self, buf: &amp;mut [u8]) -> Result&lt;usize, io::Error&gt;;
+    pub async fn write(&amp;mut self, buf: &amp;[u8]) -> Result&lt;usize, io::Error&gt;;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>4. WebAssembly Support</h2>
+                <p>
+                    On <code>wasm32</code>, uses <code>wasm‑bindgen</code> for
+                    timers and I/O.
+                </p>
+            </section>
+            <section>
+                <h2>5. Error Handling</h2>
+                <pre>
+pub enum SmolError { Io(std::io::Error), Timeout, Canceled, NotSupported }</pre
+                >
+            </section>
+            <section>
+                <h2>6. Testing</h2>
+                <ul>
+                    <li>Local executor.</li>
+                    <li>Timer.</li>
+                    <li>I/O.</li>
+                    <li>WASM.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-serde.html" rel="prev"
+                        >Previous: Serde</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-sql.html" rel="next"
+                        >Next: SQL</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

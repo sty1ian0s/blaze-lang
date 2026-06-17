@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: Metrics</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: Metrics</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-lz4.html" rel="prev"
+                    >Previous: LZ4</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-midi.html" rel="next"
+                    >Next: MIDI</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Low‑overhead metrics collection (counters, gauges,
+                    histograms, summaries) with export to Prometheus, InfluxDB,
+                    Graphite, and logging. <code>O(1)</code> recording, no
+                    allocation in hot path.
+                </p>
+            </section>
+            <section>
+                <h2>1. Metric Types</h2>
+                <pre>
+pub struct Counter { value: AtomicU64 }
+impl Counter { pub fn new() -> Self; pub fn inc(&amp;self, delta: u64); pub fn get(&amp;self) -> u64; pub fn reset(&amp;self); }
+pub struct Gauge { value: AtomicI64 }
+impl Gauge { pub fn new() -> Self; pub fn set(&amp;self, value: i64); pub fn inc(&amp;self, delta: i64); pub fn dec(&amp;self, delta: i64); pub fn get(&amp;self) -> i64; }
+pub struct Histogram { /* buckets, sum, count */ }
+impl Histogram { pub fn new(config: HistogramConfig) -> Self; pub fn observe(&amp;self, value: f64); }
+pub struct Summary { /* quantiles, sum, count */ }
+impl Summary { pub fn new(config: SummaryConfig) -> Self; pub fn observe(&amp;self, value: f64); }</pre
+                >
+            </section>
+            <section>
+                <h2>2. Metrics Registry</h2>
+                <pre>
+pub struct MetricsRegistry { /* global OnceLock */ }
+impl MetricsRegistry {
+    pub fn register&lt;M: Metric + 'static&gt;(name: &amp;str, metric: M) -> Result&lt;(), MetricsError&gt;;
+    pub fn counter(name: &amp;str) -> Option&lt;&amp;'static Counter&gt;;
+    pub fn gauge(name: &amp;str) -> Option&lt;&amp;'static Gauge&gt;;
+    pub fn histogram(name: &amp;str) -> Option&lt;&amp;'static Histogram&gt;;
+    pub fn summary(name: &amp;str) -> Option&lt;&amp;'static Summary&gt;;
+    pub fn collect(&amp;self) -> Vec&lt;MetricSnapshot&gt;;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>3. Labels</h2>
+                <p>
+                    Labeled metrics via
+                    <code>registry.labeled_counter(name, labels)</code>.
+                </p>
+            </section>
+            <section>
+                <h2>4. Export Backends</h2>
+                <pre>
+pub trait MetricsRecorder: Send + Sync + 'static { fn record(&amp;self, snapshot: &amp;[MetricSnapshot]); }
+pub struct PrometheusRecorder; pub struct InfluxDbRecorder; pub struct GraphiteRecorder; pub struct LogRecorder; pub struct CsvRecorder;</pre
+                >
+            </section>
+            <section>
+                <h2>5. Actor Integration</h2>
+                <pre>
+pub actor MetricsActor {
+    registry: MetricsRegistry,
+    recorders: Vec&lt;Box&lt;dyn MetricsRecorder&gt;&gt;,
+    push_interval: Duration,
+}</pre
+                >
+            </section>
+            <section>
+                <h2>6. Error Handling</h2>
+                <pre>
+pub enum MetricsError { DuplicateMetric, InvalidLabel, ExporterError(Text), Io(std::io::Error) }</pre
+                >
+            </section>
+            <section>
+                <h2>7. Testing</h2>
+                <ul>
+                    <li>Counter/Gauge: increment, get.</li>
+                    <li>Histogram: buckets.</li>
+                    <li>Summary: quantiles.</li>
+                    <li>Registry: register, retrieve, collect.</li>
+                    <li>Labeling.</li>
+                    <li>Export (LogRecorder).</li>
+                    <li>Performance.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-lz4.html" rel="prev"
+                        >Previous: LZ4</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-midi.html" rel="next"
+                        >Next: MIDI</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

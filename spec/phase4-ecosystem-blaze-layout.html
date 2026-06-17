@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: Layout</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: Layout</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-kafka.html" rel="prev"
+                    >Previous: Kafka</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-log.html" rel="next"
+                    >Next: Log</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Pure, data‑oriented constraint‑based layout engine for GUI.
+                    Takes widget tree and available dimensions, returns
+                    rectangles. Supports pixel, percentage, auto sizing,
+                    padding, margin, alignment, flex‑box, absolute positioning.
+                </p>
+            </section>
+            <section>
+                <h2>1. Input: LayoutNode</h2>
+                <pre>
+pub struct LayoutNode {
+    pub id: u32,
+    pub parent_id: Option&lt;u32&gt;,
+    pub children_ids: Vec&lt;u32&gt;,
+    pub constraints: LayoutConstraints,
+    pub intrinsic_size: Option&lt;(f64, f64)&gt;,
+}
+pub struct LayoutConstraints {
+    pub width: SizeConstraint,
+    pub height: SizeConstraint,
+    pub min_width: Option&lt;f64&gt;,
+    pub max_width: Option&lt;f64&gt;,
+    pub min_height: Option&lt;f64&gt;,
+    pub max_height: Option&lt;f64&gt;,
+    pub padding: EdgeInsets,
+    pub margin: EdgeInsets,
+    pub alignment: Alignment,
+    pub flex: f64,
+    pub position: Option&lt;Position&gt;,
+}
+pub enum SizeConstraint { Pixels(f64), Percent(f64), Auto }
+pub struct EdgeInsets { top: f64, right: f64, bottom: f64, left: f64 }
+pub struct Alignment { horizontal: HorizontalAlign, vertical: VerticalAlign }
+pub enum HorizontalAlign { Left, Center, Right, Stretch }
+pub enum VerticalAlign { Top, Center, Bottom, Stretch }
+pub struct Position { x: f64, y: f64 }</pre
+                >
+            </section>
+            <section>
+                <h2>2. Output: Rect</h2>
+                <pre>
+pub struct Rect { pub x: f64, pub y: f64, pub width: f64, pub height: f64 }</pre
+                >
+            </section>
+            <section>
+                <h2>3. Solver Algorithm</h2>
+                <p>
+                    Bottom‑up size computation (auto sizes, percentages) and
+                    top‑down position assignment. Single‑pass, O(N),
+                    deterministic.
+                </p>
+            </section>
+            <section>
+                <h2>4. Integration</h2>
+                <p>Used by <code>blaze‑gui</code>.</p>
+            </section>
+            <section>
+                <h2>5. Testing</h2>
+                <ul>
+                    <li>Basic sizing (pixels).</li>
+                    <li>Percentage sizing.</li>
+                    <li>Auto sizing (text).</li>
+                    <li>Flex distribution.</li>
+                    <li>Alignment.</li>
+                    <li>Absolute positioning.</li>
+                    <li>Min/max constraints.</li>
+                    <li>Performance (10k widgets).</li>
+                    <li>Reproducibility.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-kafka.html" rel="prev"
+                        >Previous: Kafka</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-log.html" rel="next"
+                        >Next: Log</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

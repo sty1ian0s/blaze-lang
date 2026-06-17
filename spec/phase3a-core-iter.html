@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 3a – Core Library: Iterators</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 3a – Core Library: Iterators</h1></header>
+        <nav>
+            <p>
+                <a href="phase3a-core-io.html" rel="prev">Previous: I/O</a> |
+                <a href="phase3a-core-ops.html" rel="next"
+                    >Next: Operator Traits</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Implement <code>Iterator</code>, <code>IntoIterator</code>,
+                    <code>FromIterator</code>, <code>Sum</code>,
+                    <code>Product</code>, and common iterator adaptors.
+                </p>
+            </section>
+            <section>
+                <h2>1. Core Traits</h2>
+                <h3>1.1 <code>Iterator</code></h3>
+                <pre>
+pub trait Iterator {
+    type Item;
+    fn next(&amp;mut self) -> Option&lt;Self::Item&gt;;
+    fn size_hint(&amp;self) -> (usize, Option&lt;usize&gt;) { (0, None) }
+    fn map&lt;B, F&gt;(self, f: F) -> Map&lt;Self, F&gt; where F: Fn(Self::Item) -> B;
+    fn filter&lt;P&gt;(self, predicate: P) -> Filter&lt;Self, P&gt; where P: Fn(&amp;Self::Item) -> bool;
+    fn take(self, n: usize) -> Take&lt;Self&gt;;
+    fn skip(self, n: usize) -> Skip&lt;Self&gt;;
+    fn chain&lt;U&gt;(self, other: U) -> Chain&lt;Self, U::IntoIter&gt; where U: IntoIterator&lt;Item = Self::Item&gt;;
+    fn zip&lt;U&gt;(self, other: U) -> Zip&lt;Self, U::IntoIter&gt; where U: IntoIterator;
+    fn enumerate(self) -> Enumerate&lt;Self&gt;;
+    fn fold&lt;B, F&gt;(self, init: B, f: F) -> B where F: Fn(B, Self::Item) -> B;
+    fn sum&lt;S&gt;(self) -> S where S: Sum&lt;Self::Item&gt;;
+    fn product&lt;P&gt;(self) -> P where P: Product&lt;Self::Item&gt;;
+    fn collect&lt;B&gt;(self) -> B where B: FromIterator&lt;Self::Item&gt;;
+    fn any&lt;F&gt;(&amp;mut self, f: F) -> bool where F: Fn(Self::Item) -> bool;
+    fn all&lt;F&gt;(&amp;mut self, f: F) -> bool where F: Fn(Self::Item) -> bool;
+    fn find&lt;F&gt;(&amp;mut self, f: F) -> Option&lt;Self::Item&gt; where F: Fn(&amp;Self::Item) -> bool;
+}</pre
+                >
+                <h3>1.2 <code>IntoIterator</code></h3>
+                <pre>
+pub trait IntoIterator {
+    type Item;
+    type IntoIter: Iterator&lt;Item = Self::Item&gt;;
+    fn into_iter(self) -> Self::IntoIter;
+}</pre
+                >
+                <h3>1.3 <code>FromIterator</code></h3>
+                <pre>
+pub trait FromIterator&lt;A&gt; {
+    fn from_iter&lt;T: IntoIterator&lt;Item = A&gt;&gt;(iter: T) -> Self;
+}</pre
+                >
+                <h3>1.4 <code>Sum</code> and <code>Product</code></h3>
+                <pre>
+pub trait Sum&lt;A = Self&gt; {
+    fn sum&lt;I: Iterator&lt;Item = A&gt;&gt;(iter: I) -> Self;
+}
+pub trait Product&lt;A = Self&gt; {
+    fn product&lt;I: Iterator&lt;Item = A&gt;&gt;(iter: I) -> Self;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>2. Adaptor Structs</h2>
+                <ul>
+                    <li>
+                        <code>Map&lt;I, F&gt;</code>,
+                        <code>Filter&lt;I, P&gt;</code>,
+                        <code>Take&lt;I&gt;</code>, <code>Skip&lt;I&gt;</code>,
+                        <code>Chain&lt;A, B&gt;</code>,
+                        <code>Zip&lt;A, B&gt;</code>,
+                        <code>Enumerate&lt;I&gt;</code>
+                    </li>
+                </ul>
+                <p>Each implements <code>Iterator</code>.</p>
+            </section>
+            <section>
+                <h2>3. Blanket Implementations</h2>
+                <ul>
+                    <li>
+                        Every <code>Iterator</code> implements
+                        <code>IntoIterator</code> (returning itself).
+                    </li>
+                    <li>
+                        Slices (<code>&amp;[T]</code>,
+                        <code>&amp;mut [T]</code>) implement
+                        <code>IntoIterator</code>.
+                    </li>
+                    <li>
+                        <code>Range&lt;Idx&gt;</code> implements
+                        <code>IntoIterator</code>.
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>4. Testing</h2>
+                <ul>
+                    <li>
+                        Each adaptor: map, filter, take, skip, chain, zip,
+                        enumerate.
+                    </li>
+                    <li>fold, sum, product, collect.</li>
+                    <li>any, all, find.</li>
+                    <li>Edge cases: empty iterators, uneven zip.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase3a-core-io.html" rel="prev">Previous: I/O</a>
+                    |
+                    <a href="phase3a-core-ops.html" rel="next"
+                        >Next: Operator Traits</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 3b – Systems Library: Endianness</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 3b – Systems Library: Endianness</h1></header>
+        <nav>
+            <p>
+                <a href="phase3b-systems-binary.html" rel="prev"
+                    >Previous: Binary</a
+                >
+                |
+                <a href="phase3b-systems-fs.html" rel="next"
+                    >Next: File System</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Host‑endianness detection and byte‑swapping functions for
+                    integers and floats.
+                </p>
+            </section>
+            <section>
+                <h2>1. Host Endianness</h2>
+                <h3>1.1 <code>Endianness</code> Enum</h3>
+                <pre>pub enum Endianness { Little, Big }</pre>
+                <h3>1.2 <code>endianness</code> Function</h3>
+                <pre>pub fn endianness() -> Endianness;</pre>
+                <p>
+                    Compile‑time constant determined by
+                    <code>target_endian</code>. Zero‑cost.
+                </p>
+            </section>
+            <section>
+                <h2>2. Byte‑Swap Functions</h2>
+                <p>All take value, return swapped value. Pure.</p>
+                <h3>Integers</h3>
+                <pre>
+pub fn swap_u16(x: u16) -> u16;
+pub fn swap_u32(x: u32) -> u32;
+pub fn swap_u64(x: u64) -> u64;
+pub fn swap_i16(x: i16) -> i16;
+pub fn swap_i32(x: i32) -> i32;
+pub fn swap_i64(x: i64) -> i64;</pre
+                >
+                <h3>Floats</h3>
+                <pre>
+pub fn swap_f32(x: f32) -> f32;
+pub fn swap_f64(x: f64) -> f64;</pre
+                >
+                <p>
+                    Reinterpret as unsigned integer, swap bytes, reinterpret
+                    back. Safe for all bit patterns (including NaN).
+                </p>
+            </section>
+            <section>
+                <h2>3. Testing</h2>
+                <ul>
+                    <li><code>endianness()</code> matches target.</li>
+                    <li>Swap twice → original.</li>
+                    <li>
+                        Known bit patterns: <code>swap_u32(0x12345678)</code> →
+                        <code>0x78563412</code>.
+                    </li>
+                    <li>Float swap: raw bits match integer swap.</li>
+                    <li>Pure: callable from pure contexts.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase3b-systems-binary.html" rel="prev"
+                        >Previous: Binary</a
+                    >
+                    |
+                    <a href="phase3b-systems-fs.html" rel="next"
+                        >Next: File System</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: Image</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: Image</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-i18n.html" rel="prev"
+                    >Previous: I18n</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-input.html" rel="next"
+                    >Next: Input</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Data‑oriented, zero‑copy image processing library with
+                    support for common pixel formats, colour space conversions,
+                    geometric transformations, filtering, and integration with
+                    <code>blaze‑tensor</code> and <code>blaze‑serde</code>. All
+                    functions are pure and automatically parallelised.
+                </p>
+            </section>
+            <section>
+                <h2>1. Core Types</h2>
+                <pre>
+pub struct Image {
+    width: u32,
+    height: u32,
+    format: PixelFormat,
+    color_space: ColorSpace,
+    data: Vec&lt;u8&gt;,
+}</pre
+                >
+                <p>
+                    <code>PixelFormat</code>: <code>Gray8</code>,
+                    <code>Gray16</code>, <code>RGB8</code>, <code>RGBA8</code>,
+                    <code>BGRA8</code>, <code>RGB16</code>, <code>RGBA16</code>,
+                    <code>RGBA32F</code>, <code>BayerRG8</code>, etc.
+                    <code>ColorSpace</code>: <code>sRGB</code>,
+                    <code>Linear</code>, <code>CIELab</code>, <code>HSV</code>,
+                    <code>YCbCr</code>.
+                </p>
+                <pre>
+impl Image {
+    pub fn new(width: u32, height: u32, format: PixelFormat, color_space: ColorSpace) -> Self;
+    pub fn from_bytes(width: u32, height: u32, format: PixelFormat, color_space: ColorSpace, data: Vec&lt;u8&gt;) -> Self;
+    pub fn from_raw(width: u32, height: u32, format: PixelFormat, color_space: ColorSpace, data: Vec&lt;u8&gt;) -> Result&lt;Self, ImageError&gt;;
+    pub fn from_file(path: &amp;str) -> Result&lt;Self, ImageError&gt;;
+    pub fn from_memory(buf: &amp;[u8], format: ImageFormat) -> Result&lt;Self, ImageError&gt;;
+    pub fn width(&amp;self) -> u32;
+    pub fn height(&amp;self) -> u32;
+    pub fn format(&amp;self) -> PixelFormat;
+    pub fn color_space(&amp;self) -> ColorSpace;
+    pub fn as_bytes(&amp;self) -> &amp;[u8];
+    pub fn as_mut_bytes(&amp;mut self) -> &amp;mut [u8];
+    pub fn pixel_count(&amp;self) -> usize;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>2. Pixel Access</h2>
+                <pre>
+pub enum Pixel {
+    Gray8(u8),
+    Gray16(u16),
+    RGB8(u8, u8, u8),
+    RGBA8(u8, u8, u8, u8),
+    RGBA16(u16, u16, u16, u16),
+    RGBA32F(f32, f32, f32, f32),
+}
+impl Image {
+    pub fn get_pixel(&amp;self, x: u32, y: u32) -> Option&lt;Pixel&gt;;
+    pub fn set_pixel(&amp;mut self, x: u32, y: u32, pixel: &amp;Pixel) -> Result&lt;(), ImageError&gt;;
+    pub unsafe fn get_pixel_unchecked(&amp;self, x: u32, y: u32) -> Pixel;
+    pub unsafe fn set_pixel_unchecked(&amp;mut self, x: u32, y: u32, pixel: &amp;Pixel);
+}</pre
+                >
+            </section>
+            <section>
+                <h2>3. Iterators and Parallel Processing</h2>
+                <pre>
+impl Image {
+    pub fn rows(&amp;self) -> RowIterator;
+    pub fn rows_mut(&amp;mut self) -> RowIteratorMut;
+    pub fn par_rows(&amp;self) -> impl ParallelIterator&lt;Item = &amp;[u8]&gt;;
+    pub fn par_rows_mut(&amp;mut self) -> impl ParallelIterator&lt;Item = &amp;mut [u8]&gt;;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>4. Colour Space Conversion</h2>
+                <pre>
+pub fn convert_color(image: &amp;Image, target_space: ColorSpace) -> Image;
+pub fn to_grayscale(image: &amp;Image) -> Image;
+pub fn to_rgba(image: &amp;Image) -> Image;
+pub fn premultiply_alpha(image: &amp;Image) -> Image;
+pub fn unpremultiply_alpha(image: &amp;Image) -> Image;</pre
+                >
+            </section>
+            <section>
+                <h2>5. Geometric Transformations</h2>
+                <pre>
+pub fn resize(image: &amp;Image, new_width: u32, new_height: u32, filter: Filter) -> Image;
+pub fn rotate(image: &amp;Image, angle: f32, filter: Filter) -> Image;
+pub fn flip_horizontal(image: &amp;Image) -> Image;
+pub fn flip_vertical(image: &amp;Image) -> Image;
+pub fn crop(image: &amp;Image, x: u32, y: u32, width: u32, height: u32) -> Image;</pre
+                >
+            </section>
+            <section>
+                <h2>6. Filters and Effects</h2>
+                <pre>
+pub fn blur(image: &amp;Image, radius: f32) -> Image;
+pub fn sharpen(image: &amp;Image, amount: f32) -> Image;
+pub fn median(image: &amp;Image, radius: u32) -> Image;
+pub fn sobel(image: &amp;Image) -> Image;
+pub fn threshold(image: &amp;Image, value: u8) -> Image;
+pub fn brightness(image: &amp;Image, amount: f32) -> Image;
+pub fn contrast(image: &amp;Image, amount: f32) -> Image;
+pub fn gamma_correction(image: &amp;Image, gamma: f32) -> Image;
+pub fn histogram_equalization(image: &amp;Image) -> Image;</pre
+                >
+            </section>
+            <section>
+                <h2>7. Drawing Primitives (feature `drawing`)</h2>
+                <pre>
+pub fn draw_line(image: &amp;mut Image, x0: u32, y0: u32, x1: u32, y1: u32, color: Pixel);
+pub fn draw_rect(image: &amp;mut Image, x: u32, y: u32, w: u32, h: u32, color: Pixel);
+pub fn draw_circle(image: &amp;mut Image, cx: u32, cy: u32, radius: u32, color: Pixel);
+pub fn draw_text(image: &amp;mut Image, text: &amp;str, x: u32, y: u32, font: &amp;Font, color: Pixel);</pre
+                >
+            </section>
+            <section>
+                <h2>8. Image I/O</h2>
+                <pre>
+pub enum ImageFormat { Png, Jpeg, Tiff, Bmp, Tga, Webp, Hdr, Exr }
+pub fn load(path: &amp;str) -> Result&lt;Image, ImageError&gt;;
+pub fn save(path: &amp;str, image: &amp;Image, format: ImageFormat) -> Result&lt;(), ImageError&gt;;
+pub fn encode(image: &amp;Image, format: ImageFormat) -> Result&lt;Vec&lt;u8&gt;, ImageError&gt;;
+pub fn decode(buf: &amp;[u8], format: ImageFormat) -> Result&lt;Image, ImageError&gt;;</pre
+                >
+            </section>
+            <section>
+                <h2>9. Error Handling</h2>
+                <pre>
+pub enum ImageError {
+    Io(std::io::Error),
+    InvalidFormat(Text),
+    UnsupportedFormat(Text),
+    InvalidDimensions(Text),
+    PixelOutOfBounds,
+    ConversionError(Text),
+    FilterError(Text),
+}</pre
+                >
+            </section>
+            <section>
+                <h2>10. Testing</h2>
+                <ul>
+                    <li>Construction and I/O: save/load round‑trip.</li>
+                    <li>Colour conversion: RGB to grayscale.</li>
+                    <li>Resize: scaling.</li>
+                    <li>Filters: blur.</li>
+                    <li>Parallel processing: <code>par_rows</code>.</li>
+                    <li>Error handling: missing file.</li>
+                    <li>Memory safety: bounds checks.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-i18n.html" rel="prev"
+                        >Previous: I18n</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-input.html" rel="next"
+                        >Next: Input</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

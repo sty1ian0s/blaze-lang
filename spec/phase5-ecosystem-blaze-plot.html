@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 5 – Ecosystem: Plot</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 5 – Ecosystem: Plot</h1></header>
+        <nav>
+            <p>
+                <a href="phase5-ecosystem-blaze-tensor.html" rel="prev"
+                    >Previous: Tensor</a
+                >
+                |
+                <a href="phase5-ecosystem-blaze-cuda.html" rel="next"
+                    >Next: CUDA</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Data‑oriented, declarative plotting library that integrates
+                    seamlessly with <code>blaze‑gui</code>. Plots are created by
+                    composing mark layers on a <code>Plot</code> builder, and
+                    the final result is a <code>WidgetHandle</code> that can be
+                    placed directly inside any <code>blaze‑gui</code> layout.
+                    All rendering is pure (or carries the
+                    <code>gpu</code> effect when a GPU backend is used), and the
+                    plot is automatically accessible and responsive.
+                </p>
+            </section>
+            <section>
+                <h2>1. Core Concepts</h2>
+                <p>
+                    A plot is a pure function that takes data and configuration
+                    and returns a <code>WidgetHandle</code>. Internally, it is a
+                    <code>WidgetNode::Canvas</code> with a specialised draw
+                    function. The plot participates in layout, accessibility,
+                    and event handling automatically.
+                </p>
+            </section>
+            <section>
+                <h2>2. <code>Plot</code> Builder API</h2>
+                <pre>
+pub struct Plot {
+    layers: Vec&lt;Layer&gt;,
+    width: f64,
+    height: f64,
+    title: Option&lt;Text&gt;,
+    x_axis_label: Option&lt;Text&gt;,
+    y_axis_label: Option&lt;Text&gt;,
+    color_scale: ColorScale,
+    legend: Option&lt;LegendConfig&gt;,
+    margin: EdgeInsets,
+    background: Color,
+}
+impl Plot {
+    pub fn new() -> Self;
+    pub fn width(mut self, w: f64) -> Self;
+    pub fn height(mut self, h: f64) -> Self;
+    pub fn title(mut self, title: &amp;str) -> Self;
+    pub fn x_axis_label(mut self, label: &amp;str) -> Self;
+    pub fn y_axis_label(mut self, label: &amp;str) -> Self;
+    pub fn color_scale(mut self, scale: ColorScale) -> Self;
+    pub fn legend(mut self, config: LegendConfig) -> Self;
+    pub fn margin(mut self, margin: EdgeInsets) -> Self;
+    pub fn background(mut self, color: Color) -> Self;
+    pub fn layer(mut self, mark: impl IntoLayer) -> Self;
+    pub fn handlem(self) -> WidgetHandle;
+}</pre
+                >
+                <p>
+                    Marks: <code>scatter</code>, <code>line</code>,
+                    <code>bar</code>, <code>histogram</code>,
+                    <code>heatmap</code>, <code>contour</code>,
+                    <code>text</code>, <code>error_bar</code>,
+                    <code>area</code>, <code>box_plot</code>.
+                </p>
+            </section>
+            <section>
+                <h2>3. Integration with <code>blaze‑gui</code></h2>
+                <ul>
+                    <li>
+                        <strong>Layout</strong>: Respects
+                        <code>width</code>/<code>height</code>;
+                        <code>Auto</code> fills parent.
+                    </li>
+                    <li>
+                        <strong>Styling</strong>: Uses parent
+                        <code>Style</code> plus plot‑specific properties.
+                    </li>
+                    <li>
+                        <strong>Responsiveness</strong>: Automatically adapts to
+                        available width.
+                    </li>
+                    <li>
+                        <strong>Interactivity</strong>: Built‑in zoom/pan;
+                        custom click handlers via wrapping.
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>4. Accessibility</h2>
+                <p>
+                    Exposes <code>StaticText</code> role; title used as
+                    accessible name; data summarised for screen readers.
+                    Override with <code>a11y</code> method.
+                </p>
+            </section>
+            <section>
+                <h2>5. Rendering and Export</h2>
+                <p>
+                    Plot can be rendered as a widget or exported to PNG/SVG via
+                    <code>to_png</code> and <code>to_svg</code> methods
+                    (headless).
+                </p>
+            </section>
+            <section>
+                <h2>6. Testing</h2>
+                <ul>
+                    <li>
+                        Widget integration: builder → layout solver → rectangle.
+                    </li>
+                    <li>Accessibility: role and name.</li>
+                    <li>Export: PNG generation and comparison.</li>
+                    <li>Event handling: scroll zoom.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase5-ecosystem-blaze-tensor.html" rel="prev"
+                        >Previous: Tensor</a
+                    >
+                    |
+                    <a href="phase5-ecosystem-blaze-cuda.html" rel="next"
+                        >Next: CUDA</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

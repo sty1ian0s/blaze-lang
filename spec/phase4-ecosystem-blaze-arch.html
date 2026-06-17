@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: Arch</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: Arch</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-accessibility.html" rel="prev"
+                    >Previous: Accessibility</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-async-std.html" rel="next"
+                    >Next: Async Std</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Zero‑copy reading/writing of CPU architecture‑specific
+                    binary formats (ELF, PE, Mach‑O, raw binary).
+                </p>
+            </section>
+            <section>
+                <h2>1. Core Types</h2>
+                <pre>
+pub enum ObjectFile {
+    Elf32(ElfFile32),
+    Elf64(ElfFile64),
+    Pe(PeFile),
+    MachO(MachOFile),
+    Raw(Vec&lt;u8&gt;),
+}</pre
+                >
+                <p>
+                    <code>ElfFile64</code> contains header, section headers,
+                    sections, program headers, segments. Similar for other
+                    formats.
+                </p>
+            </section>
+            <section>
+                <h2>2. Parsing</h2>
+                <pre>
+pub fn parse(data: &amp;[u8]) -> Result&lt;ObjectFile, ArchError&gt;;</pre
+                >
+                <p>Auto‑detects format from magic bytes.</p>
+            </section>
+            <section>
+                <h2>3. Writing</h2>
+                <pre>
+pub fn write(obj: &amp;ObjectFile, path: &amp;str) -> Result&lt;(), ArchError&gt;;
+pub fn write_to_vec(obj: &amp;ObjectFile) -> Result&lt;Vec&lt;u8&gt;, ArchError&gt;;</pre
+                >
+            </section>
+            <section>
+                <h2>4. Error Handling</h2>
+                <pre>
+pub enum ArchError {
+    Io(std::io::Error),
+    InvalidFormat,
+    UnsupportedArchitecture,
+    UnsupportedVersion,
+}</pre
+                >
+            </section>
+            <section>
+                <h2>5. Testing</h2>
+                <ul>
+                    <li>ELF round‑trip (byte‑for‑byte equality).</li>
+                    <li>PE round‑trip.</li>
+                    <li>Invalid input → <code>InvalidFormat</code>.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a
+                        href="phase4-ecosystem-blaze-accessibility.html"
+                        rel="prev"
+                        >Previous: Accessibility</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-async-std.html" rel="next"
+                        >Next: Async Std</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

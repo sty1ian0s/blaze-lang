@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 3b – Systems Library: Path Manipulation</title>
+    </head>
+    <body>
+        <header>
+            <h1>Blaze Phase 3b – Systems Library: Path Manipulation</h1>
+        </header>
+        <nav>
+            <p>
+                <a href="phase3b-systems-os.html" rel="prev">Previous: OS</a> |
+                <a href="phase3b-systems-sync.html" rel="next"
+                    >Next: Synchronization</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Platform‑independent path manipulation via
+                    <code>Path</code> struct.
+                </p>
+            </section>
+            <section>
+                <h2>1. <code>Path</code> Struct</h2>
+                <pre>pub struct Path { inner: Text }</pre>
+                <p>Linear; cloning requires explicit <code>.clone()</code>.</p>
+                <h3>1.1 Construction</h3>
+                <pre>pub fn new(s: &amp;str) -> Path;</pre>
+                <h3>1.2 Accessors</h3>
+                <pre>pub fn as_str(&amp;self) -> &amp;str;</pre>
+                <h3>1.3 Joining</h3>
+                <pre>pub fn join(&amp;self, other: &amp;str) -> Path;</pre>
+                <p>Uses platform‑specific separator; absolute paths replace.</p>
+                <h3>1.4 Parent Directory</h3>
+                <pre>pub fn parent(&amp;self) -> Option&lt;Path&gt;;</pre>
+                <p>None for root or single component.</p>
+                <h3>1.5 File Extension</h3>
+                <pre>
+pub fn extension(&amp;self) -> Option&lt;&amp;str&gt;;</pre
+                >
+                <p>Substring after last dot; excludes hidden files.</p>
+            </section>
+            <section>
+                <h2>2. Platform‑Specific Behaviour</h2>
+                <ul>
+                    <li>
+                        Separator: <code>'/'</code> (Unix) or
+                        <code>'\\'</code> (Windows).
+                    </li>
+                    <li>
+                        Root detection: <code>"/"</code> (Unix) or
+                        <code>"C:\"</code> (Windows).
+                    </li>
+                    <li>
+                        No automatic normalisation (<code>..</code>,
+                        <code>.</code>).
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>3. Trait Implementations</h2>
+                <ul>
+                    <li><code>Clone</code> – deep copy.</li>
+                    <li>
+                        <code>Dispose</code> – drops inner <code>Text</code>.
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>4. Testing</h2>
+                <ul>
+                    <li>Construction and <code>as_str()</code>.</li>
+                    <li>Join: correct separator; absolute path replacement.</li>
+                    <li>
+                        Parent: <code>"/foo/bar"</code> → <code>"/foo"</code>;
+                        <code>"foo"</code> → <code>None</code>; root →
+                        <code>None</code>.
+                    </li>
+                    <li>
+                        Extension: file with no extension, single dot, multiple
+                        dots, hidden.
+                    </li>
+                    <li>Platform‑specific tests with <code>@cfg</code>.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase3b-systems-os.html" rel="prev"
+                        >Previous: OS</a
+                    >
+                    |
+                    <a href="phase3b-systems-sync.html" rel="next"
+                        >Next: Synchronization</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

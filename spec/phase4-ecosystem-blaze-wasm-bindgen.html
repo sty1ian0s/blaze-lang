@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: Wasm Bindgen</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: Wasm Bindgen</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-vulkan.html" rel="prev"
+                    >Previous: Vulkan</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-wasm.html" rel="next"
+                    >Next: Wasm</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Automatic generation of WebAssembly bindings from Blaze
+                    types and functions. <code>#[wasm_bindgen]</code> macro,
+                    <code>JsValue</code>, <code>Closure</code>,
+                    <code>Promise</code>, and
+                    <code>blaze wasm-bindgen</code> tool.
+                </p>
+            </section>
+            <section>
+                <h2>1. Attributes</h2>
+                <pre>
+#[wasm_bindgen] pub fn add(a: i32, b: i32) -> i32 { a + b }
+#[wasm_bindgen] pub struct Point { x: f64, y: f64 }
+#[wasm_bindgen] impl Point { pub fn new(x: f64, y: f64) -> Self; pub fn distance(&amp;self, other: &amp;Point) -> f64; }
+#[wasm_bindgen] extern "C" { fn log(s: &amp;str); }</pre
+                >
+            </section>
+            <section>
+                <h2>2. JsValue</h2>
+                <pre>
+pub enum JsValue {
+    Undefined, Null, Bool(bool), Number(f64), BigInt(i64), String(Text),
+    Symbol(Text), Object(JsObject), Array(JsArray), TypedArray(JsTypedArray),
+    Function(JsFunction), Promise(JsPromise),
+}</pre
+                >
+            </section>
+            <section>
+                <h2>3. Closure</h2>
+                <pre>
+pub struct Closure&lt;F: FnOnce(...)&gt; { closure: F, js_handle: JsValue }
+impl&lt;F: FnOnce(...)&gt; Dispose for Closure&lt;F&gt; { … }</pre
+                >
+            </section>
+            <section>
+                <h2>4. Promise</h2>
+                <pre>
+pub struct Promise&lt;T&gt; { inner: JsPromise }
+impl&lt;T&gt; Promise&lt;T&gt; {
+    pub fn from_future(future: impl Future&lt;Output = T&gt;) -> Self;
+    pub async fn into_future(self) -> T;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>5. bludgeon tool</h2>
+                <pre>
+blaze wasm-bindgen --target web path/to/crate --out-dir pkg/</pre
+                >
+            </section>
+            <section>
+                <h2>6. Error Handling</h2>
+                <pre>
+pub enum BindgenError { Compile(Text), UnsupportedType(Text), Serialization(Text), Deserialization(Text), HostError(Text) }</pre
+                >
+            </section>
+            <section>
+                <h2>7. Testing</h2>
+                <ul>
+                    <li>Export a function.</li>
+                    <li>Export a struct.</li>
+                    <li>Import a host function.</li>
+                    <li>Closure handling.</li>
+                    <li>Promise interop.</li>
+                    <li>Memory safety.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-vulkan.html" rel="prev"
+                        >Previous: Vulkan</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-wasm.html" rel="next"
+                        >Next: Wasm</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

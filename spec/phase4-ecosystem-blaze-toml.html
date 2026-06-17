@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: TOML</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: TOML</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-tls.html" rel="prev"
+                    >Previous: TLS</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-vulkan.html" rel="next"
+                    >Next: Vulkan</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Fast, zero‑copy TOML parser and writer (v1.0) with serde
+                    integration.
+                </p>
+            </section>
+            <section>
+                <h2>1. TOML Value</h2>
+                <pre>
+pub enum TomlValue {
+    String(Text),
+    Integer(i64),
+    Float(f64),
+    Boolean(bool),
+    Datetime(TomlDatetime),
+    Array(Vec&lt;TomlValue&gt;),
+    Table(Map&lt;Text, TomlValue&gt;),
+}
+pub struct TomlDatetime(Text);
+impl TomlDatetime {
+    pub fn to_string(&amp;self) -> &amp;str;
+    pub fn to_system_time(&amp;self) -> Result&lt;SystemTime, TomlError&gt;;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>2. Parsing</h2>
+                <pre>
+pub fn from_str(source: &amp;str) -> Result&lt;TomlValue, TomlError&gt;;
+pub fn from_bytes(bytes: &amp;[u8]) -> Result&lt;TomlValue, TomlError&gt;;</pre
+                >
+            </section>
+            <section>
+                <h2>3. Writing</h2>
+                <pre>
+pub fn to_string(value: &amp;TomlValue) -> Text;
+pub fn to_string_pretty(value: &amp;TomlValue) -> Text;
+pub fn to_writer&lt;W: Write&gt;(writer: &amp;mut W, value: &amp;TomlValue) -> Result&lt;(), io::Error&gt;;</pre
+                >
+            </section>
+            <section>
+                <h2>4. Serde Integration</h2>
+                <pre>
+pub struct Serializer&lt;W: Write&gt; { /* … */ }
+impl&lt;W: Write&gt; serde::Serializer for Serializer&lt;W&gt; { … }
+pub struct Deserializer&lt;'de&gt; { /* … */ }
+impl&lt;'de&gt; serde::Deserializer&lt;'de&gt; for Deserializer&lt;'de&gt; { … }</pre
+                >
+            </section>
+            <section>
+                <h2>5. Error Handling</h2>
+                <pre>
+pub struct TomlError { msg: Text, line: usize, column: usize }
+impl TomlError { pub fn line(&amp;self) -> usize; pub fn column(&amp;self) -> usize; pub fn message(&amp;self) -> &amp;str; }</pre
+                >
+            </section>
+            <section>
+                <h2>6. Testing</h2>
+                <ul>
+                    <li>Valid TOML: all data types.</li>
+                    <li>Round‑trip.</li>
+                    <li>Invalid TOML: errors with location.</li>
+                    <li>Datetime round‑trip.</li>
+                    <li>Serde integration.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-tls.html" rel="prev"
+                        >Previous: TLS</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-vulkan.html" rel="next"
+                        >Next: Vulkan</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

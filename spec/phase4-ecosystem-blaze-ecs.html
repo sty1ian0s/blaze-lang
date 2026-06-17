@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: ECS</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: ECS</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-doc-gen.html" rel="prev"
+                    >Previous: Doc Gen</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-embedded.html" rel="next"
+                    >Next: Embedded</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    High‑performance, data‑oriented Entity Component System with
+                    SoA storage, queries, parallel systems, and integration with
+                    <code>blaze‑gui</code> and <code>blaze‑physics</code>.
+                </p>
+            </section>
+            <section>
+                <h2>1. Core Concepts</h2>
+                <ul>
+                    <li><code>Entity</code> – generational index.</li>
+                    <li>
+                        <code>Component</code> – plain struct with
+                        <code>@layout(soa)</code> optional.
+                    </li>
+                    <li><code>System</code> – pure function over queries.</li>
+                    <li>
+                        <code>World</code> – owns entities, components,
+                        resources.
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>2. Entity and Component</h2>
+                <pre>
+pub struct Entity { id: u64 } // packed index + generation
+pub trait Component: 'static + Sized + Send + Sync { fn storage_layout() -> StorageLayout; }</pre
+                >
+            </section>
+            <section>
+                <h2>3. World</h2>
+                <pre>
+pub struct World { entities: SlotMap&lt;Entity, EntityMeta&gt;, storages: Map&lt;TypeId, Box&lt;dyn Storage&gt;&gt;, resources: Map&lt;TypeId, Box&lt;dyn Any&gt;&gt; }
+impl World { pub fn new() -> Self; pub fn spawn(&amp;mut self, components: impl IntoComponentBundle) -> Entity; pub fn despawn(&amp;mut self, entity: Entity) -> bool; pub fn get&lt;T: Component&gt;(&amp;self, entity: Entity) -> Option&lt;&amp;T&gt;; pub fn get_mut&lt;T: Component&gt;(&amp;mut self, entity: Entity) -> Option&lt;&amp;mut T&gt;; pub fn query&lt;Q: Query&gt;(&amp;self) -> QueryIter&lt;Q&gt;; pub fn query_mut&lt;Q: Query&gt;(&amp;mut self) -> QueryIterMut&lt;Q&gt;; }</pre
+                >
+            </section>
+            <section>
+                <h2>4. Queries</h2>
+                <pre>
+type MyQuery = (&amp;Position, &amp;mut Velocity, Option&lt;&amp;Health&gt;, Without&lt;Dead&gt;);
+pub trait Query { type Item; type Fetch; }
+pub struct QueryIter&lt;Q: Query&gt; { /* … */ } impl&lt;Q: Query&gt; Iterator for QueryIter&lt;Q&gt; { … }
+pub struct QueryIterMut&lt;Q: Query&gt; { /* … */ }</pre
+                >
+            </section>
+            <section>
+                <h2>5. Systems</h2>
+                <pre>
+pub trait System { fn run(&amp;mut self, world: &amp;mut World); fn name(&amp;self) -> &amp;'static str; fn dependencies(&amp;self) -> Vec&lt;&amp;'static str&gt;; }
+#[system] fn my_system(query: Query!(&amp;mut Position, &amp;Velocity), res: Res&lt;DeltaTime&gt;) { … }</pre
+                >
+            </section>
+            <section>
+                <h2>6. SoA‑Aware Storage</h2>
+                <p>
+                    <code>SoAStorage&lt;T&gt;</code> for
+                    <code>@layout(soa)</code> components;
+                    <code>AoSStorage</code> for small trivially copyable;
+                    <code>SparseStorage</code> for optional.
+                </p>
+            </section>
+            <section>
+                <h2>7. Integration</h2>
+                <p>
+                    Works with <code>blaze‑physics2d/3d</code>,
+                    <code>blaze‑gui</code>, <code>blaze‑wasm</code> for
+                    serialisation.
+                </p>
+            </section>
+            <section>
+                <h2>8. Error Handling</h2>
+                <pre>
+pub enum EcsError { EntityNotFound, ComponentMissing, ResourceMissing, StorageMismatch }</pre
+                >
+            </section>
+            <section>
+                <h2>9. Testing</h2>
+                <ul>
+                    <li>Spawn/despawn.</li>
+                    <li>Queries.</li>
+                    <li>Mutable queries.</li>
+                    <li>System scheduling.</li>
+                    <li>SoA iteration.</li>
+                    <li>Resource access.</li>
+                    <li>Concurrency.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-doc-gen.html" rel="prev"
+                        >Previous: Doc Gen</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-embedded.html" rel="next"
+                        >Next: Embedded</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

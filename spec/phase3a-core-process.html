@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 3a – Core Library: Process Management</title>
+    </head>
+    <body>
+        <header>
+            <h1>Blaze Phase 3a – Core Library: Process Management</h1>
+        </header>
+        <nav>
+            <p>
+                <a href="phase3a-core-ops.html" rel="prev"
+                    >Previous: Operator Traits</a
+                >
+                | <a href="phase3a-core-units.html" rel="next">Next: Units</a>
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Provide <code>Command</code> for spawning child processes,
+                    <code>Output</code>, and <code>ExitStatus</code>.
+                </p>
+            </section>
+            <section>
+                <h2>1. <code>Command</code></h2>
+                <pre>
+pub struct Command {
+    program: Text,
+    args: Vec&lt;Text&gt;,
+    env: Vec&lt;(Text, Text)&gt;,
+    current_dir: Option&lt;Text&gt;,
+}
+impl Command {
+    pub fn new(program: &amp;str) -> Command;
+    pub fn arg(&amp;mut self, a: &amp;str) -> &amp;mut Command;
+    pub fn env(&amp;mut self, key: &amp;str, val: &amp;str) -> &amp;mut Command;
+    pub fn current_dir(&amp;mut self, dir: &amp;str) -> &amp;mut Command;
+    pub fn output(&amp;mut self) -> Result&lt;Output, Error&gt;;
+    pub fn status(&amp;mut self) -> Result&lt;ExitStatus, Error&gt;;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>2. <code>Output</code></h2>
+                <pre>
+pub struct Output {
+    pub status: ExitStatus,
+    pub stdout: Vec&lt;u8&gt;,
+    pub stderr: Vec&lt;u8&gt;,
+}</pre
+                >
+            </section>
+            <section>
+                <h2>3. <code>ExitStatus</code></h2>
+                <pre>
+pub struct ExitStatus(i32);
+impl ExitStatus {
+    pub fn success(&amp;self) -> bool;
+    pub fn code(&amp;self) -> Option&lt;i32&gt;;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>4. <code>Error</code></h2>
+                <pre>pub struct Error(i32);</pre>
+                <p>
+                    Platform‑specific error code; may add message retrieval
+                    later.
+                </p>
+            </section>
+            <section>
+                <h2>5. Implementation Notes</h2>
+                <ul>
+                    <li>
+                        Unix: <code>fork</code>/<code>exec</code> or
+                        <code>posix_spawn</code>.
+                    </li>
+                    <li>Windows: <code>CreateProcess</code>.</li>
+                    <li>Environment inherited unless overridden.</li>
+                    <li>
+                        <code>arg</code> appends strings; program name is
+                        <code>argv[0]</code>.
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>6. Testing</h2>
+                <ul>
+                    <li>
+                        Execute <code>echo</code> (Unix) /
+                        <code>cmd /c echo</code> (Windows) – capture output.
+                    </li>
+                    <li>Environment variable override.</li>
+                    <li>Exit status for success and failure.</li>
+                    <li><code>status()</code> with no output.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase3a-core-ops.html" rel="prev"
+                        >Previous: Operator Traits</a
+                    >
+                    |
+                    <a href="phase3a-core-units.html" rel="next">Next: Units</a>
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

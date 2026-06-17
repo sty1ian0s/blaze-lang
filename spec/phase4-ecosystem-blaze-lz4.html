@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: LZ4</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: LZ4</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-lsp-extras.html" rel="prev"
+                    >Previous: LSP Extras</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-metrics.html" rel="next"
+                    >Next: Metrics</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Standalone, zero‑copy LZ4 compression and decompression
+                    library (block and frame formats).
+                </p>
+            </section>
+            <section>
+                <h2>1. Core Types</h2>
+                <pre>
+pub struct Lz4Encoder { acceleration: u32 }
+impl Lz4Encoder {
+    pub fn new(acceleration: u32) -> Self;
+    pub fn compress(&amp;mut self, input: &amp;[u8], output: &amp;mut Vec&lt;u8&gt;) -> Result&lt;usize, Lz4Error&gt;;
+    pub fn finish(&amp;mut self, output: &amp;mut Vec&lt;u8&gt;) -> Result&lt;(), Lz4Error&gt;;
+}
+pub struct Lz4Decoder { /* … */ }
+impl Lz4Decoder {
+    pub fn new() -> Self;
+    pub fn decompress(&amp;mut self, input: &amp;[u8], output: &amp;mut Vec&lt;u8&gt;) -> Result&lt;(), Lz4Error&gt;;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>2. Convenience Functions</h2>
+                <pre>
+pub fn compress_block(data: &amp;[u8]) -> Result&lt;Vec&lt;u8&gt;, Lz4Error&gt;;
+pub fn decompress_block(data: &amp;[u8]) -> Result&lt;Vec&lt;u8&gt;, Lz4Error&gt;;
+pub fn compress_frame(data: &amp;[u8]) -> Result&lt;Vec&lt;u8&gt;, Lz4Error&gt;;
+pub fn decompress_frame(data: &amp;[u8]) -> Result&lt;Vec&lt;u8&gt;, Lz4Error&gt;;</pre
+                >
+            </section>
+            <section>
+                <h2>3. Error Handling</h2>
+                <pre>
+pub enum Lz4Error { InvalidInput, OutputBufferTooSmall, CompressionFailed, DecompressionFailed }</pre
+                >
+            </section>
+            <section>
+                <h2>4. Testing</h2>
+                <ul>
+                    <li>Block round‑trip.</li>
+                    <li>Frame round‑trip.</li>
+                    <li>Empty input.</li>
+                    <li>Corrupted buffer → error.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-lsp-extras.html" rel="prev"
+                        >Previous: LSP Extras</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-metrics.html" rel="next"
+                        >Next: Metrics</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

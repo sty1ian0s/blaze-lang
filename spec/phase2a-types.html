@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>
+            Blaze Phase 2a – Expanded Type System &amp; Linear Ownership
+        </title>
+    </head>
+    <body>
+        <header>
+            <h1>
+                Blaze Phase 2a – Expanded Type System &amp; Linear Ownership
+            </h1>
+        </header>
+        <nav>
+            <p>
+                <a href="phase1-spec.html" rel="prev">Previous: Phase 1</a> |
+                <a href="phase2b-generics.html" rel="next"
+                    >Next: Phase 2b – Generics</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Extend the compiler to support all primitive types, compound
+                    types, structs, enums, unions, and the full linear type
+                    system (move semantics, partial moves, <code>Dispose</code>,
+                    <code>@copy</code>).
+                </p>
+            </section>
+            <section>
+                <h2>1. Primitive Types</h2>
+                <h3>1.1 Integer Types</h3>
+                <ul>
+                    <li>
+                        Signed: <code>i8</code>, <code>i16</code>,
+                        <code>i32</code>, <code>i64</code>, <code>i128</code>,
+                        <code>isize</code>
+                    </li>
+                    <li>
+                        Unsigned: <code>u8</code>, <code>u16</code>,
+                        <code>u32</code>, <code>u64</code>, <code>u128</code>,
+                        <code>usize</code>
+                    </li>
+                    <li>
+                        Literals default to <code>i32</code>; suffixes select
+                        type.
+                    </li>
+                    <li>
+                        Operations: arithmetic, bitwise, comparison. Overflow
+                        panics in debug, wraps in release.
+                    </li>
+                </ul>
+                <h3>1.2 Floating‑Point Types</h3>
+                <ul>
+                    <li>
+                        <code>f16</code>, <code>f32</code>, <code>f64</code>,
+                        <code>f128</code> (IEEE‑754).
+                    </li>
+                    <li>
+                        Literals with decimal point default to <code>f64</code>.
+                    </li>
+                    <li>
+                        Division by zero returns infinity; <code>=~</code> for
+                        approximate equality.
+                    </li>
+                </ul>
+                <h3>1.3 Boolean, Character, String, Unit</h3>
+                <ul>
+                    <li>
+                        <code>bool</code> with
+                        <code>true</code>/<code>false</code>.
+                    </li>
+                    <li><code>char</code> – Unicode scalar.</li>
+                    <li>
+                        <code>str</code> – UTF‑8 slice, always behind reference.
+                    </li>
+                    <li><code>()</code> – unit type.</li>
+                </ul>
+            </section>
+            <section>
+                <h2>2. Compound Types</h2>
+                <h3>2.1 Tuples</h3>
+                <p>
+                    <code>(T1, T2, ...)</code> – destructuring only, no
+                    positional indexing.
+                </p>
+                <h3>2.2 Arrays</h3>
+                <p>
+                    <code>[T; N]</code> – fixed size, compile‑time constant
+                    <code>N</code>.
+                </p>
+                <h3>2.3 Slices</h3>
+                <p>
+                    <code>[T]</code> – dynamically sized, used behind
+                    references.
+                </p>
+                <h3>2.4 References</h3>
+                <ul>
+                    <li><code>&amp;T</code> – shared, implicitly copyable.</li>
+                    <li>
+                        <code>&amp;mut T</code> – exclusive, warning on
+                        aliasing.
+                    </li>
+                </ul>
+                <h3>2.5 Raw Pointers</h3>
+                <p>
+                    <code>*T</code>, <code>*mut T</code> – unsafe, no automatic
+                    disposal.
+                </p>
+            </section>
+            <section>
+                <h2>3. Algebraic Data Types</h2>
+                <h3>3.1 Structs</h3>
+                <p>
+                    Named product types with fields, optional default values.
+                    Construction: <code>Name { field: val }</code>.
+                </p>
+                <h3>3.2 Enums</h3>
+                <p>
+                    Tagged unions with variants. <code>match</code> for pattern
+                    matching. Discriminants can be explicit.
+                </p>
+                <h4>3.2.1 <code>@pack</code> Enum Attribute</h4>
+                <p>
+                    <code>@pack(N)</code> stores discriminant in exactly
+                    <code>N</code> bits. Example:
+                    <code>@pack(6) enum WeaponType { Knife, Pistol, ... }</code
+                    >.
+                </p>
+                <h3>3.3 Unions</h3>
+                <p>
+                    <code>union</code> – unsafe field overlap, no automatic
+                    discriminant.
+                </p>
+            </section>
+            <section>
+                <h2>4. Linear Type System</h2>
+                <p>
+                    All user‑defined types are linear by default (move
+                    semantics).
+                </p>
+                <h3>4.1 Move Semantics</h3>
+                <p>
+                    Assignment, argument passing, destructuring move ownership.
+                    Source becomes uninitialized.
+                </p>
+                <h3>4.2 Partial Moves</h3>
+                <p>
+                    Moving a single field leaves the rest valid. Struct cannot
+                    be used until all moved fields are reinitialized.
+                </p>
+                <h3>4.3 Dispose Trait</h3>
+                <p>
+                    <code>trait Dispose { fn dispose(&amp;mut self); }</code> –
+                    compiler inserts calls at scope exit. Primitive types and
+                    references are no‑op. Structs automatically implement if all
+                    fields do.
+                </p>
+                <h3>4.4 <code>@copy</code> Attribute</h3>
+                <p>
+                    Marks type as copyable if size ≤ 16 bytes, all fields
+                    <code>@copy</code>, no owned pointers (raw pointers
+                    allowed).
+                </p>
+            </section>
+            <section>
+                <h2>5. Constants and Statics</h2>
+                <h3>5.1 <code>const</code> and <code>static</code></h3>
+                <p>
+                    <code>const</code> compile‑time constant;
+                    <code>static</code> global variable.
+                    <code>@shared</code> deduplicates across compilation units.
+                </p>
+                <h3>5.2 <code>@compressed</code> Static Attribute</h3>
+                <p>
+                    <code>@compressed(level = L, algorithm = "algo")</code>
+                    compresses static data at build time. Runtime access returns
+                    decompressed view.
+                </p>
+            </section>
+            <section>
+                <h2>6. Type Checking &amp; Inference</h2>
+                <p>
+                    Full type checking; signatures fully annotated; local
+                    variables may be inferred.
+                </p>
+            </section>
+            <section>
+                <h2>7. Code Generation</h2>
+                <p>
+                    Primitives map to C types. Structs become C structs; enums
+                    tag+union; <code>@pack</code> enums use bitfields. Moves
+                    zero/poison source; <code>dispose</code> inserted at scope
+                    exit.
+                </p>
+            </section>
+            <section>
+                <h2>8. Layout Attributes</h2>
+                <ul>
+                    <li>
+                        <code>@layout(auto)</code> – default, hardware‑aware if
+                        <code>std::hardware</code> available.
+                    </li>
+                    <li><code>@layout(soa)</code> – Structure of Arrays.</li>
+                    <li>
+                        <code>@layout(aosoa, N = 8)</code> – Array of Structure
+                        of Arrays with chunk size <code>N</code> (power of two,
+                        1‑64).
+                    </li>
+                    <li><code>@layout(packed)</code> – bit‑packed fields.</li>
+                    <li><code>@layout(C)</code> – C‑compatible.</li>
+                    <li>
+                        <code>@layout(adaptive)</code> – profile‑guided adaptive
+                        layout (see Appendix G).
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>9. Constrained Types (Negative Space)</h2>
+                <p>
+                    Types may be refined with constraints evaluated at compile
+                    time.
+                </p>
+                <h3>9.1 Syntax</h3>
+                <pre>
+type_refinement = base_type [ "@" constraint ]
+constraint      = "range" "(" const_expr "," const_expr ")"
+                | "pattern" "(" string_lit ")"
+                | "size" "(" const_expr ")"
+                | "not" constraint
+                | "and" "(" constraint "," constraint ")"
+                | "or" "(" constraint "," constraint ")"
+                | path</pre
+                >
+                <h3>9.2 Semantics</h3>
+                <p>
+                    Constraints are checked at compile time; if unprovable,
+                    runtime checks are inserted unless <code>@assume</code> or
+                    <code>unsafe</code> is used.
+                </p>
+                <h3>9.3 Examples</h3>
+                <pre>
+let x: i32 @range(1, 100) = 50;
+let s: str @pattern(r"^[A-Z][a-z]*$") = "Hello";</pre
+                >
+            </section>
+            <section>
+                <h2>10. Hardware Control Attributes</h2>
+                <ul>
+                    <li>
+                        <code>@cache_line(align = 64, hint = "prefetch")</code>
+                    </li>
+                    <li><code>@aligned(16)</code></li>
+                    <li><code>@volatile</code></li>
+                    <li><code>@non_temporal</code></li>
+                    <li><code>@simd_lane(0..3)</code></li>
+                    <li><code>@vectorize(enable = true, width = 8)</code></li>
+                    <li><code>@masked</code></li>
+                    <li><code>@device("gpu", kernel = "my_kernel")</code></li>
+                    <li><code>@sync_with("gpu")</code></li>
+                    <li><code>@atomic(ordering = "release")</code></li>
+                    <li><code>@fence(scope = "device")</code></li>
+                </ul>
+            </section>
+            <section>
+                <h2>11. Testing</h2>
+                <ul>
+                    <li>Positive/negative tests for each feature.</li>
+                    <li>Partial moves and reinitialisation.</li>
+                    <li><code>@copy</code> acceptance/rejection.</li>
+                    <li>Dispose enforcement.</li>
+                    <li>
+                        Constraint solver tests: compile‑time proof, runtime
+                        fallback.
+                    </li>
+                    <li>
+                        Hardware attributes: alignment, SIMD, device offloading.
+                    </li>
+                    <li>Layout tests: SoA, AoSoA, adaptive with profiling.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase1-spec.html" rel="prev">Previous: Phase 1</a>
+                    |
+                    <a href="phase2b-generics.html" rel="next"
+                        >Next: Phase 2b – Generics</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

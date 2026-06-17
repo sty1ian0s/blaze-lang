@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: Compress</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: Compress</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-cli.html" rel="prev"
+                    >Previous: CLI</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-config.html" rel="next"
+                    >Next: Config</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Unified interface for compression/decompression algorithms:
+                    Deflate, Gzip, Zlib, Brotli, LZ4, Zstandard. Pure operations
+                    on byte slices; streaming adaptors.
+                </p>
+            </section>
+            <section>
+                <h2>1. Core Traits</h2>
+                <pre>
+pub trait Compressor {
+    fn compress(&amp;mut self, input: &amp;[u8], output: &amp;mut Vec&lt;u8&gt;) -> Result&lt;(), CompressError&gt;;
+    fn finish(&amp;mut self, output: &amp;mut Vec&lt;u8&gt;) -> Result&lt;(), CompressError&gt;;
+}
+pub trait Decompressor {
+    fn decompress(&amp;mut self, input: &amp;[u8], output: &amp;mut Vec&lt;u8&gt;) -> Result&lt;(), CompressError&gt;;
+    fn is_finished(&amp;self) -> bool;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>2. Supported Algorithms</h2>
+                <ul>
+                    <li>
+                        <code>DeflateEncoder</code>/<code>DeflateDecoder</code>
+                    </li>
+                    <li><code>GzipEncoder</code>/<code>GzipDecoder</code></li>
+                    <li><code>ZlibEncoder</code>/<code>ZlibDecoder</code></li>
+                    <li>
+                        <code>BrotliEncoder</code> (level 0‑11) /
+                        <code>BrotliDecoder</code>
+                    </li>
+                    <li>
+                        <code>Lz4Encoder</code> (acceleration) /
+                        <code>Lz4Decoder</code>
+                    </li>
+                    <li>
+                        <code>ZstdEncoder</code> (level 1‑22) /
+                        <code>ZstdDecoder</code>
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>3. Convenience Functions</h2>
+                <p>
+                    One‑shot compress/decompress for each algorithm (e.g.,
+                    <code>compress_deflate</code>,
+                    <code>decompress_gzip</code>).
+                </p>
+            </section>
+            <section>
+                <h2>4. Streaming</h2>
+                <pre>
+pub struct CompressWriter&lt;W: Write&gt; { writer: W, encoder: Box&lt;dyn Compressor&gt;, buf: Vec&lt;u8&gt; }
+impl&lt;W: Write&gt; Write for CompressWriter&lt;W&gt; { … }
+pub struct DecompressReader&lt;R: Read&gt; { reader: R, decoder: Box&lt;dyn Decompressor&gt;, buf: Vec&lt;u8&gt;, out_pos: usize }
+impl&lt;R: Read&gt; Read for DecompressReader&lt;R&gt; { … }</pre
+                >
+            </section>
+            <section>
+                <h2>5. Archive Support (feature `tar`)</h2>
+                <pre>
+pub fn archive_files(paths: &amp;[&amp;str], output: &amp;str, compression: Compression) -> Result&lt;(), CompressError&gt;;
+pub fn extract_archive(input: &amp;str, output_dir: &amp;str) -> Result&lt;(), CompressError&gt;;</pre
+                >
+            </section>
+            <section>
+                <h2>6. Error Handling</h2>
+                <pre>
+pub enum CompressError {
+    Io(std::io::Error),
+    InvalidInput(Text),
+    OutOfBounds,
+    InternalError(Text),
+    CompressionFailed(Text),
+    DecompressionFailed(Text),
+    UnsupportedFeature(Text),
+}</pre
+                >
+            </section>
+            <section>
+                <h2>7. Testing</h2>
+                <ul>
+                    <li>Round‑trip for each algorithm.</li>
+                    <li>Empty input.</li>
+                    <li>Streaming write/read.</li>
+                    <li>Corrupted stream → error.</li>
+                    <li>Archive creation/extraction.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-cli.html" rel="prev"
+                        >Previous: CLI</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-config.html" rel="next"
+                        >Next: Config</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

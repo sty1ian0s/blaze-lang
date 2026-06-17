@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 3b – Systems Library: Futures</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 3b – Systems Library: Futures</h1></header>
+        <nav>
+            <p>
+                <a href="phase3b-systems-fs.html" rel="prev"
+                    >Previous: File System</a
+                >
+                |
+                <a href="phase3b-systems-os.html" rel="next"
+                    >Next: Platform OS</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Core asynchronous types: <code>Future</code>,
+                    <code>Poll</code>, <code>Context</code>, <code>Wake</code>,
+                    and <code>Pin</code>.
+                </p>
+            </section>
+            <section>
+                <h2>1. <code>std::pin</code> – Pinning</h2>
+                <h3>1.1 <code>Pin&lt;P&gt;</code></h3>
+                <pre>pub struct Pin&lt;P&gt; { pointer: P }</pre>
+                <p>Wrapper that prevents moving the pointee.</p>
+                <h3>1.2 Constructor</h3>
+                <pre>
+pub unsafe fn new_unchecked(pointer: P) -> Pin&lt;P&gt;;</pre
+                >
+                <h3>1.3 Deref and DerefMut</h3>
+                <pre>
+impl&lt;P: Deref&gt; Deref for Pin&lt;P&gt; { type Target = P::Target; ... }
+impl&lt;P: DerefMut&gt; DerefMut for Pin&lt;P&gt; { ... }</pre
+                >
+                <p>
+                    <code>DerefMut</code> does not allow moving the pinned
+                    value.
+                </p>
+                <h3>1.4 <code>Unpin</code></h3>
+                <pre>pub auto trait Unpin {}</pre>
+                <p>Auto trait; types opt out with <code>!Unpin</code>.</p>
+            </section>
+            <section>
+                <h2>2. <code>std::future</code></h2>
+                <h3>2.1 <code>Future</code> Trait</h3>
+                <pre>
+pub trait Future {
+    type Output;
+    fn poll(self: Pin&lt;&amp;mut Self&gt;, cx: &amp;mut Context) -> Poll&lt;Self::Output&gt;;
+}</pre
+                >
+                <h3>2.2 <code>Poll&lt;T&gt;</code></h3>
+                <pre>pub enum Poll&lt;T&gt; { Ready(T), Pending }</pre>
+                <h3>2.3 <code>Context</code></h3>
+                <pre>
+pub struct Context&lt;'a&gt; { waker: &amp;'a dyn Wake }</pre
+                >
+                <h3>2.4 <code>Wake</code> Trait</h3>
+                <pre>pub trait Wake { fn wake(self: &amp;Self); }</pre>
+            </section>
+            <section>
+                <h2>3. Unsafe Future Marker</h2>
+                <pre>pub unsafe trait UnsafeFuture: Future {}</pre>
+            </section>
+            <section>
+                <h2>4. Implementation Notes</h2>
+                <ul>
+                    <li>
+                        Compiler transforms <code>async fn</code> to
+                        <code>Future</code> state machine.
+                    </li>
+                    <li>
+                        <code>Context</code> and <code>Wake</code> used by
+                        executor.
+                    </li>
+                    <li><code>Pin</code> is a zero‑cost wrapper.</li>
+                </ul>
+            </section>
+            <section>
+                <h2>5. Testing</h2>
+                <ul>
+                    <li><code>Pin</code>: deref works; move out disallowed.</li>
+                    <li>
+                        Manual <code>Future</code> impl: poll returns
+                        <code>Ready</code>.
+                    </li>
+                    <li>Async function: <code>.poll()</code> works.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase3b-systems-fs.html" rel="prev"
+                        >Previous: File System</a
+                    >
+                    |
+                    <a href="phase3b-systems-os.html" rel="next"
+                        >Next: Platform OS</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: GUI</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: GUI</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-gpu-compute.html" rel="prev"
+                    >Previous: GPU Compute</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-http.html" rel="next"
+                    >Next: HTTP</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    High‑performance, data‑oriented, actor‑based GUI system with
+                    immediate‑mode rendering, constraint‑based layout, typed
+                    styles, automatic accessibility.
+                </p>
+            </section>
+            <section>
+                <h2>1. Widget Tree</h2>
+                <pre>
+pub enum WidgetNode {
+    Container { id: WidgetId, child: WidgetHandle },
+    Row { id: WidgetId, children: Vec&lt;WidgetHandle&gt; },
+    Column { id: WidgetId, children: Vec&lt;WidgetHandle&gt; },
+    Stack { id: WidgetId, children: Vec&lt;WidgetHandle&gt; },
+    Text { id: WidgetId, content: String },
+    Button { id: WidgetId, label: String, on_click: Message },
+    Slider { id: WidgetId, value: f64, min: f64, max: f64, on_change: Message },
+    Checkbox { id: WidgetId, checked: bool, label: String, on_toggle: Message },
+    Image { id: WidgetId, source: ImageSource },
+    Canvas { id: WidgetId, draw_fn: fn(&amp;mut CanvasContext) },
+    Custom { id: WidgetId, shape: Box&lt;dyn CustomWidget&gt; },
+}</pre
+                >
+            </section>
+            <section>
+                <h2>2. Layout</h2>
+                <pre>
+pub struct Layout { width: SizeConstraint, height: SizeConstraint, padding: EdgeInsets, margin: EdgeInsets, alignment: Alignment, flex: f64 }
+pub enum SizeConstraint { Pixels(f64), Percent(f64), Auto }
+fn compute_layout(tree: &amp;[WidgetNode], available_width: f64, available_height: f64) -> Vec&lt;Rect&gt;;</pre
+                >
+            </section>
+            <section>
+                <h2>3. Styling</h2>
+                <pre>
+pub struct Style { background: Color, foreground: Color, font_size: f64, font_family: String, corner_radius: f64, border: Option&lt;(f64, Color)&gt;, shadow: Option&lt;(f64, f64, Color)&gt; }</pre
+                >
+            </section>
+            <section>
+                <h2>4. Accessibility</h2>
+                <pre>
+pub struct AccessibilityNode { role: AccessibilityRole, label: String, value: Option&lt;String&gt;, actions: Vec&lt;AccessibilityAction&gt;, bounding_rect: Rect }
+pub enum AccessibilityRole { Button, Slider, CheckBox, StaticText, Image, List, ListItem, Heading, Window }</pre
+                >
+            </section>
+            <section>
+                <h2>5. Input</h2>
+                <p>
+                    Unified <code>InputEvent</code> handled by
+                    <code>App</code> actor; hit‑testing translates to messages.
+                </p>
+            </section>
+            <section>
+                <h2>6. Rendering</h2>
+                <pre>
+pub trait Renderer { fn draw_widget(&amp;mut self, node: &amp;WidgetNode, rect: Rect, style: &amp;Style, state: &amp;AppState); fn present(&amp;mut self); }</pre
+                >
+            </section>
+            <section>
+                <h2>7. Testing</h2>
+                <ul>
+                    <li>Layout solver.</li>
+                    <li>Accessibility tree.</li>
+                    <li>Event handling.</li>
+                    <li>Style propagation.</li>
+                    <li>Snapshot tests.</li>
+                    <li>Performance (10k widgets).</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-gpu-compute.html" rel="prev"
+                        >Previous: GPU Compute</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-http.html" rel="next"
+                        >Next: HTTP</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Appendix A – Optional Extensions</title>
+    </head>
+    <body>
+        <header><h1>Appendix A – Optional Extensions</h1></header>
+        <nav>
+            <p>
+                <a href="phase5-ecosystem-blaze-opencl.html" rel="prev"
+                    >Previous: OpenCL</a
+                >
+                |
+                <a href="appendix-b-full-grammar-summary.html" rel="next"
+                    >Next: Appendix B</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Status</h2>
+                <p>
+                    Normative for implementations that choose to support these
+                    features. None are required for core conformance.
+                </p>
+            </section>
+            <section>
+                <h2>A.1 Persistent Regions</h2>
+                <p>
+                    A region annotated with <code>@persistent</code> may be
+                    mapped to non‑volatile storage (NVDIMM, battery‑backed RAM,
+                    flash‑backed memory) when supported.
+                </p>
+                <pre>
+@persistent region { let data = Owned::new(vec![1, 2, 3]); }</pre
+                >
+                <p>
+                    Allocations in persistent regions survive process restarts.
+                    Runtime provides
+                    <code>Region::open_persistent(name)</code> to re‑open.
+                    Pointers are relocatable (indirection tables). Linear types
+                    are not automatically disposed on exit; commit or rollback
+                    via normal region end or panic.
+                </p>
+            </section>
+            <section>
+                <h2>A.2 Distributed Execution</h2>
+                <p>
+                    <code>spawn_on(node, actor)</code> schedules an actor on a
+                    remote node. Returns network‑transparent
+                    <code>Capability</code>.
+                </p>
+                <p>
+                    Serialises actor (fields) via <code>blaze‑serde</code>,
+                    transmits to remote runtime, deserialises and spawns. Local
+                    capability proxies sends. Remote unreachable → faulted
+                    state; <code>NetworkError</code> on sends. Supervision:
+                    remote actor's supervisor is local caller; panic escalation
+                    follows local rules (3 panics in 10 sec).
+                </p>
+                <p>Configuration in <code>blaze.toml</code>:</p>
+                <pre>
+[distributed]
+nodes = ["192.168.1.10:9090", "192.168.1.11:9090"]</pre
+                >
+            </section>
+            <section>
+                <h2>A.3 LLVM Backend</h2>
+                <p>
+                    Alternative code generation via LLVM:
+                    <code>blaze build --backend=llvm --release</code>.
+                    Translates Blaze UIR to LLVM IR, uses LLVM optimisation
+                    pipeline. Preserves semantics, deterministic with
+                    <code>--reproducible</code> (fixed seeds, CRlibm).
+                </p>
+            </section>
+            <section>
+                <h2>A.4 C/C++ Transpiler (Community)</h2>
+                <p>
+                    <code>c2blaze</code> translates a restricted subset of C/C++
+                    to Blaze using Clang AST and LLVM IR. Detects patterns:
+                    local <code>malloc/free</code> → <code>region</code>,
+                    <code>const T*</code> → <code>&amp;T</code>,
+                    trivially‑copyable structs → <code>@copy</code>, fixed‑size
+                    arrays → <code>[T; N]</code>, null‑terminated strings →
+                    <code>&amp;str</code>, error conventions →
+                    <code>Result&lt;T,E&gt;</code>. Unsafe code remains in
+                    <code>unsafe</code> blocks.
+                </p>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase5-ecosystem-blaze-opencl.html" rel="prev"
+                        >Previous: OpenCL</a
+                    >
+                    |
+                    <a href="appendix-b-full-grammar-summary.html" rel="next"
+                        >Next: Appendix B</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

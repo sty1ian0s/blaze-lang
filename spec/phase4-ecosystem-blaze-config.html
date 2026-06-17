@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: Config</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: Config</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-compress.html" rel="prev"
+                    >Previous: Compress</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-cortex-m.html" rel="next"
+                    >Next: Cortex‑M</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Layered configuration system with
+                    <code>@config</code> macro, sources (files, environment,
+                    CLI), and typed struct merging.
+                </p>
+            </section>
+            <section>
+                <h2>1. <code>@config</code> Macro</h2>
+                <pre>
+@config
+struct AppConfig {
+    pub host: String,
+    pub port: u16,
+    pub database_url: String,
+    pub max_connections: u32 = 100,
+    pub enable_caching: bool = true,
+    pub log_level: String = "info",
+    pub rate_limit: Option&lt;f64&gt;,
+}</pre
+                >
+                <p>
+                    Generates <code>ConfigLoader</code> and
+                    <code>ConfigError</code>. Field attributes:
+                    <code>@config(name)</code>, <code>@config(default)</code>,
+                    <code>@config(env_only)</code>,
+                    <code>@config(file_only)</code>,
+                    <code>@config(deserialize_with)</code>,
+                    <code>@config(merge)</code>.
+                </p>
+            </section>
+            <section>
+                <h2>2. Configuration Sources</h2>
+                <pre>
+pub enum ConfigSource {
+    File(Path),
+    Environment(Text),
+    CommandLine,
+    Map(Map&lt;Text, Text&gt;),
+    Defaults,
+}</pre
+                >
+            </section>
+            <section>
+                <h2>3. <code>ConfigLoader&lt;T&gt;</code></h2>
+                <pre>
+pub struct ConfigLoader&lt;T: Config&gt; { sources: Vec&lt;ConfigSource&gt;, override_map: Map&lt;Text, Text&gt; }
+impl&lt;T: Config + DeserializeOwned&gt; ConfigLoader&lt;T&gt; {
+    pub fn new() -> Self;
+    pub fn add_source(mut self, source: ConfigSource) -> Self;
+    pub fn set_override(mut self, key: &amp;str, value: &amp;str) -> Self;
+    pub fn build(self) -> Result&lt;T, ConfigError&gt;;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>4. Environment and CLI</h2>
+                <p>
+                    Environment variables: prefix (default struct name in
+                    SCREAMING_SNAKE_CASE) + field. CLI: kebab‑case names,
+                    boolean flags with <code>--no-</code>.
+                </p>
+            </section>
+            <section>
+                <h2>5. File Formats</h2>
+                <p>
+                    Uses <code>blaze‑serde</code>; format determined by
+                    extension (<code>.toml</code>, <code>.yaml</code>,
+                    <code>.json</code>).
+                </p>
+            </section>
+            <section>
+                <h2>6. Error Handling</h2>
+                <pre>
+pub enum ConfigError {
+    Io(std::io::Error),
+    FileFormat(Text),
+    MissingField(Text),
+    InvalidValue(Text),
+    Deserialization(Text),
+    EnvVarNotFound(Text),
+    CommandLineParse(Text),
+    DuplicateSource(Text),
+}</pre
+                >
+            </section>
+            <section>
+                <h2>7. Testing</h2>
+                <ul>
+                    <li>Defaults.</li>
+                    <li>File loading.</li>
+                    <li>Environment variables override.</li>
+                    <li>CLI overrides.</li>
+                    <li>Custom deserialization.</li>
+                    <li>Error handling.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-compress.html" rel="prev"
+                        >Previous: Compress</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-cortex-m.html" rel="next"
+                        >Next: Cortex‑M</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

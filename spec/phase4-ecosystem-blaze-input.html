@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: Input</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: Input</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-image.html" rel="prev"
+                    >Previous: Image</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-jni.html" rel="next"
+                    >Next: JNI</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Unified, cross‑platform input abstraction for keyboard,
+                    mouse, touch, pen, and gamepad. Collects raw events from OS
+                    and delivers them as messages to the actor system.
+                    Zero‑copy, deterministic, low‑latency.
+                </p>
+            </section>
+            <section>
+                <h2>1. Input Events</h2>
+                <pre>
+pub enum InputEvent {
+    Key(KeyEvent),
+    Mouse(MouseEvent),
+    Wheel(ScrollEvent),
+    Touch(TouchEvent),
+    Pen(PenEvent),
+    Gamepad(GamepadEvent),
+    Window(WindowEvent),
+}</pre
+                >
+                <h3>KeyEvent</h3>
+                <pre>
+pub struct KeyEvent { pub key: Key, pub state: ButtonState, pub modifiers: Modifiers, pub repeat: bool, pub scancode: u32 }
+pub enum Key { A, B, C, ..., Digit0, F1, Escape, Tab, Shift, Control, Alt, Meta, Enter, Space, Backspace, Insert, Delete, Home, End, PageUp, PageDown, Left, Right, Up, Down, Numpad0, ..., VolumeUp, Mute, ... }</pre
+                >
+                <h3>MouseEvent</h3>
+                <pre>
+pub struct MouseEvent { pub kind: MouseKind, pub button: MouseButton, pub position: (f64, f64), pub modifiers: Modifiers }
+pub enum MouseKind { Moved, Pressed, Released, Entered, Exited }
+pub enum MouseButton { Left, Right, Middle, Back, Forward, Other(u8) }</pre
+                >
+                <h3>ScrollEvent</h3>
+                <pre>
+pub struct ScrollEvent { pub delta: (f64, f64), pub position: (f64, f64), pub modifiers: Modifiers }</pre
+                >
+                <h3>TouchEvent</h3>
+                <pre>
+pub struct TouchEvent { pub phase: TouchPhase, pub touches: Vec&lt;Touch&gt; }
+pub enum TouchPhase { Started, Moved, Ended, Cancelled }
+pub struct Touch { pub id: u64, pub position: (f64, f64), pub pressure: Option&lt;f64&gt; }</pre
+                >
+                <h3>PenEvent, GamepadEvent, WindowEvent</h3>
+                <p>Analogous.</p>
+            </section>
+            <section>
+                <h2>2. Input Backend</h2>
+                <pre>
+pub trait InputBackend: Send + 'static { fn poll_events(&amp;mut self) -> Vec&lt;InputEvent&gt;; }</pre
+                >
+            </section>
+            <section>
+                <h2>3. Integration</h2>
+                <p>
+                    <code>blaze‑gui::App</code> receives
+                    <code>InputEvent</code> and converts to messages.
+                </p>
+            </section>
+            <section>
+                <h2>4. Determinism</h2>
+                <p>
+                    Under <code>--reproducible</code>, input events can be
+                    recorded and replayed.
+                </p>
+            </section>
+            <section>
+                <h2>5. Testing</h2>
+                <ul>
+                    <li>Event conversion.</li>
+                    <li>Focus tracking.</li>
+                    <li>Multi‑touch.</li>
+                    <li>Gamepad.</li>
+                    <li>Replay.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-image.html" rel="prev"
+                        >Previous: Image</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-jni.html" rel="next"
+                        >Next: JNI</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Appendix E – Project Security Configuration</title>
+    </head>
+    <body>
+        <header><h1>Appendix E – Project Security Configuration</h1></header>
+        <nav>
+            <p>
+                <a href="appendix-d-coherence-and-orphan-rules.html" rel="prev"
+                    >Previous: Appendix D</a
+                >
+                |
+                <a href="appendix-f-jit-scripting-profile.html" rel="next"
+                    >Next: Appendix F</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Status</h2>
+                <p>
+                    Normative. Defines the <code>blaze.toml</code> configuration
+                    schema for project‑wide security policies,
+                    contract/assertion handling in build profiles.
+                </p>
+            </section>
+            <section>
+                <h2>E.1 The <code>blaze.toml</code> Manifest</h2>
+                <p>
+                    Every Blaze crate may contain a <code>blaze.toml</code> file
+                    in its root directory. Unknown keys cause a warning but not
+                    an error.
+                </p>
+            </section>
+            <section>
+                <h2>E.2 <code>[security]</code> Section</h2>
+                <h3>E.2.1 <code>public_functions_must_have_contracts</code></h3>
+                <ul>
+                    <li><strong>Type:</strong> <code>bool</code></li>
+                    <li><strong>Default:</strong> <code>false</code></li>
+                    <li>
+                        <strong>Description:</strong> If <code>true</code>,
+                        every public function must carry at least one
+                        <code>requires</code> or <code>ensures</code> clause, or
+                        be annotated with <code>@no_contract</code> (with a
+                        comment).
+                    </li>
+                </ul>
+                <h3>E.2.2 <code>unsafe_requires_safety_comment</code></h3>
+                <ul>
+                    <li><strong>Type:</strong> <code>bool</code></li>
+                    <li><strong>Default:</strong> <code>false</code></li>
+                    <li>
+                        <strong>Description:</strong> If <code>true</code>,
+                        every <code>unsafe</code> block must be immediately
+                        preceded by <code>// SAFETY:</code> comment. Rejects
+                        otherwise.
+                    </li>
+                </ul>
+                <h3>E.2.3 <code>panic_policy</code></h3>
+                <ul>
+                    <li>
+                        <strong>Type:</strong> string, either
+                        <code>"unwind"</code> or <code>"abort"</code>
+                    </li>
+                    <li><strong>Default:</strong> <code>"unwind"</code></li>
+                    <li>
+                        <strong>Description:</strong>
+                        <code>"unwind"</code> unwinds stack, calling
+                        <code>Dispose</code>; <code>"abort"</code> terminates
+                        immediately.
+                    </li>
+                </ul>
+                <h3>E.2.4 <code>strict_narrowing</code></h3>
+                <ul>
+                    <li><strong>Type:</strong> <code>bool</code></li>
+                    <li><strong>Default:</strong> <code>false</code></li>
+                    <li>
+                        <strong>Description:</strong> If <code>true</code>,
+                        narrowing <code>as</code> conversions are compile‑time
+                        errors unless inside <code>unsafe</code> or using
+                        <code>try_into</code>.
+                    </li>
+                </ul>
+                <h3>E.2.5 <code>minimum_fuzz_iterations</code></h3>
+                <ul>
+                    <li><strong>Type:</strong> integer</li>
+                    <li><strong>Default:</strong> <code>0</code></li>
+                    <li>
+                        <strong>Description:</strong> Minimum iterations for
+                        <code>@fuzz</code> harnesses during
+                        <code>blaze test</code>.
+                    </li>
+                </ul>
+                <h2>E.3 <code>[profile]</code> Section</h2>
+                <h3>E.3.1 <code>keep_contracts</code></h3>
+                <ul>
+                    <li><strong>Type:</strong> <code>bool</code></li>
+                    <li>
+                        <strong>Default:</strong> <code>true</code> for
+                        <code>debug</code>, <code>false</code> for
+                        <code>release</code>
+                    </li>
+                    <li>
+                        <strong>Description:</strong> When <code>true</code>,
+                        contract checks compiled into binary.
+                    </li>
+                </ul>
+                <h3>E.3.2 <code>keep_assertions</code></h3>
+                <ul>
+                    <li><strong>Type:</strong> <code>bool</code></li>
+                    <li>
+                        <strong>Default:</strong> <code>true</code> for
+                        <code>debug</code>, <code>false</code> for
+                        <code>release</code>
+                    </li>
+                    <li>
+                        <strong>Description:</strong> When <code>true</code>,
+                        <code>debug_assert!</code> compiled into binary.
+                    </li>
+                </ul>
+                <h3>E.3.3 Example</h3>
+                <pre>
+[profile.debug]
+keep_contracts = true
+keep_assertions = true
+
+[profile.release]
+keep_contracts = false
+keep_assertions = false</pre
+                >
+            </section>
+            <section>
+                <h2>E.4 Interaction with <code>blaze fix</code></h2>
+                <p>
+                    <code>blaze fix --aot-ify</code> may insert
+                    <code>@no_contract</code> and
+                    <code>// SAFETY:</code> comments automatically based on
+                    policies.
+                </p>
+            </section>
+            <section>
+                <h2>E.5 Testing</h2>
+                <ul>
+                    <li>Public function without contract → reject.</li>
+                    <li><code>unsafe</code> without comment → reject.</li>
+                    <li>
+                        <code>panic_policy = "abort"</code> → immediate
+                        termination.
+                    </li>
+                    <li>
+                        <code>strict_narrowing = true</code> → narrowing cast
+                        error.
+                    </li>
+                    <li>
+                        <code>minimum_fuzz_iterations = 10</code> with 5
+                        iterations → <code>blaze test</code> fails.
+                    </li>
+                    <li>
+                        <code>--release</code> – contracts and
+                        <code>debug_assert!</code> absent from binary.
+                    </li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a
+                        href="appendix-d-coherence-and-orphan-rules.html"
+                        rel="prev"
+                        >Previous: Appendix D</a
+                    >
+                    |
+                    <a href="appendix-f-jit-scripting-profile.html" rel="next"
+                        >Next: Appendix F</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

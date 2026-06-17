@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 3a – Core Library: Dimensional Analysis</title>
+    </head>
+    <body>
+        <header>
+            <h1>Blaze Phase 3a – Core Library: Dimensional Analysis</h1>
+        </header>
+        <nav>
+            <p>
+                <a href="phase3a-core-process.html" rel="prev"
+                    >Previous: Process</a
+                >
+                |
+                <a href="phase3a-core-window.html" rel="next"
+                    >Next: Sliding Windows</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Provide compile‑time unit system using const‑generics.
+                    Defines <code>Quantity</code> and SI dimensions.
+                </p>
+            </section>
+            <section>
+                <h2>1. <code>Dimensions</code></h2>
+                <pre>
+pub struct Dimensions {
+    pub meters: i8,
+    pub seconds: i8,
+    pub kilograms: i8,
+    pub amperes: i8,
+    pub kelvins: i8,
+    pub moles: i8,
+    pub candelas: i8,
+}</pre
+                >
+                <p>
+                    <code>@copy</code>, supports equality and compile‑time
+                    arithmetic.
+                </p>
+                <h3>Base Constants</h3>
+                <pre>
+pub const Metre: Dimensions = ...;
+pub const Second: Dimensions = ...;
+pub const Kilogram: Dimensions = ...;
+pub const Ampere: Dimensions = ...;
+pub const Kelvin: Dimensions = ...;
+pub const Mole: Dimensions = ...;
+pub const Candela: Dimensions = ...;</pre
+                >
+                <h3>Derived Constants</h3>
+                <p>
+                    Hertz, Newton, Pascal, Joule, Watt, Coulomb, Volt, Ohm,
+                    Farad, Tesla, Weber, Henry, Lumen.
+                </p>
+            </section>
+            <section>
+                <h2>2. <code>Quantity&lt;T, const D: Dimensions&gt;</code></h2>
+                <pre>pub struct Quantity&lt;T, const D: Dimensions&gt;(T);</pre>
+                <p><code>@copy</code> if T is.</p>
+                <h3>Arithmetic</h3>
+                <ul>
+                    <li>Add/Sub: same dimension → same dimension.</li>
+                    <li>Mul: dimensions add; Div: dimensions subtract.</li>
+                    <li>Compile‑time dimension checks.</li>
+                </ul>
+                <h3>Conversion</h3>
+                <pre>
+pub fn convert&lt;T, const S: Dimensions, const D: Dimensions&gt;(q: Quantity&lt;T, S&gt;) -> Quantity&lt;T, D&gt;;</pre
+                >
+                <p>
+                    Best‑effort; static assert S == D for now. Actual conversion
+                    factors left for later.
+                </p>
+            </section>
+            <section>
+                <h2>3. Type Aliases</h2>
+                <p>
+                    Convenient aliases: <code>Metre&lt;T&gt;</code>,
+                    <code>Second&lt;T&gt;</code>,
+                    <code>Kilogram&lt;T&gt;</code>, <code>Hertz&lt;T&gt;</code>,
+                    <code>Newton&lt;T&gt;</code>, etc.
+                </p>
+            </section>
+            <section>
+                <h2>4. Testing</h2>
+                <ul>
+                    <li>Base quantities arithmetic; dimensions propagate.</li>
+                    <li>Adding different dimensions fails at compile time.</li>
+                    <li>
+                        Multiplication/division produce correct dimension
+                        tuples.
+                    </li>
+                    <li>Conversion: same dimension works.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase3a-core-process.html" rel="prev"
+                        >Previous: Process</a
+                    >
+                    |
+                    <a href="phase3a-core-window.html" rel="next"
+                        >Next: Sliding Windows</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

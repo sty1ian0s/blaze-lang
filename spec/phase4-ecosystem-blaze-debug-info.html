@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: Debug Info</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: Debug Info</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-crypto.html" rel="prev"
+                    >Previous: Crypto</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-doc-gen.html" rel="next"
+                    >Next: Doc Gen</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Provide pure library for reading/writing Blaze Debug Format
+                    (BDF), a superset of DWARF. Used by compiler, debugger,
+                    backtrace.
+                </p>
+            </section>
+            <section>
+                <h2>1. Core Types</h2>
+                <pre>
+pub struct DebugInfo {
+    compile_units: Vec&lt;CompileUnit&gt;,
+    line_program: LineProgram,
+    address_ranges: Vec&lt;AddressRange&gt;,
+    strings: StringTable,
+}
+pub struct CompileUnit { name: Text, language: Language, functions: Vec&lt;FunctionDI&gt;, variables: Vec&lt;VariableDI&gt;, types: Vec&lt;TypeDI&gt; }
+pub struct LineProgram { entries: Vec&lt;LineEntry&gt; }
+pub struct LineEntry { address: u64, file: u32, line: u32, column: u32 }</pre
+                >
+            </section>
+            <section>
+                <h2>2. Parsing</h2>
+                <pre>
+pub fn read_from_bytes(data: &amp;[u8]) -> Result&lt;DebugInfo, DebugInfoError&gt;;
+pub fn read_from_file(path: &amp;str) -> Result&lt;DebugInfo, DebugInfoError&gt;;</pre
+                >
+            </section>
+            <section>
+                <h2>3. Writing</h2>
+                <pre>
+pub fn write_to_bytes(info: &amp;DebugInfo) -> Result&lt;Vec&lt;u8&gt;, DebugInfoError&gt;;
+pub fn write_to_file(info: &amp;DebugInfo, path: &amp;str) -> Result&lt;(), DebugInfoError&gt;;</pre
+                >
+            </section>
+            <section>
+                <h2>4. Lookup Functions</h2>
+                <pre>
+impl DebugInfo {
+    pub fn find_function(&amp;self, address: u64) -> Option&lt;&amp;FunctionDI&gt;;
+    pub fn find_location(&amp;self, address: u64) -> Option&lt;(u32, u32, u32)&gt;;
+    pub fn find_type(&amp;self, name: &amp;str) -> Option&lt;&amp;TypeDI&gt;;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>5. Integration</h2>
+                <p>
+                    Used by <code>blaze‑backtrace</code> for symbolication and
+                    <code>blaze‑debug</code> for source‑level debugging.
+                </p>
+            </section>
+            <section>
+                <h2>6. Error Handling</h2>
+                <pre>
+pub enum DebugInfoError {
+    Io(std::io::Error),
+    InvalidFormat,
+    UnsupportedVersion,
+    CorruptedData,
+}</pre
+                >
+            </section>
+            <section>
+                <h2>7. Testing</h2>
+                <ul>
+                    <li>Round‑trip: write/read.</li>
+                    <li>Lookup: known addresses.</li>
+                    <li>DWARF compatibility: parse standard DWARF5.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-crypto.html" rel="prev"
+                        >Previous: Crypto</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-doc-gen.html" rel="next"
+                        >Next: Doc Gen</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

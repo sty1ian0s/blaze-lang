@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 3a – Core Library: Hashing</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 3a – Core Library: Hashing</h1></header>
+        <nav>
+            <p>
+                <a href="phase3a-core-fmt.html" rel="prev"
+                    >Previous: Formatting</a
+                >
+                | <a href="phase3a-core-io.html" rel="next">Next: I/O</a>
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Provide <code>Hash</code> and <code>Hasher</code> traits,
+                    and a default hasher (<code>DefaultHasher</code>).
+                </p>
+            </section>
+            <section>
+                <h2>1. Traits</h2>
+                <h3>1.1 <code>Hash</code></h3>
+                <pre>
+pub trait Hash {
+    fn hash&lt;H: Hasher&gt;(&amp;self, state: &amp;mut H);
+}</pre
+                >
+                <p>Feeds bytes/structured data into <code>Hasher</code>.</p>
+                <h3>1.2 <code>Hasher</code></h3>
+                <pre>
+pub trait Hasher {
+    fn write(&amp;mut self, bytes: &amp;[u8]);
+    fn finish(&amp;self) -> u64;
+}</pre
+                >
+                <p>
+                    Accumulates bytes; <code>finish</code> returns final hash.
+                </p>
+            </section>
+            <section>
+                <h2>2. <code>DefaultHasher</code></h2>
+                <pre>
+pub struct DefaultHasher { state: u64 }
+impl DefaultHasher {
+    pub fn new() -> Self;
+}
+impl Hasher for DefaultHasher {
+    fn write(&amp;mut self, bytes: &amp;[u8]) {
+        for &amp;b in bytes {
+            self.state = self.state.wrapping_mul(31).wrapping_add(b as u64);
+        }
+    }
+    fn finish(&amp;self) -> u64 { self.state }
+}</pre
+                >
+            </section>
+            <section>
+                <h2>3. Standard Implementations</h2>
+                <ul>
+                    <li>Integers: feed byte representation.</li>
+                    <li>
+                        Floats: feed raw bytes (including
+                        <code>NaN</code> patterns).
+                    </li>
+                    <li><code>bool</code>: feed 0 or 1.</li>
+                    <li><code>char</code>: feed 4‑byte scalar.</li>
+                </ul>
+                <p><code>@derive(Hash)</code> feeds each field in order.</p>
+            </section>
+            <section>
+                <h2>4. Testing</h2>
+                <ul>
+                    <li>
+                        <code>DefaultHasher</code> produces deterministic
+                        results for known byte sequences.
+                    </li>
+                    <li>
+                        Equal values produce same hash; different values
+                        (usually) produce different hashes.
+                    </li>
+                    <li>Strings: identical strings hash identically.</li>
+                    <li>Incremental hashing works.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase3a-core-fmt.html" rel="prev"
+                        >Previous: Formatting</a
+                    >
+                    | <a href="phase3a-core-io.html" rel="next">Next: I/O</a>
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

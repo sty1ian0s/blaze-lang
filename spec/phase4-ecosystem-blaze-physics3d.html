@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: Physics3D</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: Physics3D</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-physics2d.html" rel="prev"
+                    >Previous: Physics2D</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-postgres.html" rel="next"
+                    >Next: Postgres</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    3D rigid‑body physics engine with SoA layout, GJK/EPA
+                    collision detection, mesh colliders, BVH broad‑phase.
+                    Parallel, deterministic.
+                </p>
+            </section>
+            <section>
+                <h2>1. Components</h2>
+                <pre>
+@layout(soa)
+pub struct RigidBody3D {
+    pos: Vec3,
+    vel: Vec3,
+    orientation: Quat,
+    angular_vel: Vec3,
+    mass: f32,
+    inv_mass: f32,
+    inertia: Mat3,
+    inv_inertia: Mat3,
+    restitution: f32,
+    friction: f32,
+    body_type: BodyType,
+    flags: BodyFlags,
+}
+pub struct Collider3D { shape: ColliderShape, local_pos: Vec3, local_orientation: Quat, category_bits: u16, mask_bits: u16 }
+pub struct Contact3D { point: Vec3, normal: Vec3, penetration: f32, tangent1: Vec3, tangent2: Vec3, normal_impulse: f32, tangent_impulse1: f32, tangent_impulse2: f32, body_a: Entity, body_b: Entity }</pre
+                >
+            </section>
+            <section>
+                <h2>2. Systems</h2>
+                <pre>
+fn integrate_forces_3d(mut bodies: Query!(&amp;mut RigidBody3D), config: Res&lt;PhysicsConfig3D&gt;, dt: f32);
+fn broad_phase_3d(colliders: Query!(&amp;Collider3D, &amp;RigidBody3D), config: Res&lt;PhysicsConfig3D&gt;) -> Vec&lt;(Entity, Entity)&gt;;
+fn narrow_phase_3d(pairs: &amp;[(Entity, Entity)], bodies: Query!(&amp;RigidBody3D), colliders: Query!(&amp;Collider3D), contacts: impl Insert&lt;Contact3D&gt;);
+fn resolve_contacts_3d(contacts: &amp;mut [Contact3D], mut bodies: Query!(&amp;mut RigidBody3D), config: Res&lt;PhysicsConfig3D&gt;);
+fn sleep_manager_3d(mut bodies: Query!(&amp;mut RigidBody3D), config: Res&lt;PhysicsConfig3D&gt;, dt: f32);</pre
+                >
+            </section>
+            <section>
+                <h2>3. Mesh Colliders</h2>
+                <p>Uses BVH for broad‑phase; narrow‑phase tests triangles.</p>
+            </section>
+            <section>
+                <h2>4. Integration</h2>
+                <pre>
+pub fn add_physics3d_plugin(stage: &amp;mut SystemStage, config: PhysicsConfig3D);</pre
+                >
+            </section>
+            <section>
+                <h2>5. Testing</h2>
+                <ul>
+                    <li>Integration: two spheres.</li>
+                    <li>Collision: box and sphere.</li>
+                    <li>Orientation: angular velocity.</li>
+                    <li>Multiple shapes.</li>
+                    <li>Determinism.</li>
+                    <li>Performance: 1k spheres.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-physics2d.html" rel="prev"
+                        >Previous: Physics2D</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-postgres.html" rel="next"
+                        >Next: Postgres</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

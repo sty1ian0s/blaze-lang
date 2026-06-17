@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Appendix G – Compiler Algorithm Details</title>
+    </head>
+    <body>
+        <header><h1>Appendix G – Compiler Algorithm Details</h1></header>
+        <nav>
+            <p>
+                <a href="appendix-f-jit-scripting-profile.html" rel="prev"
+                    >Previous: Appendix F</a
+                >
+                |
+                <a
+                    href="appendix-h-standard-library-module-index.html"
+                    rel="next"
+                    >Next: Appendix H</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Status</h2>
+                <p>
+                    Normative. Exact algorithms and data structures for semantic
+                    analysis and optimisation passes.
+                </p>
+            </section>
+            <section>
+                <h2>G.1 Linearity Checking</h2>
+                <p>
+                    Operates per function body. Maintains
+                    <code>Live</code> (initialised variables) and
+                    <code>Partial</code> (moved fields). Process statements in
+                    source order.
+                </p>
+                <h3>G.1.1 Scalar Variables</h3>
+                <ul>
+                    <li>
+                        <strong>Read:</strong> if in <code>Live</code> and
+                        <code>Partial</code> empty → valid, remove from
+                        <code>Live</code>.
+                    </li>
+                    <li>
+                        <strong>Assignment:</strong> if not in
+                        <code>Live</code> → add; if in <code>Live</code> and
+                        <code>Partial</code> empty → error.
+                    </li>
+                    <li><strong>Binding:</strong> add to <code>Live</code>.</li>
+                    <li><strong>Argument passing:</strong> same as read.</li>
+                    <li>
+                        <strong>End of scope:</strong> dispose all
+                        <code>Live</code> variables implementing
+                        <code>Dispose</code>; error for linear variables without
+                        <code>Dispose</code>.
+                    </li>
+                </ul>
+                <h3>G.1.2 Struct Fields</h3>
+                <ul>
+                    <li>
+                        <strong>Read field:</strong> if live and not partially
+                        moved → add to <code>Partial</code>; if all fields moved
+                        → remove struct from <code>Live</code>.
+                    </li>
+                    <li>
+                        <strong>Assign field:</strong> remove from
+                        <code>Partial</code>; if empty → struct fully live.
+                    </li>
+                    <li>
+                        <strong>Whole‑struct read:</strong> remove from
+                        <code>Live</code>.
+                    </li>
+                    <li>
+                        <strong>Whole‑struct assignment:</strong> add to
+                        <code>Live</code>.
+                    </li>
+                </ul>
+                <h3>G.1.3 Branches</h3>
+                <p>
+                    For <code>if/else</code>, compute live/partial after each
+                    branch; merge: live if live in both with identical partial
+                    sets; dead otherwise. For <code>if</code> without
+                    <code>else</code>, conservative merge.
+                </p>
+                <h3>G.1.4 Loops</h3>
+                <p>
+                    Fixed‑point iteration: start with
+                    <code>live_start = L_in</code>, compute
+                    <code>live_end</code>, repeat until stable. Variables moved
+                    inside loop considered dead after loop.
+                </p>
+                <h3>G.1.5 Function Calls and Returns</h3>
+                <p>
+                    Arguments consumed; return value is new binding. Return
+                    consumes expression; all live variables disposed unless
+                    moved into return.
+                </p>
+            </section>
+            <section>
+                <h2>G.2 Effect Inference</h2>
+                <h3>G.2.1 Effect Lattice</h3>
+                <p>
+                    Power set of
+                    <code>{alloc, io, parallel, gpu, hal}</code> with
+                    implications: <code>io ⇒ alloc</code>,
+                    <code>gpu ⇒ parallel</code>, <code>hal ⇒ io</code>.
+                </p>
+                <h3>G.2.2 Intra‑procedural</h3>
+                <p>
+                    Initialize effect set to ∅; traverse body; add
+                    <code>alloc</code> for allocations, <code>io</code> for I/O,
+                    <code>parallel</code> for pure <code>for</code> loops. Store
+                    final set.
+                </p>
+                <h3>G.2.3 Fixed‑Point (Inter‑procedural)</h3>
+                <p>
+                    Worklist algorithm: recompute each function's effect set
+                    using current callee sets; propagate until no changes.
+                    Termination guaranteed (lattice height ≤5).
+                </p>
+            </section>
+            <section>
+                <h2>G.3 <code>@comptime</code> Interpreter</h2>
+                <p>
+                    Stack machine executing bytecode of
+                    <code>@comptime</code> functions. Deterministic. Instruction
+                    set includes <code>PUSH_LIT</code>, <code>PUSH_VAR</code>,
+                    <code>ADD</code>, <code>CALL</code>, <code>REFLECT</code>,
+                    etc. (see spec).
+                </p>
+            </section>
+            <section>
+                <h2>G.4 Optimisation Passes</h2>
+                <h3>G.4.1 Canonicalisation</h3>
+                <p>
+                    DCE, constant folding, GVN, PRE, LICM, strength reduction,
+                    induction variable optimisation.
+                </p>
+                <h3>G.4.2 Specialisation (opt‑level ≥ 1)</h3>
+                <p>
+                    Inlining, auto‑vectorisation, SoA transformation,
+                    auto‑parallelisation, allocation elision, region fusion,
+                    tail‑call optimisation, devirtualisation.
+                </p>
+                <h3>G.4.3 Code‑Gen Preparation</h3>
+                <p>
+                    Bounds check elision, peephole, prefetch insertion,
+                    alignment, non‑temporal stores, loop versioning, redundant
+                    store elimination, idiom recognition.
+                </p>
+            </section>
+            <section>
+                <h2>G.5 Region Lifetime Inference (NLL)</h2>
+                <p>
+                    Borrow point and use point tracking; borrow live from
+                    creation to last use; error if borrow outlives region.
+                    <code>&amp;mut</code> exclusivity warning on overlapping
+                    live ranges.
+                </p>
+            </section>
+            <section>
+                <h2>G.6 Array Bounds Check Elision</h2>
+                <p>
+                    Track value range of index via lattice; if proven within
+                    <code>[0, len-1]</code>, remove bounds check.
+                </p>
+            </section>
+            <section>
+                <h2>G.7 Actor Runtime Scheduling</h2>
+                <p>
+                    Work‑stealing thread pool (one worker per core). Local deque
+                    per worker; SPSC mailbox upgraded to MPSC on
+                    <code>Capability</code> clone. Actor runs until
+                    <code>await</code> or handler complete. Supervisor
+                    escalation: >3 panics in 10s escalates to parent.
+                </p>
+            </section>
+            <section>
+                <h2>G.8 <code>@derive</code> Expansion</h2>
+                <p>
+                    Syntactic expansion for <code>Debug</code>,
+                    <code>PartialEq</code>, <code>Default</code>,
+                    <code>Clone</code>, <code>Binary</code>,
+                    <code>Display</code>, <code>From</code>/<code>Into</code>,
+                    <code>AsRef</code>/<code>AsMut</code>, <code>Error</code>,
+                    <code>FromRow</code>, <code>Deduplicate</code>,
+                    <code>Refine</code>.
+                </p>
+            </section>
+            <section>
+                <h2>G.9 <code>.blzlib</code> Format</h2>
+                <p>
+                    <code>.tar</code> archive with three files:
+                    <code>metadata.json</code> (version, target, opt_level,
+                    modules), <code>object.o</code> (ELF/COFF),
+                    <code>debug.blzdbg</code> (BDF debug info).
+                </p>
+            </section>
+            <section>
+                <h2>G.10 Incremental Compilation</h2>
+                <p>
+                    Fingerprint per source file; dependency graph of items;
+                    dirty set recomputed on change; unchanged AST reused.
+                </p>
+            </section>
+            <section>
+                <h2>G.11 Symbol Table Implementation</h2>
+                <p>
+                    Index‑based arena with perfect hashing for global scope;
+                    local scopes use linear search or simple hash table.
+                </p>
+            </section>
+            <section>
+                <h2>G.12 Typed Intermediate Representation (TIR)</h2>
+                <p>
+                    SoA storage: <code>opcodes</code>, <code>dst</code>,
+                    <code>src1</code>, <code>src2</code>, <code>imm_u64</code>,
+                    <code>block_id</code>. Basic blocks with preds/succs.
+                </p>
+            </section>
+            <section>
+                <h2>G.13 Adaptive Layout Compilation</h2>
+                <p>
+                    For <code>@layout(adaptive)</code>: instrumentation records
+                    access patterns; profiling run writes
+                    <code>.blaze.prof</code>; recompile selects optimal layout
+                    (<code>soa</code>, <code>aosoa</code>, <code>auto</code>).
+                </p>
+            </section>
+            <nav>
+                <p>
+                    <a href="appendix-f-jit-scripting-profile.html" rel="prev"
+                        >Previous: Appendix F</a
+                    >
+                    |
+                    <a
+                        href="appendix-h-standard-library-module-index.html"
+                        rel="next"
+                        >Next: Appendix H</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

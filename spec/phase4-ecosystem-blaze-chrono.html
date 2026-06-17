@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: Chrono</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: Chrono</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-bench-utils.html" rel="prev"
+                    >Previous: Bench Utils</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-cli.html" rel="next"
+                    >Next: CLI</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Comprehensive date and time library with timezone‑aware
+                    types, formatting/parsing, calendar arithmetic, and serde
+                    integration.
+                </p>
+            </section>
+            <section>
+                <h2>1. Core Types</h2>
+                <pre>
+pub struct NaiveDateTime { pub date: NaiveDate, pub time: NaiveTime }
+pub struct NaiveDate { year: i32, ordinal: u16 }
+pub struct NaiveTime { secs: u32, nanos: u32 }
+pub struct DateTime&lt;Tz: TimeZone&gt; { pub naive: NaiveDateTime, pub timezone: Tz }</pre
+                >
+            </section>
+            <section>
+                <h2>2. Timezones</h2>
+                <ul>
+                    <li>
+                        <code>Utc</code>, <code>FixedOffset</code>,
+                        <code>Local</code>, <code>IanaTimeZone</code> (feature
+                        `iana`).
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>3. Parsing and Formatting</h2>
+                <pre>
+impl NaiveDateTime { pub fn format(&amp;self, fmt: &amp;str) -> Text; }
+pub fn parse_iso8601(s: &amp;str) -> Result&lt;NaiveDateTime, ChronoError&gt;;
+pub fn to_iso8601(&amp;self) -> Text;</pre
+                >
+            </section>
+            <section>
+                <h2>4. Arithmetic</h2>
+                <p>
+                    <code>NaiveDateTime + Duration = NaiveDateTime</code>;
+                    <code>NaiveDateTime + Months = NaiveDateTime</code>
+                    (calendar arithmetic).
+                </p>
+            </section>
+            <section>
+                <h2>5. Serde Integration</h2>
+                <p>
+                    All types implement <code>Serialize</code>/<code
+                        >Deserialize</code
+                    >
+                    (ISO strings for human‑readable, binary for compact).
+                </p>
+            </section>
+            <section>
+                <h2>6. Error Handling</h2>
+                <pre>
+pub enum ChronoError {
+    Parse(Text),
+    OutOfRange,
+    InvalidTimezone,
+    Io(std::io::Error),
+}</pre
+                >
+            </section>
+            <section>
+                <h2>7. Testing</h2>
+                <ul>
+                    <li>Construction and weekday.</li>
+                    <li>Arithmetic across month boundaries.</li>
+                    <li>Parsing ISO strings.</li>
+                    <li>Timezone conversion.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-bench-utils.html" rel="prev"
+                        >Previous: Bench Utils</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-cli.html" rel="next"
+                        >Next: CLI</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

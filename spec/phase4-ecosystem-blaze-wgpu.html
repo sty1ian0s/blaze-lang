@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: WGPU</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: WGPU</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-web.html" rel="prev"
+                    >Previous: Web</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-yaml.html" rel="next"
+                    >Next: YAML</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    High‑performance graphics and compute abstraction layer
+                    built on WebGPU API (native via wgpu‑native). Linear types,
+                    <code>gpu</code> effect.
+                </p>
+            </section>
+            <section>
+                <h2>1. Core Types</h2>
+                <pre>
+pub struct Instance { /* … */ }
+pub struct Adapter { /* … */ }
+pub struct Device { /* … */ }
+pub struct Queue { /* … */ }
+pub struct Buffer { /* … */ }
+pub struct Texture { /* … */ }
+pub struct TextureView { /* … */ }
+pub struct Sampler { /* … */ }
+pub struct BindGroupLayout { /* … */ }
+pub struct BindGroup { /* … */ }
+pub struct PipelineLayout { /* … */ }
+pub struct RenderPipeline { /* … */ }
+pub struct ComputePipeline { /* … */ }
+pub struct ShaderModule { /* … */ }
+pub struct CommandEncoder { /* … */ }
+pub struct CommandBuffer { /* … */ }
+pub struct Surface { /* … */ }
+pub struct SwapChain { /* … */ }</pre
+                >
+            </section>
+            <section>
+                <h2>2. Instance and Adapter</h2>
+                <pre>
+impl Instance { pub fn new(backends: Backends) -> Self; pub fn request_adapter(&amp;self, options: &amp;RequestAdapterOptions) -> Result&lt;Adapter, RequestAdapterError&gt;; }
+pub struct AdapterInfo { name: Text, vendor: usize, device: usize, device_type: DeviceType, backend: Backend }</pre
+                >
+            </section>
+            <section>
+                <h2>3. Device</h2>
+                <pre>
+impl Adapter { pub fn request_device(&amp;self, desc: &amp;DeviceDescriptor) -> Result&lt;Device, RequestDeviceError&gt;; }
+impl Device {
+    pub fn create_buffer(&amp;self, desc: &amp;BufferDescriptor) -> Buffer;
+    pub fn create_texture(&amp;self, desc: &amp;TextureDescriptor) -> Texture;
+    pub fn create_sampler(&amp;self, desc: &amp;SamplerDescriptor) -> Sampler;
+    pub fn create_bind_group_layout(&amp;self, desc: &amp;BindGroupLayoutDescriptor) -> BindGroupLayout;
+    pub fn create_bind_group(&amp;self, desc: &amp;BindGroupDescriptor) -> BindGroup;
+    pub fn create_pipeline_layout(&amp;self, desc: &amp;PipelineLayoutDescriptor) -> PipelineLayout;
+    pub fn create_render_pipeline(&amp;self, desc: &amp;RenderPipelineDescriptor) -> RenderPipeline;
+    pub fn create_compute_pipeline(&amp;self, desc: &amp;ComputePipelineDescriptor) -> ComputePipeline;
+    pub fn create_shader_module(&amp;self, desc: &amp;ShaderModuleDescriptor) -> ShaderModule;
+    pub fn create_command_encoder(&amp;self, desc: &amp;CommandEncoderDescriptor) -> CommandEncoder;
+    pub fn default_queue(&amp;self) -> Queue;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>4. Queue</h2>
+                <pre>
+impl Queue { pub fn submit(&amp;self, command_buffers: &amp;[CommandBuffer]) -> SubmissionIndex; pub fn write_buffer(&amp;self, buffer: &amp;Buffer, offset: u64, data: &amp;[u8]); pub fn write_texture(&amp;self, texture: &amp;Texture, data: &amp;[u8], data_layout: &amp;ImageDataLayout, size: Extent3d); }</pre
+                >
+            </section>
+            <section>
+                <h2>5. Command Encoding</h2>
+                <pre>
+impl CommandEncoder {
+    pub fn begin_render_pass(&amp;self, desc: &amp;RenderPassDescriptor) -> RenderPass;
+    pub fn begin_compute_pass(&amp;self, desc: &amp;ComputePassDescriptor) -> ComputePass;
+    pub fn copy_buffer_to_buffer(&amp;self, src: &amp;Buffer, src_offset: u64, dst: &amp;Buffer, dst_offset: u64, size: u64);
+    pub fn finish(&amp;self) -> CommandBuffer;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>6. Error Handling</h2>
+                <pre>
+pub enum WgpuError {
+    RequestAdapter(Text), RequestDevice(Text), BufferMap(Text),
+    Layout(Text), Pipeline(Text), ShaderCompilation(CompilationInfo), Io(std::io::Error),
+}</pre
+                >
+            </section>
+            <section>
+                <h2>7. Testing</h2>
+                <ul>
+                    <li>Adapter enumeration.</li>
+                    <li>Device creation.</li>
+                    <li>Buffer copy.</li>
+                    <li>Compute shader.</li>
+                    <li>Render pipeline (optional).</li>
+                    <li>Resource disposal.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-web.html" rel="prev"
+                        >Previous: Web</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-yaml.html" rel="next"
+                        >Next: YAML</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

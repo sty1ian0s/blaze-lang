@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 3a – Core Library: Debug</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 3a – Core Library: Debug</h1></header>
+        <nav>
+            <p>
+                <a href="phase3a-core-collections.html" rel="prev"
+                    >Previous: Collections</a
+                >
+                |
+                <a href="phase3a-core-default.html" rel="next">Next: Default</a>
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Re‑export <code>Debug</code> trait from
+                    <code>std::fmt</code> as <code>std::debug::Debug</code>. No
+                    additional items.
+                </p>
+            </section>
+            <section>
+                <h2>1. Re‑export</h2>
+                <pre>pub use std::fmt::Debug;</pre>
+            </section>
+            <section>
+                <h2>2. Testing</h2>
+                <ul>
+                    <li><code>use std::debug::Debug;</code> works.</li>
+                    <li>
+                        Derived <code>Debug</code> on types works identically to
+                        <code>std::fmt::Debug</code>.
+                    </li>
+                    <li>
+                        Fully qualified path
+                        <code>std::debug::Debug</code> resolves.
+                    </li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase3a-core-collections.html" rel="prev"
+                        >Previous: Collections</a
+                    >
+                    |
+                    <a href="phase3a-core-default.html" rel="next"
+                        >Next: Default</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

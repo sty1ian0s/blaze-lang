@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 3a – Core Library: Default</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 3a – Core Library: Default</h1></header>
+        <nav>
+            <p>
+                <a href="phase3a-core-debug.html" rel="prev">Previous: Debug</a>
+                |
+                <a href="phase3a-core-env.html" rel="next">Next: Environment</a>
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Implement <code>Default</code> trait for creating default
+                    values.
+                </p>
+            </section>
+            <section>
+                <h2>1. <code>Default</code> Trait</h2>
+                <pre>
+pub trait Default {
+    fn default() -> Self;
+}</pre
+                >
+                <ul>
+                    <li>
+                        Used by <code>@derive(Default)</code> and generic code.
+                    </li>
+                    <li>
+                        For structs with field defaults, compiler provides
+                        <code>Default</code> automatically if all fields have
+                        defaults; otherwise must be manual or derived.
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>2. Standard Implementations</h2>
+                <ul>
+                    <li>
+                        Integers → 0; floats → 0.0; <code>bool</code> → false;
+                        <code>char</code> → '\0'; <code>Option&lt;T&gt;</code> →
+                        <code>None</code>.
+                    </li>
+                    <li>
+                        <code>Text</code> → <code>Text::new()</code>;
+                        <code>Vec&lt;T&gt;</code> → empty.
+                    </li>
+                    <li>
+                        <code>Result</code> does not implement
+                        <code>Default</code>.
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>3. Testing</h2>
+                <ul>
+                    <li>
+                        Each primitive type's default matches expected
+                        zero/false.
+                    </li>
+                    <li>
+                        <code>Option::&lt;i32&gt;::default()</code> is
+                        <code>None</code>.
+                    </li>
+                    <li><code>Text::default()</code> is empty string.</li>
+                    <li>
+                        Derived <code>Default</code> on struct with field
+                        defaults.
+                    </li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase3a-core-debug.html" rel="prev"
+                        >Previous: Debug</a
+                    >
+                    |
+                    <a href="phase3a-core-env.html" rel="next"
+                        >Next: Environment</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

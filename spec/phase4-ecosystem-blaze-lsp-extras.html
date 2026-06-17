@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: LSP Extras</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: LSP Extras</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-log.html" rel="prev"
+                    >Previous: Log</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-lz4.html" rel="next"
+                    >Next: LZ4</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Provide additional, composable Language Server Protocol
+                    (LSP) features for Blaze editors and IDEs: semantic
+                    highlighting, inlay hints, call hierarchy, workspace symbol
+                    search, and refactoring actions.
+                </p>
+            </section>
+            <section>
+                <h2>1. Feature Trait</h2>
+                <pre>
+pub trait Feature: Send + Sync {
+    fn name(&amp;self) -> &amp;'static str;
+    fn capabilities(&amp;self) -> ServerCapabilities;
+    fn register(&amp;self, server: &amp;mut LspServer);
+}</pre
+                >
+            </section>
+            <section>
+                <h2>2. Semantic Tokens</h2>
+                <p>
+                    Extends LSP token types with Blaze‑specific:
+                    <code>struct</code>, <code>enum</code>, <code>trait</code>,
+                    <code>type_alias</code>, <code>function</code>,
+                    <code>method</code>, <code>parameter</code>,
+                    <code>variable</code>, <code>field</code>,
+                    <code>mutable</code>, <code>linear</code>,
+                    <code>effect</code>.
+                </p>
+            </section>
+            <section>
+                <h2>3. Inlay Hints</h2>
+                <ul>
+                    <li>
+                        <strong>Type hints</strong>: <code>let x = 42;</code> →
+                        <code>let x: i32 = 42;</code>
+                    </li>
+                    <li>
+                        <strong>Parameter hints</strong>:
+                        <code>draw_rect(10, 20, 100, 200);</code> →
+                        <code
+                            >draw_rect(x:10, y:20, width:100, height:200);</code
+                        >
+                    </li>
+                    <li>
+                        <strong>Chaining hints</strong>: iterator intermediate
+                        types.
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>4. Call Hierarchy</h2>
+                <p>
+                    Incoming/outgoing call graphs from def‑use chains and
+                    monomorphisation records.
+                </p>
+            </section>
+            <section>
+                <h2>5. Workspace Symbols</h2>
+                <p>
+                    Incrementally updated index of public symbols with fuzzy
+                    matching.
+                </p>
+            </section>
+            <section>
+                <h2>6. Refactoring Actions</h2>
+                <ul>
+                    <li>Rename (workspace‑wide).</li>
+                    <li>Extract Function.</li>
+                    <li>Inline Variable.</li>
+                    <li>Convert to <code>@derive</code>.</li>
+                </ul>
+            </section>
+            <section>
+                <h2>7. Configuration</h2>
+                <pre>
+[lsp_extras]
+semantic_tokens = true
+inlay_hints = true
+inlay_hints_show_types = true
+inlay_hints_show_parameter_names = true
+call_hierarchy = true
+workspace_symbols = true
+refactoring = true</pre
+                >
+            </section>
+            <section>
+                <h2>8. Testing</h2>
+                <ul>
+                    <li>Semantic tokens: token types and modifiers.</li>
+                    <li>Inlay hints: inferred types and parameter names.</li>
+                    <li>Call hierarchy: graph edges.</li>
+                    <li>Rename: all call sites updated.</li>
+                    <li>Extract function: new function inserted.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-log.html" rel="prev"
+                        >Previous: Log</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-lz4.html" rel="next"
+                        >Next: LZ4</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

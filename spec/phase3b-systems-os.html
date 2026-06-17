@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 3b – Systems Library: Platform OS</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 3b – Systems Library: Platform OS</h1></header>
+        <nav>
+            <p>
+                <a href="phase3b-systems-future.html" rel="prev"
+                    >Previous: Futures</a
+                >
+                | <a href="phase3b-systems-path.html" rel="next">Next: Path</a>
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Platform‑specific raw system call wrappers and types for
+                    Unix and Windows.
+                </p>
+            </section>
+            <section>
+                <h2>1. Module Structure</h2>
+                <p>
+                    Parent module <code>std::os</code> with sub‑modules
+                    <code>unix</code> and <code>windows</code>, guarded by
+                    <code>@cfg(target_os = ...)</code>.
+                </p>
+            </section>
+            <section>
+                <h2>2. <code>std::os::unix</code></h2>
+                <p>
+                    Re‑exports fundamental types: <code>c_int</code>,
+                    <code>pid_t</code>, <code>uid_t</code>, <code>mode_t</code>,
+                    <code>off_t</code>, <code>size_t</code>,
+                    <code>ssize_t</code>; constants: <code>O_RDONLY</code>,
+                    <code>O_CREAT</code>, <code>S_IFMT</code>, etc.; unsafe
+                    syscalls: <code>open</code>, <code>close</code>,
+                    <code>read</code>, <code>write</code>, <code>lseek</code>,
+                    <code>fsync</code>, <code>ftruncate</code>,
+                    <code>stat</code>, <code>fstat</code>, <code>mkdir</code>,
+                    <code>unlink</code>, <code>rmdir</code>.
+                </p>
+                <p>
+                    <code>stat</code> struct with fields: <code>st_dev</code>,
+                    <code>st_ino</code>, <code>st_mode</code>,
+                    <code>st_nlink</code>, <code>st_uid</code>,
+                    <code>st_gid</code>, <code>st_rdev</code>,
+                    <code>st_size</code>, <code>st_blksize</code>,
+                    <code>st_blocks</code>, <code>st_atime</code>,
+                    <code>st_mtime</code>, <code>st_ctime</code> and nanosecond
+                    variants.
+                </p>
+            </section>
+            <section>
+                <h2>3. <code>std::os::windows</code></h2>
+                <p>
+                    Re‑exports: <code>HANDLE</code>, <code>DWORD</code>,
+                    <code>LPVOID</code>, <code>LPCWSTR</code>,
+                    <code>BOOL</code>; constants: <code>GENERIC_READ</code>,
+                    <code>GENERIC_WRITE</code>, <code>CREATE_NEW</code>,
+                    <code>CREATE_ALWAYS</code>, <code>OPEN_EXISTING</code>,
+                    <code>FILE_ATTRIBUTE_NORMAL</code>,
+                    <code>INVALID_HANDLE_VALUE</code>; unsafe syscalls:
+                    <code>CreateFileW</code>, <code>ReadFile</code>,
+                    <code>WriteFile</code>, <code>CloseHandle</code>.
+                </p>
+                <p>
+                    Helper:
+                    <code>fn to_utf16(s: &amp;str) -> Vec&lt;u16&gt;</code> for
+                    UTF‑8 to wide string.
+                </p>
+            </section>
+            <section>
+                <h2>4. Testing</h2>
+                <ul>
+                    <li>
+                        Unix: open temp file, write via raw syscalls, read back.
+                    </li>
+                    <li>Windows: similarly via Win32 API.</li>
+                    <li>
+                        Compile‑time selection: code using
+                        <code>std::os::unix</code> fails on Windows, and vice
+                        versa.
+                    </li>
+                    <li><code>to_utf16</code> tested.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase3b-systems-future.html" rel="prev"
+                        >Previous: Futures</a
+                    >
+                    |
+                    <a href="phase3b-systems-path.html" rel="next"
+                        >Next: Path</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

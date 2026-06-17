@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: Log</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: Log</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-layout.html" rel="prev"
+                    >Previous: Layout</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-lsp-extras.html" rel="next"
+                    >Next: LSP Extras</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Structured, performant, data‑oriented logging framework with
+                    levels, key‑value pairs, compile‑time filtering, multiple
+                    backends (console, file, syslog, network), actor
+                    integration.
+                </p>
+            </section>
+            <section>
+                <h2>1. Log Levels</h2>
+                <pre>
+pub enum Level { Trace, Debug, Info, Warn, Error, Fatal }</pre
+                >
+            </section>
+            <section>
+                <h2>2. <code>log!</code> Macro</h2>
+                <pre>
+log!(Info, "connection established", port: 443, protocol: "HTTPS");</pre
+                >
+                <p>
+                    Deferred formatting; <code>LogRecord</code> stores raw
+                    message and key‑value pairs.
+                </p>
+            </section>
+            <section>
+                <h2>3. <code>LogRecord</code></h2>
+                <pre>
+pub struct LogRecord&lt;'a&gt; {
+    timestamp: Instant,
+    level: Level,
+    target: &amp;'a str,
+    module: &amp;'a str,
+    line: u32,
+    message: &amp;'a str,
+    fields: &amp;'a [LogField&lt;'a&gt;],
+}
+pub struct LogField&lt;'a&gt; { key: &amp;'a str, value: LogValue&lt;'a&gt; }
+pub enum LogValue&lt;'a&gt; { Str(&amp;'a str), Int(i64), Float(f64), Bool(bool), Text(&amp;'a Text), Bytes(&amp;'a [u8]), Error(&amp;'a dyn Error), Debug(&amp;'a dyn Debug), Display(&amp;'a dyn Display) }</pre
+                >
+            </section>
+            <section>
+                <h2>4. Logger Trait</h2>
+                <pre>
+pub trait Logger: Send + Sync + 'static { fn log(&amp;self, record: &amp;LogRecord); fn flush(&amp;self); }</pre
+                >
+            </section>
+            <section>
+                <h2>5. Built‑in Loggers</h2>
+                <ul>
+                    <li>
+                        <code>ConsoleLogger</code> – coloured, human‑readable.
+                    </li>
+                    <li><code>JsonLogger</code> – NDJSON.</li>
+                    <li><code>FileLogger</code> – rotation.</li>
+                    <li><code>SyslogLogger</code> – Unix syslog.</li>
+                    <li><code>NullLogger</code> – discard.</li>
+                    <li><code>CompositeLogger</code> – fan‑out.</li>
+                </ul>
+            </section>
+            <section>
+                <h2>6. Configuration</h2>
+                <pre>
+pub struct LogConfig { level: Level, format: LogFormat, filters: Vec&lt;LogFilter&gt;, max_level_per_module: Map&lt;Text, Level&gt; }
+pub enum LogFormat { Compact, Pretty, Json }</pre
+                >
+            </section>
+            <section>
+                <h2>7. Actor Integration</h2>
+                <pre>
+pub struct ActorLogger { sender: Sender&lt;LogRecord&gt; }
+impl Logger for ActorLogger { … }</pre
+                >
+            </section>
+            <section>
+                <h2>8. Compile‑time Filtering</h2>
+                <pre>@log_level(max = Level::Info) mod my_module { … }</pre>
+            </section>
+            <section>
+                <h2>9. Testing</h2>
+                <ul>
+                    <li>All levels.</li>
+                    <li>Compile‑time filter.</li>
+                    <li>JSON output.</li>
+                    <li>File logging.</li>
+                    <li>Actor logging.</li>
+                    <li>Performance (no‑op overhead).</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-layout.html" rel="prev"
+                        >Previous: Layout</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-lsp-extras.html" rel="next"
+                        >Next: LSP Extras</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

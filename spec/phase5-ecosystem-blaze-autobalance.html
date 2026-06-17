@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 5 – Ecosystem: Autobalance</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 5 – Ecosystem: Autobalance</h1></header>
+        <nav>
+            <p>
+                <a href="phase5-ecosystem-blaze-asset.html" rel="prev"
+                    >Previous: Asset</a
+                >
+                |
+                <a href="phase5-ecosystem-blaze-dataframe.html" rel="next"
+                    >Next: Dataframe</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Extend automatic parallelism to heterogeneous hardware (CPU,
+                    GPU, NUMA, distributed nodes). Provides a global scheduler
+                    that treats every compute resource as a
+                    <code>ComputeDevice</code>.
+                </p>
+            </section>
+            <section>
+                <h2>1. Core Types</h2>
+                <pre>
+pub enum ComputeDevice {
+    Cpu(CpuCore),
+    Gpu(GpuDevice),
+    NumaNode(NumaNode),
+    RemoteNode(RemoteNode),
+    Custom(Box&lt;dyn Compute&gt;),
+}
+pub struct DeviceInfo { name: Text, kind: DeviceKind, compute_units: u32, memory_bytes: u64, max_work_group_size: u32, is_low_power: bool, performance_relative: f64, numa_node: Option&lt;u32&gt; }</pre
+                >
+            </section>
+            <section>
+                <h2>2. Scheduler</h2>
+                <pre>
+pub struct SchedulerConfig {
+    use_gpus: bool,
+    use_distributed: bool,
+    max_gpu_streams: u32,
+    remote_nodes: Vec&lt;RemoteNode&gt;,
+    balancing_policy: BalancingPolicy,
+    profiling_window: Duration,
+}
+pub enum BalancingPolicy { CpuOnly, GpuFirst, DistributedFirst, Adaptive }
+pub struct Scheduler { /* … */ }
+impl Scheduler {
+    pub fn submit(&amp;self, task: Task) -> JoinHandle&lt;()&gt;;
+    pub fn submit_chunked(&amp;self, workload: Workload) -> JoinHandle&lt;()&gt;;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>3. <code>@balance</code> Attribute</h2>
+                <pre>
+#[balance] fn compute_all(data: &amp;[f64]) -> f64 { /* … */ }</pre
+                >
+                <p>
+                    Compiler generates code that packages the loop body as a
+                    <code>Workload</code> and submits to the global scheduler.
+                </p>
+            </section>
+            <section>
+                <h2>4. Remote Execution</h2>
+                <p>
+                    Scheduler can serialise <code>Workload</code> (input data +
+                    closure) and send to remote runtime via actor protocol.
+                </p>
+            </section>
+            <section>
+                <h2>5. NUMA‑Aware Balancing</h2>
+                <p>
+                    Queries OS for NUMA topology; memory‑intensive workloads
+                    scheduled on local NUMA node.
+                </p>
+            </section>
+            <section>
+                <h2>6. Energy‑Aware Balancing</h2>
+                <p>
+                    Prefers low‑power devices (efficiency cores, integrated GPU)
+                    when <code>@energy_aware</code> active.
+                </p>
+            </section>
+            <section>
+                <h2>7. Determinism</h2>
+                <p>
+                    Under <code>--reproducible</code>, PRNG seed fixed; device
+                    selection deterministic.
+                </p>
+            </section>
+            <section>
+                <h2>8. Error Handling</h2>
+                <pre>
+pub enum BalanceError {
+    NoDevice, OutOfMemory, RemoteNodeUnavailable,
+    RemoteExecutionFailed(Text), SerializationFailed(Text),
+    DeserializationFailed(Text), IncompatibleDevice,
+}</pre
+                >
+            </section>
+            <section>
+                <h2>9. Testing</h2>
+                <ul>
+                    <li>CPU‑only balancing.</li>
+                    <li>GPU balancing.</li>
+                    <li>NUMA awareness.</li>
+                    <li>Remote balancing.</li>
+                    <li>Determinism.</li>
+                    <li>Error cases.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase5-ecosystem-blaze-asset.html" rel="prev"
+                        >Previous: Asset</a
+                    >
+                    |
+                    <a href="phase5-ecosystem-blaze-dataframe.html" rel="next"
+                        >Next: Dataframe</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

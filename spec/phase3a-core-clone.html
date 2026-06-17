@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 3a – Core Library: Clone</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 3a – Core Library: Clone</h1></header>
+        <nav>
+            <p>
+                <a href="phase3a-core-builtins.html" rel="prev"
+                    >Previous: Builtins</a
+                >
+                |
+                <a href="phase3a-core-cmp.html" rel="next">Next: Comparison</a>
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Implement the <code>std::clone</code> module, providing the
+                    <code>Clone</code> trait for explicit duplication of values.
+                </p>
+            </section>
+            <section>
+                <h2>1. <code>Clone</code> Trait</h2>
+                <pre>
+pub trait Clone {
+    fn clone(&amp;self) -> Self;
+}</pre
+                >
+                <ul>
+                    <li>
+                        <code>Clone</code> provides explicit duplication, unlike
+                        implicit <code>@copy</code>.
+                    </li>
+                    <li>
+                        Types annotated <code>@copy</code> automatically
+                        implement <code>Clone</code> (trivial copy).
+                    </li>
+                    <li>
+                        Types that implement <code>Dispose</code> may also
+                        implement <code>Clone</code> if a deep copy is possible;
+                        the new instance must be independently disposed.
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>2. Standard Implementations</h2>
+                <ul>
+                    <li>
+                        All primitive types (integers, floats,
+                        <code>bool</code>, <code>char</code>, <code>()</code>) →
+                        trivial copy.
+                    </li>
+                    <li><code>&amp;T</code> → copies the reference only.</li>
+                    <li>
+                        <code>Text</code> → deep copy (already implemented).
+                    </li>
+                    <li>
+                        <code>Option&lt;T&gt;</code>,
+                        <code>Result&lt;T,E&gt;</code> → <code>Clone</code> if
+                        their inner types do.
+                    </li>
+                    <li>
+                        <code>Vec&lt;T&gt;</code> → <code>Clone</code> if
+                        <code>T: Clone</code>.
+                    </li>
+                    <li>
+                        Other collections implement <code>Clone</code> where
+                        appropriate.
+                    </li>
+                </ul>
+                <p>
+                    <code>@derive(Clone)</code> generates an implementation that
+                    clones each field.
+                </p>
+            </section>
+            <section>
+                <h2>3. Testing</h2>
+                <ul>
+                    <li>Primitive types clone and equal the original.</li>
+                    <li>
+                        <code>Text::clone()</code> produces an independent
+                        string.
+                    </li>
+                    <li>
+                        Custom struct with manual <code>Clone</code> logs calls;
+                        verify only invoked on explicit <code>.clone()</code>.
+                    </li>
+                    <li>
+                        Types without <code>Clone</code> reject
+                        <code>.clone()</code> calls (type checker).
+                    </li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase3a-core-builtins.html" rel="prev"
+                        >Previous: Builtins</a
+                    >
+                    |
+                    <a href="phase3a-core-cmp.html" rel="next"
+                        >Next: Comparison</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

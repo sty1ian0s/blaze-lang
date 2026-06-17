@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>
+            Blaze Phase 2d – Concurrency: Actors, Async, Channels, Supervision
+        </title>
+    </head>
+    <body>
+        <header>
+            <h1>
+                Blaze Phase 2d – Concurrency: Actors, Async, Channels,
+                Supervision
+            </h1>
+        </header>
+        <nav>
+            <p>
+                <a href="phase2c-effects.html" rel="prev">Previous: Phase 2c</a>
+                |
+                <a href="phase2e-contracts.html" rel="next"
+                    >Next: Phase 2e – Contracts</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Implement the actor model, asynchronous functions (<code
+                        >async fn</code
+                    >), channels (<code>Sender</code>/<code>Receiver</code>),
+                    and the supervision tree.
+                </p>
+            </section>
+            <section>
+                <h2>1. Actor Model</h2>
+                <h3>1.1 Actor Declaration</h3>
+                <pre>
+actor_decl = "actor" ident [ generic_params ] "{" { actor_item } "}"
+actor_item = field_decl | fn_decl</pre
+                >
+                <h3>1.2 Message Handlers (<code>@message</code>)</h3>
+                <ul>
+                    <li>
+                        Method annotated <code>@message</code> becomes a message
+                        handler.
+                    </li>
+                    <li>
+                        Compiler generates message struct, response handle,
+                        capability method.
+                    </li>
+                </ul>
+                <pre>
+actor Counter {
+    value: i32,
+    @message fn inc(&amp;mut self, n: i32) -> i32 { self.value += n; self.value }
+}</pre
+                >
+                <h3>1.3 Spawning Actors</h3>
+                <p>
+                    <code>spawn(actor_expression, supervisor?)</code> →
+                    <code>Capability&lt;A&gt;</code>.
+                </p>
+                <h3>1.4 Actor Semantics</h3>
+                <ul>
+                    <li>
+                        Cooperative: runs until <code>await</code> or handler
+                        completes.
+                    </li>
+                    <li>No pre‑emption.</li>
+                    <li>Linear: resources disposed on termination.</li>
+                </ul>
+            </section>
+            <section>
+                <h2>2. Asynchronous Functions (<code>async fn</code>)</h2>
+                <h3>2.1 Syntax and Desugaring</h3>
+                <p>
+                    <code>async fn foo() -> T</code> returns
+                    <code>Future&lt;T&gt;</code>. <code>await</code> suspends
+                    until future completes.
+                </p>
+                <h3>2.2 State Machine Generation</h3>
+                <ul>
+                    <li>Each <code>await</code> point becomes a state.</li>
+                    <li>
+                        Linear variables across <code>await</code> must
+                        implement <code>Dispose</code>.
+                    </li>
+                    <li>
+                        Generated <code>Future</code> provides
+                        <code>poll</code>.
+                    </li>
+                </ul>
+                <h3>2.3 Cancellation</h3>
+                <p>
+                    Dropping a <code>Future</code> calls <code>Dispose</code> on
+                    live linear variables.
+                </p>
+            </section>
+            <section>
+                <h2>3. Channels</h2>
+                <h3>3.1 Channel Types</h3>
+                <ul>
+                    <li>
+                        <code>Sender&lt;T&gt;</code> – cloneable,
+                        reference‑counted.
+                    </li>
+                    <li>
+                        <code>Receiver&lt;T&gt;</code> – linear, implements
+                        <code>Iterator</code>.
+                    </li>
+                    <li>
+                        <code
+                            >channel&lt;T&gt;() -> (Sender&lt;T&gt;,
+                            Receiver&lt;T&gt;)</code
+                        >.
+                    </li>
+                </ul>
+                <h3>3.2 Semantics</h3>
+                <ul>
+                    <li>
+                        Non‑blocking sends; receives via <code>recv()</code> or
+                        <code>for</code> loops.
+                    </li>
+                    <li>Used for actor communication.</li>
+                </ul>
+            </section>
+            <section>
+                <h2>4. Supervisor Tree</h2>
+                <ul>
+                    <li>Each actor has a parent supervisor.</li>
+                    <li>
+                        If actor panics >3 times in 10 seconds, supervisor
+                        escalates to parent.
+                    </li>
+                    <li>Root actor failure terminates process.</li>
+                </ul>
+            </section>
+            <section>
+                <h2>5. Runtime Scheduler</h2>
+                <ul>
+                    <li>Work‑stealing thread pool (one worker per core).</li>
+                    <li>Each worker has local deque of actor mailboxes.</li>
+                    <li>
+                        Mailbox is lock‑free SPSC (upgraded to MPSC on clone).
+                    </li>
+                    <li>
+                        Cooperative scheduling: run until <code>await</code> or
+                        handler complete.
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>6. Code Generation</h2>
+                <ul>
+                    <li>State machine structures for async functions.</li>
+                    <li>Mailboxes as ring buffers.</li>
+                    <li>
+                        Runtime library provides thread pool, work‑stealing,
+                        supervision.
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>7. Testing</h2>
+                <ul>
+                    <li>
+                        Actor messaging: spawn, send message, verify response.
+                    </li>
+                    <li>
+                        Async/await: state machine progress, cancellation
+                        cleanup.
+                    </li>
+                    <li>Channels: send/receive, bounded overflow, iterator.</li>
+                    <li>
+                        Supervision: trigger panics, verify escalation and
+                        process termination.
+                    </li>
+                    <li>
+                        Determinism: actor execution order does not affect final
+                        state.
+                    </li>
+                    <li>
+                        Complexity: scheduler overhead O(actors). Work‑stealing
+                        scalability.
+                    </li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase2c-effects.html" rel="prev"
+                        >Previous: Phase 2c</a
+                    >
+                    |
+                    <a href="phase2e-contracts.html" rel="next"
+                        >Next: Phase 2e – Contracts</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

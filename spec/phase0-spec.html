@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 0 – Minimal Language Specification</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 0 – Minimal Language Specification</h1></header>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Implement a Rust‑based interpreter (Rust 1.60.0) that can
+                    execute a tiny subset of Blaze. Later phases will add
+                    generics, effects, actors, etc.
+                </p>
+            </section>
+            <section>
+                <h2>1. Lexical Structure</h2>
+                <h3>1.1 Source Text</h3>
+                <p>Unicode text, UTF‑8. Line breaks: LF or CRLF.</p>
+                <h3>1.2 Keywords</h3>
+                <p>
+                    In Phase 0, the interpreter only needs to recognise:
+                    <code
+                        >fn if else while let return struct true false loop
+                        continue break</code
+                    >.
+                </p>
+                <h3>1.3 Identifiers</h3>
+                <p>
+                    Sequence of letters, digits, underscores (start with letter
+                    or _).
+                </p>
+                <h3>1.4 Literals</h3>
+                <p>Integer literals (decimal digits only), boolean literals.</p>
+                <h3>1.5 Operators</h3>
+                <p>
+                    <code
+                        >+ - * / % = == != &lt; &gt; &lt;= &gt;= &amp;&amp; || !
+                        ( ) { } ; , -&gt; .</code
+                    >
+                </p>
+                <h3>1.6 Comments</h3>
+                <p>Single‑line <code>//</code>.</p>
+            </section>
+            <section>
+                <h2>2. Syntax (EBNF – Phase 0)</h2>
+                <pre>
+program   = { item } ;
+item      = fn_decl | struct_decl ;
+
+fn_decl   = "fn" ident "(" param_list ")" block ;
+param_list= [ ident { "," ident } ] ;
+block     = "{" { stmt } "}" ;
+
+struct_decl = "struct" ident "{" { ident ":" primitive_type ";" } "}" ;
+primitive_type = "i32" | "bool" ;
+
+stmt      = let_stmt | expr_stmt | if_stmt | while_stmt | loop_stmt
+           | return_stmt | break_stmt | continue_stmt | block ;
+let_stmt  = "let" ident "=" expr ";" ;
+expr_stmt = expr ";" ;
+if_stmt   = "if" expr block [ "else" ( if_stmt | block ) ] ;
+while_stmt= "while" expr block ;
+loop_stmt = "loop" block ;
+break_stmt= "break" ";" ;
+continue_stmt= "continue" ";" ;
+return_stmt= "return" [ expr ] ";" ;
+
+expr       = logical_or ;
+logical_or = logical_and { "||" logical_and } ;
+logical_and= equality { "&amp;&amp;" equality } ;
+equality   = relational { ("==" | "!=") relational } ;
+relational = additive { ("&lt;" | "&gt;" | "&lt;=" | "&gt;=") additive } ;
+additive   = multiplicative { ("+" | "-") multiplicative } ;
+multiplicative = unary { ("*" | "/" | "%") unary } ;
+unary      = "-" unary | "!" unary | primary ;
+primary    = literal | ident [ "(" args ")" ] | "(" expr ")" | struct_init | field_access ;
+args       = [ expr { "," expr } ] ;
+struct_init= ident "{" field_init { "," field_init } "}" ;
+field_init = ident ":" expr ;
+field_access= expr "." ident ;
+</pre
+                >
+            </section>
+            <section>
+                <h2>3. Semantics (Phase 0)</h2>
+                <ul>
+                    <li>Types: only <code>i32</code> and <code>bool</code>.</li>
+                    <li>Variables are affine (move semantics).</li>
+                    <li>
+                        Arithmetic overflow panics; division by zero panics.
+                    </li>
+                    <li>Control flow as usual.</li>
+                    <li>Function arguments passed by value (move).</li>
+                    <li>Recursion allowed.</li>
+                </ul>
+            </section>
+            <section>
+                <h2>4. Testing Requirements</h2>
+                <p>
+                    Tests for lexer, parser, semantic checks, interpreter,
+                    overflow panics.
+                </p>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase1-spec.html" rel="next"
+                        >Next: Phase 1 – Full Syntax Acceptance</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: Web</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: Web</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-wasm.html" rel="prev"
+                    >Previous: Wasm</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-wgpu.html" rel="next"
+                    >Next: WGPU</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Browser front‑end framework that renders Blaze GUI to a
+                    canvas via WebAssembly. No DOM; full accessibility bridge
+                    (ARIA shadow tree).
+                </p>
+            </section>
+            <section>
+                <h2>1. WebAssembly Runtime</h2>
+                <p>
+                    <code>blaze‑web‑loader.js</code> – static JS loader that
+                    creates canvas, instantiates Wasm, forwards events, and
+                    updates ARIA live regions.
+                </p>
+            </section>
+            <section>
+                <h2>2. Integration with <code>blaze‑gui</code></h2>
+                <p>
+                    Same <code>App</code> actor;
+                    <code>WebGpuRenderer</code> handles web context. No code
+                    changes needed.
+                </p>
+            </section>
+            <section>
+                <h2>3. Input Handling</h2>
+                <p>
+                    Events captured on canvas, translated to binary format,
+                    pushed to shared ring buffer, consumed by
+                    <code>InputHandler</code> actor.
+                </p>
+            </section>
+            <section>
+                <h2>4. Accessibility Bridge</h2>
+                <p>
+                    Blaze serialises <code>AccessibilityNode</code> tree to
+                    memory buffer; JS loader polls and creates ARIA live
+                    regions.
+                </p>
+            </section>
+            <section>
+                <h2>5. Styling and Theming</h2>
+                <p>Uses <code>Style</code> struct; no CSS.</p>
+            </section>
+            <section>
+                <h2>6. Navigation and Routing</h2>
+                <p>
+                    <code>pushState</code> and <code>popState</code> captured
+                    and forwarded; single‑page app routing.
+                </p>
+            </section>
+            <section>
+                <h2>7. Performance</h2>
+                <p>GPU‑accelerated, flat SoA widget tree, no virtual DOM.</p>
+            </section>
+            <section>
+                <h2>8. Error Handling</h2>
+                <pre>
+pub enum WebError { GpuNotAvailable, WasmLoadFailure(Text), AccessibilityBridgeFailure, Io(std::io::Error) }</pre
+                >
+            </section>
+            <section>
+                <h2>9. Testing</h2>
+                <ul>
+                    <li>
+                        Rendering: screenshot comparison (headless browser).
+                    </li>
+                    <li>Input: simulated mouse/keyboard.</li>
+                    <li>Accessibility: inspect ARIA subtree.</li>
+                    <li>Routing: <code>popState</code> triggers UI update.</li>
+                    <li>Performance: 1000 widgets under 8ms.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-wasm.html" rel="prev"
+                        >Previous: Wasm</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-wgpu.html" rel="next"
+                        >Next: WGPU</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

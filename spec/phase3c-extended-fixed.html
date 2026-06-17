@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 3c – Extended Library: Fixed‑Point Arithmetic</title>
+    </head>
+    <body>
+        <header>
+            <h1>Blaze Phase 3c – Extended Library: Fixed‑Point Arithmetic</h1>
+        </header>
+        <nav>
+            <p>
+                <a href="phase3c-extended-dynamic.html" rel="prev"
+                    >Previous: Dynamic</a
+                >
+                | <a href="phase3c-extended-meta.html" rel="next">Next: Meta</a>
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Fixed‑point numeric types with compile‑time integer and
+                    fractional widths.
+                </p>
+            </section>
+            <section>
+                <h2>1. <code>Fixed</code> Type</h2>
+                <pre>
+pub struct Fixed&lt;const N: usize, const M: usize&gt; { bits: iN }</pre
+                >
+                <p>
+                    <code>N</code> total bits (8, 16, 32, 64, 128);
+                    <code>M</code> fractional bits (0 ≤ M &lt; N).
+                    <code>iN</code> is the smallest signed integer holding
+                    <code>N</code> bits.
+                </p>
+                <h3>Constructors</h3>
+                <pre>
+pub fn from_raw(raw: iN) -> Self;
+pub fn from_float(val: f64) -> Self;
+pub fn from_int(val: i32) -> Self;
+pub fn to_float(self) -> f64;
+pub fn to_int(self) -> i32;
+pub fn raw(self) -> iN;</pre
+                >
+                <p>
+                    <code>from_float</code> rounds to nearest ties‑to‑even;
+                    saturates.
+                </p>
+            </section>
+            <section>
+                <h2>2. Arithmetic Operations</h2>
+                <p>
+                    Implements all <code>std::ops</code> traits:
+                    <code>Add</code>, <code>Sub</code>, <code>Mul</code>,
+                    <code>Div</code>, <code>Rem</code>, <code>Neg</code>, and
+                    assignment variants.
+                </p>
+                <ul>
+                    <li>Add/Sub: direct integer addition/subtraction.</li>
+                    <li>
+                        Mul: <code>(a * b) &gt;&gt; M</code> with widening to
+                        avoid overflow.
+                    </li>
+                    <li>Div: <code>(a &lt;&lt; M) / b</code>.</li>
+                    <li>Rem: raw remainder.</li>
+                </ul>
+                <p>
+                    Overflow: panic in debug, wrap in release; saturation
+                    methods available.
+                </p>
+            </section>
+            <section>
+                <h2>3. Saturation Methods</h2>
+                <pre>
+pub fn saturating_add(self, rhs: Self) -> Self;
+pub fn saturating_sub(self, rhs: Self) -> Self;
+pub fn saturating_mul(self, rhs: Self) -> Self;
+pub fn saturating_neg(self) -> Self;</pre
+                >
+            </section>
+            <section>
+                <h2>4. Comparisons, Bitwise, Traits</h2>
+                <ul>
+                    <li>
+                        <code>PartialEq</code>, <code>Eq</code>,
+                        <code>PartialOrd</code>, <code>Ord</code> (raw bits).
+                    </li>
+                    <li>
+                        Bitwise ops: <code>&amp;</code>, <code>|</code>,
+                        <code>^</code>, <code>&lt;&lt;</code>,
+                        <code>&gt;&gt;</code> (raw bits; radix point not
+                        preserved for shifts).
+                    </li>
+                    <li>
+                        <code>@copy</code>, <code>Clone</code>,
+                        <code>Default</code>, <code>Debug</code>,
+                        <code>Display</code>, <code>Hash</code>.
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>5. Testing</h2>
+                <ul>
+                    <li>Construction from float/int; raw bits.</li>
+                    <li>
+                        Arithmetic compared to float equivalents (within
+                        epsilon).
+                    </li>
+                    <li>Overflow and saturation.</li>
+                    <li>Comparisons.</li>
+                    <li>
+                        Precision: <code>Fixed&lt;8,4&gt;</code> step size 1/16.
+                    </li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase3c-extended-dynamic.html" rel="prev"
+                        >Previous: Dynamic</a
+                    >
+                    |
+                    <a href="phase3c-extended-meta.html" rel="next"
+                        >Next: Meta</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

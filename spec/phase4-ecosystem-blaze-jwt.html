@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: JWT</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: JWT</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-json.html" rel="prev"
+                    >Previous: JSON</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-kafka.html" rel="next"
+                    >Next: Kafka</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Pure, zero‑copy JSON Web Token (JWT) implementation with
+                    HMAC, RSA, ECDSA. Supports header, claims, signing,
+                    verification, validation (exp, nbf, iss, aud).
+                </p>
+            </section>
+            <section>
+                <h2>1. Core Types</h2>
+                <pre>
+pub struct Token { pub header: Header, pub claims: Claims, pub signature: Vec&lt;u8&gt; }
+pub struct Header { pub algorithm: Algorithm, pub type_: Option&lt;Text&gt;, pub kid: Option&lt;Text&gt;, pub extra: Map&lt;Text, JsonValue&gt; }
+pub struct Claims { pub issuer: Option&lt;Text&gt;, pub subject: Option&lt;Text&gt;, pub audience: Option&lt;Text&gt;, pub expiration: Option&lt;u64&gt;, pub not_before: Option&lt;u64&gt;, pub issued_at: Option&lt;u64&gt;, pub jwt_id: Option&lt;Text&gt;, pub extra: Map&lt;Text, JsonValue&gt; }
+pub struct SignedToken { pub encoded: Text }</pre
+                >
+            </section>
+            <section>
+                <h2>2. Signing</h2>
+                <pre>
+pub enum SigningKey { Hmac(Vec&lt;u8&gt;), Rsa(RsaPrivateKey), Ec(EcPrivateKey) }
+pub fn sign(token: &amp;Token, key: &amp;SigningKey) -> Result&lt;SignedToken, JwtError&gt;;</pre
+                >
+            </section>
+            <section>
+                <h2>3. Verification</h2>
+                <pre>
+pub enum VerificationKey { Hmac(Vec&lt;u8&gt;), Rsa(RsaPublicKey), Ec(EcPublicKey), None }
+pub fn decode_and_verify(token: &amp;SignedToken, key: &amp;VerificationKey) -> Result&lt;Token, JwtError&gt;;
+pub fn decode_without_verification(token: &amp;SignedToken) -> Result&lt;Token, JwtError&gt;;</pre
+                >
+            </section>
+            <section>
+                <h2>4. Validation</h2>
+                <pre>
+pub struct TokenValidator {
+    pub validate_exp: bool,
+    pub validate_nbf: bool,
+    pub validate_iss: Option&lt;Text&gt;,
+    pub validate_aud: Option&lt;Text&gt;,
+    pub leeway: u64,
+    pub custom_validator: Option&lt;fn(&amp;Claims) -> bool&gt;,
+}</pre
+                >
+            </section>
+            <section>
+                <h2>5. Error Handling</h2>
+                <pre>
+pub enum JwtError {
+    InvalidToken, InvalidHeader, InvalidSignature, InvalidKey,
+    TokenExpired, TokenNotYetValid, InvalidIssuer, InvalidAudience,
+    CustomValidationFailed, Serialization(Text), Base64(Text), Crypto(CryptoError),
+}</pre
+                >
+            </section>
+            <section>
+                <h2>6. Testing</h2>
+                <ul>
+                    <li>Round‑trip for each algorithm.</li>
+                    <li>Expiration validation.</li>
+                    <li>Issuer/audience validation.</li>
+                    <li>None algorithm rejection.</li>
+                    <li>Invalid signature.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-json.html" rel="prev"
+                        >Previous: JSON</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-kafka.html" rel="next"
+                        >Next: Kafka</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

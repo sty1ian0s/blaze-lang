@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: Redis</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: Redis</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-rabbitmq.html" rel="prev"
+                    >Previous: RabbitMQ</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-serde.html" rel="next"
+                    >Next: Serde</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Async Redis client with RESP2/RESP3, pipelining,
+                    transactions, Pub/Sub, cluster‑aware routing, connection
+                    pool.
+                </p>
+            </section>
+            <section>
+                <h2>1. RedisClient</h2>
+                <pre>
+pub struct RedisClient { stream: TcpStream, buf: Vec&lt;u8&gt;, state: ClientState }
+impl RedisClient {
+    pub async fn connect(uri: &amp;str) -> Result&lt;Self, RedisError&gt;;
+    pub async fn execute(&amp;mut self, cmd: &amp;Cmd) -> Result&lt;RedisValue, RedisError&gt;;
+    pub async fn pipeline(&amp;mut self, cmds: &amp;[Cmd]) -> Result&lt;Vec&lt;RedisValue&gt;, RedisError&gt;;
+    pub async fn subscribe(self, channels: &amp;[Text]) -> Result&lt;PubSub, RedisError&gt;;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>2. Cmd Builder</h2>
+                <pre>
+pub struct Cmd { args: Vec&lt;RedisValue&gt; }
+impl Cmd {
+    pub fn new(command: &amp;str) -> Self;
+    pub fn arg&lt;T: ToRedisValue&gt;(&amp;mut self, value: T) -> &amp;mut Self;
+}
+macro_rules! cmd { ($cmd:literal, $($arg:expr),*) => { … } }</pre
+                >
+            </section>
+            <section>
+                <h2>3. RedisValue</h2>
+                <pre>
+pub enum RedisValue {
+    Nil,
+    SimpleString(Text),
+    BulkString(Vec&lt;u8&gt;),
+    Integer(i64),
+    Array(Vec&lt;RedisValue&gt;),
+    Double(f64),
+    Boolean(bool),
+    BigNumber(Vec&lt;u8&gt;),
+    Error(RedisError),
+}</pre
+                >
+            </section>
+            <section>
+                <h2>4. RedisPool</h2>
+                <pre>
+pub struct RedisPool { /* actor handle */ }
+impl RedisPool {
+    pub fn new(config: PoolConfig) -> Self;
+    pub async fn get(&amp;self) -> Result&lt;PooledConnection, RedisError&gt;;
+}
+pub struct PooledConnection { inner: RedisClient }</pre
+                >
+            </section>
+            <section>
+                <h2>5. PubSub</h2>
+                <pre>
+pub struct PubSub { receiver: Receiver&lt;PubSubMessage&gt; }
+pub enum PubSubMessage {
+    Message { channel: Text, pattern: Option&lt;Text&gt;, payload: Vec&lt;u8&gt; },
+    Subscribe { channel: Text, count: usize },
+    Unsubscribe { channel: Text, count: usize },
+}</pre
+                >
+            </section>
+            <section>
+                <h2>6. Error Handling</h2>
+                <pre>
+pub enum RedisError {
+    Io(std::io::Error),
+    Protocol(Text),
+    Server(Text),
+    AuthenticationFailed,
+    ConnectionClosed,
+    Timeout,
+    PoolExhausted,
+    TypeMismatch(Text),
+}</pre
+                >
+            </section>
+            <section>
+                <h2>7. Testing</h2>
+                <ul>
+                    <li>Connect, PING.</li>
+                    <li>SET/GET/DEL.</li>
+                    <li>INCR.</li>
+                    <li>Pipelining.</li>
+                    <li>Pub/Sub.</li>
+                    <li>Error handling.</li>
+                    <li>Pool.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-rabbitmq.html" rel="prev"
+                        >Previous: RabbitMQ</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-serde.html" rel="next"
+                        >Next: Serde</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>
+            Blaze Phase 2e – Contracts, Invariants, and Testing Attributes
+        </title>
+    </head>
+    <body>
+        <header>
+            <h1>
+                Blaze Phase 2e – Contracts, Invariants, and Testing Attributes
+            </h1>
+        </header>
+        <nav>
+            <p>
+                <a href="phase2d-concurrency.html" rel="prev"
+                    >Previous: Phase 2d</a
+                >
+                |
+                <a href="phase2f-attributes.html" rel="next"
+                    >Next: Phase 2f – Attributes</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Implement function contracts
+                    (<code>requires</code>/<code>ensures</code>), struct
+                    invariants (<code>contract_invariant</code>), the
+                    <code>@fuzz</code> and <code>@test_case</code> macros,
+                    doctests, and the automatic removal of contract checks in
+                    release builds.
+                </p>
+            </section>
+            <section>
+                <h2>1. Function Contracts</h2>
+                <h3>1.1 Syntax</h3>
+                <pre>
+contract_clause = { "requires" expr } { "ensures" expr }</pre
+                >
+                <ul>
+                    <li>Each expression must be <code>bool</code> and pure.</li>
+                    <li>
+                        <code>ensures</code> may refer to <code>result</code>.
+                    </li>
+                </ul>
+                <h3>1.2 Semantics</h3>
+                <ul>
+                    <li>
+                        <strong>Debug mode</strong>:
+                        <code>requires</code> checked before body;
+                        <code>ensures</code> after body. Panic on failure with
+                        message.
+                    </li>
+                    <li>
+                        <strong>Release mode</strong>: all contracts removed
+                        (zero runtime cost).
+                    </li>
+                    <li>Contracts must be pure (effect set ∅).</li>
+                </ul>
+                <h3>1.3 Interaction with Linear Types</h3>
+                <p>
+                    Contracts may read from parameters and result via references
+                    only; must not consume linear values.
+                </p>
+            </section>
+            <section>
+                <h2>2. Struct Invariants</h2>
+                <h3>2.1 Syntax</h3>
+                <pre>struct_invariant = "contract_invariant" expr ";"</pre>
+                <p>
+                    Placed inside struct declaration, after fields. Expression
+                    may refer to <code>self.field</code>.
+                </p>
+                <h3>2.2 Semantics</h3>
+                <ul>
+                    <li>
+                        <strong>Debug mode</strong>: checked after construction
+                        and after every <code>&amp;mut self</code> method
+                        returns.
+                    </li>
+                    <li><strong>Release mode</strong>: removed.</li>
+                </ul>
+            </section>
+            <section>
+                <h2>3. Testing Attributes</h2>
+                <h3>3.1 <code>@fuzz</code></h3>
+                <ul>
+                    <li>
+                        Applied to a pure function with
+                        <code>requires</code> and <code>ensures</code>.
+                    </li>
+                    <li>
+                        Syntax: <code>@fuzz(iterations = N)</code> (default
+                        1,000,000).
+                    </li>
+                    <li>
+                        Generates random inputs satisfying
+                        <code>requires</code> using
+                        <code>std::random</code> (deterministic with
+                        <code>--reproducible</code>).
+                    </li>
+                    <li>
+                        Calls function, checks <code>ensures</code>; panics on
+                        failure.
+                    </li>
+                    <li>Only compiled during <code>blaze test</code>.</li>
+                </ul>
+                <h3>3.2 <code>@test_case</code></h3>
+                <ul>
+                    <li>Applied to a <code>@test</code> function.</li>
+                    <li>
+                        Syntax:
+                        <code
+                            >@test_case([ (arg1, arg2, ..., expected), ...
+                            ])</code
+                        >.
+                    </li>
+                    <li>
+                        For each tuple, calls function; reports each case
+                        separately.
+                    </li>
+                </ul>
+                <h3>3.3 Doctests</h3>
+                <ul>
+                    <li>
+                        Doc comments (<code>///</code>, <code>//!</code>) may
+                        contain Markdown code blocks.
+                    </li>
+                    <li>
+                        Compiler extracts code blocks, compiles and runs them as
+                        tests.
+                    </li>
+                    <li>Can reference enclosing module’s public API.</li>
+                </ul>
+            </section>
+            <section>
+                <h2>4. Release‑Mode Removal</h2>
+                <ul>
+                    <li>
+                        <code>requires</code>, <code>ensures</code>,
+                        <code>contract_invariant</code> omitted in
+                        <code>--release</code>.
+                    </li>
+                    <li>
+                        <code>debug_assert!</code> macro expands to nothing in
+                        release.
+                    </li>
+                    <li>
+                        Overridable via <code>blaze.toml</code> profile settings
+                        <code>keep_contracts</code> and
+                        <code>keep_assertions</code>.
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>5. Implementation Notes</h2>
+                <ul>
+                    <li>
+                        Compiler generates a wrapper function for contracts.
+                    </li>
+                    <li>
+                        For struct invariants, checks inserted after
+                        <code>&amp;mut self</code> methods and construction.
+                    </li>
+                    <li>
+                        Fuzz harness uses reflection (later phase) to generate
+                        random values.
+                    </li>
+                    <li>
+                        Doctest extraction via AST traversal of doc comments.
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>6. Testing</h2>
+                <ul>
+                    <li>
+                        Functions with <code>requires</code>/<code
+                            >ensures</code
+                        >
+                        – verify debug execution, release removal.
+                    </li>
+                    <li>
+                        Struct with <code>contract_invariant</code> – invalid
+                        construction panics in debug.
+                    </li>
+                    <li>
+                        <code>@fuzz</code> – harness generated and catches bugs.
+                    </li>
+                    <li>
+                        <code>@test_case</code> – all cases run, failures
+                        reported.
+                    </li>
+                    <li>Doctests – run via <code>blaze test</code>.</li>
+                    <li>
+                        Release mode – contract evaluations absent from
+                        binary/assembly.
+                    </li>
+                    <li>
+                        Complexity: fuzz iterations configurable; linear in
+                        <code>N</code>.
+                    </li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase2d-concurrency.html" rel="prev"
+                        >Previous: Phase 2d</a
+                    >
+                    |
+                    <a href="phase2f-attributes.html" rel="next"
+                        >Next: Phase 2f – Attributes</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

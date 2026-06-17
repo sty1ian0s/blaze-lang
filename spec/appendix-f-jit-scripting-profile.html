@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Appendix F – JIT Scripting Profile</title>
+    </head>
+    <body>
+        <header><h1>Appendix F – JIT Scripting Profile (Expanded)</h1></header>
+        <nav>
+            <p>
+                <a
+                    href="appendix-e-project-security-configuration.html"
+                    rel="prev"
+                    >Previous: Appendix E</a
+                >
+                |
+                <a href="appendix-g-compiler-algorithms.html" rel="next"
+                    >Next: Appendix G</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Status</h2>
+                <p>
+                    Normative. Defines relaxed rules for <code>.blz</code> files
+                    executed via <code>blaze run</code> or
+                    <code>blaze repl</code>, and
+                    <code>blaze fix --aot-ify</code>.
+                </p>
+            </section>
+            <section>
+                <h2>F.1 Activation</h2>
+                <p>
+                    JIT scripting profile automatically applied to any file
+                    loaded by <code>blaze run</code> or <code>blaze repl</code>.
+                    Never applied to library code compiled by
+                    <code>blaze build</code>.
+                </p>
+            </section>
+            <section>
+                <h2>F.2 Top‑Level Statement Wrapping</h2>
+                <p>
+                    Any expression or statement at top level not an item is
+                    automatically wrapped into a synthesised
+                    <code>main</code> function. If an explicit
+                    <code>main</code> exists, top‑level statements are a
+                    compile‑time error.
+                </p>
+            </section>
+            <section>
+                <h2>F.3 Extended Type Inference</h2>
+                <ul>
+                    <li>
+                        Parameter types may be omitted (inferred from body).
+                    </li>
+                    <li>
+                        Return types may be omitted (inferred as least upper
+                        bound).
+                    </li>
+                    <li>
+                        Placeholder type <code>_</code> for simple generic
+                        functions (e.g.,
+                        <code>fn identity(x: _) -> _ { x }</code>).
+                    </li>
+                    <li>
+                        <code>where</code> clauses may be omitted; compiler
+                        infers bounds from usage.
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>F.4 Implicit Global Region</h2>
+                <p>
+                    Every script executes inside an implicit
+                    <code>region</code> block spanning the entire program
+                    execution. Default arena allocator freed on script exit.
+                </p>
+            </section>
+            <section>
+                <h2>F.5 Relaxed Effect Annotations</h2>
+                <p>
+                    Explicit effect specifications (<code>with io</code>,
+                    <code>with pure</code>, etc.) are optional. If omitted,
+                    inferred set is used. If provided, must be a superset of
+                    inferred set.
+                </p>
+            </section>
+            <section>
+                <h2>F.6 Automatic Imports</h2>
+                <p>
+                    Automatically imports: <code>std::io::*</code>,
+                    <code>std::collections::*</code>, <code>std::iter::*</code>,
+                    <code>std::window::*</code>, <code>std::string::*</code>,
+                    <code>std::fs::*</code>, <code>std::env::*</code>,
+                    <code>std::process::*</code>. Unused imports ignored;
+                    <code>blaze fix</code> removes them.
+                </p>
+            </section>
+            <section>
+                <h2>F.7 Implicit Cloning for <code>@copy</code> Types</h2>
+                <p>
+                    Affine rules relaxed for <code>@copy</code> types; compiler
+                    silently duplicates values instead of requiring
+                    <code>.clone()</code>. <code>move</code> keyword forces
+                    move.
+                </p>
+                <pre>
+let x = 5;
+let y = x + x;   // allowed in JIT</pre
+                >
+                <p>
+                    <code>blaze fix</code> inserts
+                    <code>@copy</code> annotations or keeps affine.
+                </p>
+            </section>
+            <section>
+                <h2>F.8 Top‑Level Mutable Statics (<code>@global</code>)</h2>
+                <pre>
+@global let mut counter = 0;
+fn increment() { counter += 1; println(counter); }</pre
+                >
+                <p>
+                    In JIT mode, allocated with safe <code>Mutex</code> (or
+                    atomic). In AOT mode, forbidden;
+                    <code>blaze fix</code> rewrites to
+                    <code>AppState</code> struct passed as
+                    <code>&amp;mut</code> parameter or converted to actor.
+                </p>
+            </section>
+            <section>
+                <h2>F.9 Automatic Closure Captures</h2>
+                <ul>
+                    <li>
+                        If variable used once and not by other closures → moved.
+                    </li>
+                    <li>
+                        If used by multiple closures or beyond lifetime →
+                        wrapped in <code>Rc</code>/<code>Arc</code> and cloned
+                        transparently.
+                    </li>
+                </ul>
+                <p>
+                    <code>blaze fix</code> rewrites with explicit capture
+                    clauses (<code>move</code>, <code>clone</code>,
+                    <code>&amp;</code>).
+                </p>
+            </section>
+            <section>
+                <h2>F.10 Dynamic Dispatch by Default for Trait Objects</h2>
+                <p>
+                    JIT may box values into <code>dyn Trait</code> and use
+                    dynamic dispatch. <code>blaze fix</code> monomorphises hot
+                    paths (guided by <code>@hot</code> or profiling).
+                </p>
+            </section>
+            <section>
+                <h2>F.11 Automatic Error Propagation</h2>
+                <p>
+                    <code>try!</code> macro wraps expressions that may fail;
+                    prints error to <code>stderr</code> and terminates
+                    function/script.
+                </p>
+                <pre>
+let data = try!(std::fs::read_to_text("config.toml"));</pre
+                >
+                <p>
+                    <code>blaze fix</code> replaces <code>try!</code> with
+                    <code>?</code> and adds <code>Result</code> return types.
+                </p>
+            </section>
+            <section>
+                <h2>F.12 <code>blaze fix --aot-ify</code></h2>
+                <p>Converts JIT script to fully‑annotated AOT module:</p>
+                <ol>
+                    <li>
+                        Add type annotations (parameters, return, generics,
+                        <code>where</code>).
+                    </li>
+                    <li>Add <code>@copy</code> annotations.</li>
+                    <li>
+                        Replace <code>@global</code> with
+                        <code>AppState</code> struct.
+                    </li>
+                    <li>Rewrite closures with explicit captures.</li>
+                    <li>
+                        Replace <code>try!</code> with <code>?</code> and
+                        <code>Result</code>.
+                    </li>
+                    <li>Remove unused imports.</li>
+                    <li>
+                        Monomorphise hot paths (<code>dyn Trait</code> →
+                        <code>impl Trait</code>).
+                    </li>
+                    <li>Format output with <code>blaze fmt</code>.</li>
+                </ol>
+                <p>
+                    Idempotent; can be run automatically in
+                    <code>blaze.toml</code>:
+                </p>
+                <pre>
+[profile.release]
+jit-to-aot = true</pre
+                >
+            </section>
+            <section>
+                <h2>F.13 File Extension</h2>
+                <p>
+                    Blaze source files use <code>.blz</code>. JIT profile
+                    applies when executed via <code>blaze run</code> or
+                    <code>blaze repl</code>. <code>blaze build</code> always
+                    uses AOT mode.
+                </p>
+            </section>
+            <nav>
+                <p>
+                    <a
+                        href="appendix-e-project-security-configuration.html"
+                        rel="prev"
+                        >Previous: Appendix E</a
+                    >
+                    |
+                    <a href="appendix-g-compiler-algorithms.html" rel="next"
+                        >Next: Appendix G</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

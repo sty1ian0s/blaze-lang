@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: CLI</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: CLI</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-chrono.html" rel="prev"
+                    >Previous: Chrono</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-compress.html" rel="next"
+                    >Next: Compress</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Declarative CLI argument parsing using
+                    <code>@cli</code> macro, subcommands, help generation,
+                    integration with <code>blaze‑config</code>.
+                </p>
+            </section>
+            <section>
+                <h2>1. <code>@cli</code> Macro</h2>
+                <pre>
+@cli(name = "myapp", version = "1.0", about = "Does wonderful things")
+struct App {
+    host: String,
+    port: u16,
+    #[short('v')] verbose: bool,
+    #[long("config-file")] config_file: Option&lt;String&gt;,
+    #[subcommand] command: Option&lt;Command&gt;,
+}</pre
+                >
+                <p>
+                    Generates <code>CliParser</code> and <code>CliHelp</code>.
+                </p>
+                <p>
+                    Field attributes: <code>#[long]</code>,
+                    <code>#[short]</code>, <code>#[default]</code>,
+                    <code>#[arg_name]</code>, <code>#[help]</code>,
+                    <code>#[required]</code>, <code>#[multiple]</code>,
+                    <code>#[conflicts_with]</code>, <code>#[requires]</code>.
+                </p>
+            </section>
+            <section>
+                <h2>2. Subcommands</h2>
+                <p>
+                    Represented by enum where each variant is a command. Nested
+                    subcommands supported.
+                </p>
+            </section>
+            <section>
+                <h2>3. Parsing and Execution</h2>
+                <pre>
+pub struct CliParser&lt;T: Cli&gt; { /* … */ }
+impl&lt;T: Cli&gt; CliParser&lt;T&gt; {
+    pub fn new() -> Self;
+    pub fn parse(self) -> Result&lt;T, CliError&gt;;
+    pub fn parse_from(self, args: &amp;[Text]) -> Result&lt;T, CliError&gt;;
+    pub fn parse_with_config(self, config: ConfigLoader&lt;T&gt;) -> Result&lt;T, CliError&gt;;
+    pub fn print_help(&amp;self);
+    pub fn print_version(&amp;self);
+}</pre
+                >
+            </section>
+            <section>
+                <h2>4. Integration with <code>blaze‑config</code></h2>
+                <p>
+                    Loading order: defaults → config file → environment → CLI
+                    arguments.
+                </p>
+            </section>
+            <section>
+                <h2>5. Help Generation</h2>
+                <p>
+                    Auto‑generated from struct fields, doc comments, attributes;
+                    80‑column width; optional colours.
+                </p>
+            </section>
+            <section>
+                <h2>6. Error Handling</h2>
+                <pre>
+pub enum CliError {
+    MissingRequiredOption(Text),
+    InvalidValue(Text),
+    UnrecognizedOption(Text),
+    MissingSubcommand,
+    InvalidSubcommand(Text),
+    Io(std::io::Error),
+    ConfigError(ConfigError),
+}</pre
+                >
+            </section>
+            <section>
+                <h2>7. Type Support</h2>
+                <p>
+                    Strings, integers, floats, booleans, durations, paths,
+                    enums, <code>Option</code>, <code>Vec</code>. Custom types
+                    via <code>FromStr</code>.
+                </p>
+            </section>
+            <section>
+                <h2>8. Testing</h2>
+                <ul>
+                    <li>Basic parsing.</li>
+                    <li>Subcommands.</li>
+                    <li>Required/optional.</li>
+                    <li>Conflicts/requires.</li>
+                    <li>Help output.</li>
+                    <li>Integration with config.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-chrono.html" rel="prev"
+                        >Previous: Chrono</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-compress.html" rel="next"
+                        >Next: Compress</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: YAML</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: YAML</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-wgpu.html" rel="prev"
+                    >Previous: WGPU</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-zstd.html" rel="next"
+                    >Next: Zstd</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Fast, zero‑copy YAML parser and writer (v1.2) with serde
+                    integration.
+                </p>
+            </section>
+            <section>
+                <h2>1. YAML Value</h2>
+                <pre>
+pub enum YamlValue {
+    Null, Bool(bool), Int(i64), Float(f64), Str(Text), Bytes(Vec&lt;u8&gt;),
+    Seq(Vec&lt;YamlValue&gt;), Map(Map&lt;Text, YamlValue&gt;),
+    Alias(usize), Tagged(Text, Box&lt;YamlValue&gt;), Anchor(usize, Box&lt;YamlValue&gt;),
+}</pre
+                >
+            </section>
+            <section>
+                <h2>2. Parsing</h2>
+                <pre>
+pub fn from_str(source: &amp;str) -> Result&lt;YamlValue, YamlError&gt;;
+pub fn from_bytes(bytes: &amp;[u8]) -> Result&lt;YamlValue, YamlError&gt;;</pre
+                >
+                <p>
+                    Handles flow/block style, anchors, aliases, tags,
+                    literal/folded scalars, implicit typing.
+                </p>
+            </section>
+            <section>
+                <h2>3. Writing</h2>
+                <pre>
+pub fn to_string(value: &amp;YamlValue) -> Text;
+pub fn to_string_pretty(value: &amp;YamlValue) -> Text;
+pub fn to_writer&lt;W: Write&gt;(writer: &amp;mut W, value: &amp;YamlValue) -> Result&lt;(), io::Error&gt;;</pre
+                >
+            </section>
+            <section>
+                <h2>4. Serde Integration</h2>
+                <pre>
+pub struct Serializer&lt;W: Write&gt; { /* … */ }
+impl&lt;W: Write&gt; serde::Serializer for Serializer&lt;W&gt; { … }
+pub struct Deserializer&lt;'de&gt; { /* … */ }
+impl&lt;'de&gt; serde::Deserializer&lt;'de&gt; for Deserializer&lt;'de&gt; { … }</pre
+                >
+            </section>
+            <section>
+                <h2>5. Error Handling</h2>
+                <pre>
+pub struct YamlError { msg: Text, line: usize, column: usize }
+impl YamlError { pub fn line(&amp;self) -> usize; pub fn column(&amp;self) -> usize; pub fn message(&amp;self) -> &amp;str; }</pre
+                >
+            </section>
+            <section>
+                <h2>6. Testing</h2>
+                <ul>
+                    <li>Valid YAML: various styles.</li>
+                    <li>Anchors/aliases.</li>
+                    <li>Scalar types.</li>
+                    <li>Error cases.</li>
+                    <li>Serde integration.</li>
+                    <li>Round‑trip.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-wgpu.html" rel="prev"
+                        >Previous: WGPU</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-zstd.html" rel="next"
+                        >Next: Zstd</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

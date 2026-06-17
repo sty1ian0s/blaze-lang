@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>
+            Blaze Phase 3c – Extended Library: Compile‑Time Reflection
+        </title>
+    </head>
+    <body>
+        <header>
+            <h1>Blaze Phase 3c – Extended Library: Compile‑Time Reflection</h1>
+        </header>
+        <nav>
+            <p>
+                <a href="phase3c-extended-fixed.html" rel="prev"
+                    >Previous: Fixed‑Point</a
+                >
+                |
+                <a href="phase3c-extended-random.html" rel="next"
+                    >Next: Random</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Provide types and functions for compile‑time reflection:
+                    querying types, fields, variants, functions, attributes.
+                    Used by <code>@comptime</code> macros and
+                    <code>quote!</code>. All functions are
+                    <code>@comptime</code>‑only.
+                </p>
+            </section>
+            <section>
+                <h2>1. Reflection Types</h2>
+                <h3>1.1 <code>Type</code></h3>
+                <pre>
+pub struct Type { /* opaque */ }
+impl Type {
+    pub fn name(&amp;self) -> &amp;'static str;
+    pub fn size(&amp;self) -> usize;
+    pub fn align(&amp;self) -> usize;
+    pub fn is_primitive(&amp;self) -> bool;
+    pub fn is_struct(&amp;self) -> bool;
+    pub fn is_enum(&amp;self) -> bool;
+    pub fn is_union(&amp;self) -> bool;
+    pub fn is_tuple(&amp;self) -> bool;
+    pub fn is_array(&amp;self) -> bool;
+    pub fn is_slice(&amp;self) -> bool;
+    pub fn is_fn(&amp;self) -> bool;
+    pub fn is_trait_object(&amp;self) -> bool;
+    pub fn is_impl_trait(&amp;self) -> bool;
+    pub fn fields(&amp;self) -> Option&lt;Vec&lt;Field&gt;&gt;;
+    pub fn variants(&amp;self) -> Option&lt;Vec&lt;Variant&gt;&gt;;
+}</pre
+                >
+                <h3>1.2 <code>Field</code></h3>
+                <pre>
+pub struct Field {
+    pub name: &amp;'static str,
+    pub ty: Type,
+    pub vis: Visibility,
+    pub has_default: bool,
+}</pre
+                >
+                <h3>1.3 <code>Variant</code></h3>
+                <pre>
+pub struct Variant {
+    pub name: &amp;'static str,
+    pub fields: Vec&lt;Field&gt;,
+    pub discriminant: Option&lt;i64&gt;,
+    pub is_tuple: bool,
+}</pre
+                >
+                <h3>1.4 <code>FnDef</code></h3>
+                <pre>
+pub struct FnDef {
+    pub name: &amp;'static str,
+    pub params: Vec&lt;FnParam&gt;,
+    pub return_type: Type,
+    pub effect_set: EffectSet,
+    pub is_async: bool,
+}
+pub struct FnParam {
+    pub name: &amp;'static str,
+    pub ty: Type,
+    pub has_default: bool,
+}</pre
+                >
+                <h3>1.5 <code>EffectSet</code></h3>
+                <pre>
+pub struct EffectSet { /* … */ }
+impl EffectSet {
+    pub fn contains(&amp;self, effect: &amp;str) -> bool;
+    pub fn is_pure(&amp;self) -> bool;
+}</pre
+                >
+                <h3>1.6 <code>Visibility</code></h3>
+                <pre>pub enum Visibility { Private, Pub, PubOpaque }</pre>
+                <h3>1.7 <code>Attribute</code></h3>
+                <pre>
+pub struct Attribute {
+    pub name: &amp;'static str,
+    pub args: Vec&lt;AttributeArg&gt;,
+}
+pub struct AttributeArg {
+    pub name: &amp;'static str,
+    pub value: Option&lt;ExprTokenStream&gt;,
+}</pre
+                >
+            </section>
+            <section>
+                <h2>2. Core Reflection Functions</h2>
+                <pre>
+pub fn type_of&lt;T&gt;() -> Type;
+pub fn fields_of&lt;T&gt;() -> Vec&lt;Field&gt;;
+pub fn name_of&lt;T&gt;() -> &amp;'static str;
+pub fn variants_of&lt;T&gt;() -> Vec&lt;Variant&gt;;
+pub fn attributes_of(item: &amp;Any) -> Vec&lt;Attribute&gt;;</pre
+                >
+                <h3>Token Stream Macros</h3>
+                <pre>pub fn quote(ts: TokenStream) -> Expr;</pre>
+                <h3><code>TokenStream</code></h3>
+                <pre>
+pub struct TokenStream { /* … */ }
+impl TokenStream {
+    pub fn from_str(s: &amp;str) -> Result&lt;Self, ...&gt;;
+}</pre
+                >
+                <h3><code>Expr</code></h3>
+                <pre>pub struct Expr { /* … */ }</pre>
+            </section>
+            <section>
+                <h2>3. Integration with <code>@comptime</code></h2>
+                <p>
+                    Reflection functions are evaluated by the
+                    <code>@comptime</code> interpreter using compiler's internal
+                    symbol tables. All types exist only at compile time; no
+                    runtime representation.
+                </p>
+            </section>
+            <section>
+                <h2>4. Testing</h2>
+                <ul>
+                    <li>
+                        <code>type_of::&lt;i32&gt;().name()</code> →
+                        <code>"i32"</code>.
+                    </li>
+                    <li>
+                        <code>fields_of::&lt;SomeStruct&gt;()</code> returns
+                        expected fields.
+                    </li>
+                    <li><code>attributes_of</code> returns attributes.</li>
+                    <li>
+                        <code>TokenStream::from_str</code> and
+                        <code>quote!</code> work.
+                    </li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase3c-extended-fixed.html" rel="prev"
+                        >Previous: Fixed‑Point</a
+                    >
+                    |
+                    <a href="phase3c-extended-random.html" rel="next"
+                        >Next: Random</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

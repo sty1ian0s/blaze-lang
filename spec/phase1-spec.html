@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 1 – Full Syntax Acceptance</title>
+    </head>
+    <body>
+        <header>
+            <h1>
+                Blaze Phase 1 – Full Syntax Acceptance (LL(1) &amp; Flat AST)
+            </h1>
+        </header>
+        <nav>
+            <p>
+                <a href="phase0-spec.html" rel="prev">Previous: Phase 0</a> |
+                <a href="phase2a-types.html" rel="next"
+                    >Next: Phase 2a – Types</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Define the complete, deterministic LL(1) grammar for Blaze
+                    and the flat, array‑based concrete syntax tree (AST). Used
+                    by both the bootstrap interpreter and the self‑hosting JIT
+                    compiler.
+                </p>
+            </section>
+            <section>
+                <h2>1. Lexical Structure</h2>
+                <p>
+                    Unchanged from Phase 0. Full set of keywords, literals,
+                    operators, and comments.
+                </p>
+            </section>
+            <section>
+                <h2>2. Syntax (Fully LL(1) Grammar)</h2>
+                <h3>2.1 Program</h3>
+                <pre>
+program        = { item }
+item           = vis? attribute* ( fn_decl | struct_decl | enum_decl | union_decl
+               | trait_decl | impl_decl | mod_decl | use_decl | const_decl
+               | static_decl | extern_decl | actor_decl )
+vis            = "pub" [ "(" "opaque" ")" ]
+</pre
+                >
+                <h3>2.2 Attributes</h3>
+                <pre>
+attribute      = "@" ident [ "(" attr_args ")" ]
+attr_args      = attr_arg { "," attr_arg } [ "," ]
+attr_arg       = [ ident ]? [ "=" ]? expr
+</pre
+                >
+                <p>
+                    Note: <code>attr_arg</code> allows a bare expression (e.g.,
+                    <code>@pack(6)</code>) or named argument
+                    (<code>@layout(soa)</code>).
+                </p>
+                <h3>2.3 Functions</h3>
+                <pre>
+fn_decl        = attribute* [ "async" ] "fn" ident [ generic_params ]
+                 "(" param_list ")" [ with_effect ] [ "->" type ]
+                 [ where_clause ] [ contract_clause ] block
+fn_decl_no_body = attribute* [ "async" ] "fn" ident [ generic_params ]
+                 "(" param_list ")" [ with_effect ] [ "->" type ] ";"
+param_list     = [ param { "," param } [ "," ] ]
+param          = pat ":" type [ "=" expr ]
+with_effect    = "with" effect_set
+effect_set     = effect { "+" effect }
+effect         = path
+where_clause   = "where" where_bound { "," where_bound } [ "," ]
+where_bound    = ( ident | "effect" ident ) ":" bound
+contract_clause= { "requires" expr } { "ensures" expr }
+</pre
+                >
+                <h3>2.4 Generic Parameters</h3>
+                <pre>
+generic_params = "[" generic_param { "," generic_param } [ "," ] "]"
+generic_param  = ident [ ":" bound ] | "effect" ident
+bound          = path { "+" path }
+</pre
+                >
+                <h3>2.5 Types (LL(1))</h3>
+                <pre>
+type           = path
+               | primitive_type
+               | "(" ")"
+               | "(" type "," [ type { "," type } [ "," ] ] ")"
+               | "[" type ";" const_expr "]"
+               | "[" type "]"
+               | "*" type | "*mut" type
+               | "&amp;" type | "&amp;mut" type
+               | "fn" "(" [ param_types ] ")" [ with_effect ] [ "->" type ]
+               | "impl" bound
+               | "dyn" bound
+               | type_refinement
+type_refinement = base_type [ "@" constraint ]
+constraint      = "range" "(" const_expr "," const_expr ")"
+                | "pattern" "(" string_lit ")"
+                | "size" "(" const_expr ")"
+                | "not" constraint
+                | "and" "(" constraint "," constraint ")"
+                | "or" "(" constraint "," constraint ")"
+                | path
+primitive_type = "u8" | "u16" | "u32" | "u64" | "u128" | "usize"
+               | "i8" | "i16" | "i32" | "i64" | "i128" | "isize"
+               | "f16" | "f32" | "f64" | "f128"
+               | "bool" | "char" | "str"
+param_types    = type { "," type } [ "," ]
+const_expr     = expr
+</pre
+                >
+                <h3>2.6 Struct, Enum, Union</h3>
+                <pre>
+struct_decl    = "struct" ident [ generic_params ]
+                 ( "{" field_list "}" | "(" type_list ")" | ";" )
+                 [ struct_invariant ]
+field_list     = [ field_decl { "," field_decl } [ "," ] ]
+field_decl     = vis? ident ":" type [ "=" expr ]
+type_list      = type { "," type } [ "," ]
+struct_invariant = "contract_invariant" expr ";"
+enum_decl      = "enum" ident [ generic_params ] "{" variant_list "}"
+variant_list   = [ variant_decl { "," variant_decl } [ "," ] ]
+variant_decl   = ident [ "=" expr ]
+                 ( "(" type_list ")" | "{" field_list "}" | ε )
+union_decl     = "union" ident [ generic_params ] "{" field_list "}"
+</pre
+                >
+                <h3>2.7 Trait, Impl (Disambiguated)</h3>
+                <pre>
+trait_decl     = "trait" ident [ generic_params ] [ ":" bound ]
+                 "{" { trait_item } "}"
+trait_item     = fn_decl_no_body | const_decl | type_decl
+type_decl      = "type" ident [ generic_params ] [ "=" type ] ";"
+
+impl_decl      = "impl" [ generic_params ]
+                 ( type "{" { impl_item } "}"
+                 | bound "for" type "{" { impl_item } "}" )
+impl_item      = fn_decl | const_decl | type_decl
+</pre
+                >
+                <h3>2.8 Modules, Use</h3>
+                <pre>
+mod_decl       = "mod" ident ( ";" | block )
+use_decl       = "use" use_path ";"
+use_path       = path [ "as" ident ]
+               | "{" use_path { "," use_path } [ "," ] "}"
+path           = path_segment { "::" path_segment }
+path_segment   = ident [ generic_args ]
+generic_args   = "&lt;" type { "," type } [ "," ] "&gt;"
+</pre
+                >
+                <h3>2.9 Constants, Statics, Extern, Actors</h3>
+                <pre>
+const_decl     = "const" ident [ ":" type ] "=" expr ";"
+static_decl    = "static" [ "mut" ] ident [ ":" type ] "=" expr ";"
+extern_decl    = "extern" string_lit "{" { extern_item } "}"
+extern_item    = attribute* "fn" ident "(" param_list ")" [ "->" type ] ";"
+               | attribute* "static" [ "mut" ] ident ":" type ";"
+actor_decl     = "actor" ident [ generic_params ] "{" { actor_item } "}"
+actor_item     = field_decl | fn_decl
+</pre
+                >
+                <h3>2.10 Statements</h3>
+                <pre>
+stmt           = let_stmt | expr_stmt | if_stmt | while_stmt | for_stmt
+               | loop_stmt | match_stmt | guard_stmt | defer_stmt
+               | return_stmt | try_stmt | with_stmt
+let_stmt       = "let" [ "mut" ] pat [ ":" type ] [ "=" expr ] ";"
+expr_stmt      = expr ";"
+if_stmt        = "if" expr block [ "else" ( if_stmt | block ) ]
+while_stmt     = "while" expr block [ "else" block ]
+for_stmt       = [ "unroll" ] ( "for" | "seq" "for" ) pat "in" expr block
+loop_stmt      = "loop" block
+match_stmt     = "match" expr "{" match_arms "}"
+match_arms     = match_arm { "," match_arm } [ "," ]
+match_arm      = pat [ "when" expr ] "=>" expr
+guard_stmt     = "guard" cond = expr "else" block
+defer_stmt     = "defer" block
+return_stmt    = "return" [ expr ] ";"
+try_stmt       = "try" block "catch" ( pat "=>" block | block | expr ) ";"
+with_stmt      = "with" expr [ "as" pat ] block
+</pre
+                >
+                <h3>2.11 Expressions</h3>
+                <p>
+                    The expression grammar uses a Pratt parser. Closures use
+                    <code>| param_list | expr</code>.
+                </p>
+                <pre>
+expr           = logical_or
+logical_or     = logical_and { "||" logical_and }
+logical_and    = equality { "&amp;&amp;" equality }
+equality       = relational { ("==" | "!=" | "=~") relational }
+relational     = shift_expr { ("&lt;" | "&gt;" | "&lt;=" | "&gt;=") shift_expr }
+shift_expr     = additive_expr { ("&lt;&lt;" | "&gt;&gt;") additive_expr }
+additive_expr  = multiplicative_expr { ("+" | "-") multiplicative_expr }
+multiplicative_expr = unary_expr { ("*" | "/" | "%") unary_expr }
+unary_expr     = ( "!" | "-" | "*" | "&amp;" | "&amp;mut" | "own" ) unary_expr | postfix_expr
+postfix_expr   = primary_expr
+                 { "." ident | "[" expr "]" | "(" args ")" | "?"
+                 | "catch" ( pat "=>" expr | expr ) | "as" type | "is" pat
+                 | "@" string_lit | "@retry" "(" attr_args ")" | "@log" [ "(" string_lit ")" ] }
+primary_expr   = literal | ident | "(" expr ")" | block_expr
+               | "if" expr block [ "else" block ] | "match" expr "{" match_arms "}"
+               | "loop" block | "while" expr block | "for" pat "in" expr block
+               | "try" block "catch" ( pat "=>" block | block | expr )
+               | "unsafe" block | "region" block | "async" block | "await" expr
+               | closure_expr | macro_invocation
+block_expr     = "{" { stmt } "}"
+closure_expr   = "|" param_list "|" expr
+macro_invocation = path "!" "(" args ")"
+args           = [ expr { "," expr } [ "," ] ]
+</pre
+                >
+                <h3>2.12 Patterns</h3>
+                <pre>
+pat            = ident | "_" | literal | path | tuple_pat | struct_pat | enum_pat
+tuple_pat      = "(" [ pat { "," pat } [ "," ] ] ")"
+struct_pat     = path "{" [ field_pat { "," field_pat } [ "," ] ] "}"
+field_pat      = ident [ ":" pat ]
+enum_pat       = path "::" ident [ "(" pat ")" | "{" field_pats "}" ]
+</pre
+                >
+            </section>
+            <section>
+                <h2>3. Flat Concrete Syntax Tree (AST)</h2>
+                <p>
+                    The parser produces a flat array of nodes (SoA with typed
+                    arenas).
+                </p>
+                <h3>3.1 Node Structure</h3>
+                <p>
+                    Each node kind is stored in its own <code>Vec</code> with
+                    fixed‑size fields. A <code>NodeId</code> encodes kind (high
+                    bits) and index (low bits).
+                </p>
+                <h3>3.2 Node Tags</h3>
+                <pre>
+FN_DECL        name, return_type, body, generics
+STRUCT_DECL    name, fields, generics
+ENUM_DECL      name, variants, generics
+TRAIT_DECL     name, items, generics, super_trait
+IMPL_INH       type, items, generics
+IMPL_TRAIT     trait, type, items, generics
+BLOCK          first_stmt
+LET_STMT       pattern, type, initialiser
+IF_STMT        condition, then_block, else_block
+WHILE_STMT     condition, body
+FOR_STMT       pattern, iterable, body, flags
+MATCH_STMT     scrutinee, arms
+BINARY_OP      left, right, op
+UNARY_OP       operand, op
+CALL           func, args
+CLOSURE        params, body
+IDENT          name_idx
+LITERAL        token_idx
+</pre
+                >
+                <h3>3.3 Parallel Parsing</h3>
+                <p>
+                    Token stream split at item boundaries; each chunk parsed
+                    independently; ASTs merged.
+                </p>
+            </section>
+            <section>
+                <h2>4. Implementation Details</h2>
+                <ul>
+                    <li>
+                        <strong>Parser:</strong> Recursive descent with Pratt
+                        for expressions.
+                    </li>
+                    <li>
+                        <strong>AST Storage:</strong> SoA with typed arenas
+                        (Appendix I).
+                    </li>
+                    <li>
+                        <strong>Symbol Table:</strong> Index‑based arena with
+                        perfect hashing (Appendix G).
+                    </li>
+                    <li>
+                        <strong>Testing:</strong> Unit, integration, system
+                        tests; verification of LL(1) conformance, parallel
+                        parsing.
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>5. Next Steps</h2>
+                <p>
+                    Proceed to Phase 2a: Expanded Type System &amp; Linear
+                    Ownership.
+                </p>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase0-spec.html" rel="prev">Previous: Phase 0</a>
+                    |
+                    <a href="phase2a-types.html" rel="next"
+                        >Next: Phase 2a – Types</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

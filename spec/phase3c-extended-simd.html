@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 3c – Extended Library: SIMD</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 3c – Extended Library: SIMD</h1></header>
+        <nav>
+            <p>
+                <a href="phase3c-extended-regex.html" rel="prev"
+                    >Previous: Regex</a
+                >
+                |
+                <a href="phase3d-specialized-gpu.html" rel="next">Next: GPU</a>
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Provide architecture‑specific SIMD vector types and
+                    operations (128‑bit, 256‑bit, 512‑bit) for high‑performance
+                    parallel computation. Fallback to scalar on unsupported
+                    platforms.
+                </p>
+            </section>
+            <section>
+                <h2>1. Vector Types</h2>
+                <p>
+                    Examples: <code>i8x16</code>, <code>i16x8</code>,
+                    <code>i32x4</code>, <code>i64x2</code>, <code>u8x16</code>,
+                    <code>f32x4</code>, <code>f64x2</code>; similarly for
+                    256‑bit (<code>i8x32</code>, <code>f32x8</code>) and 512‑bit
+                    (<code>i8x64</code>, <code>f32x16</code>). All are
+                    <code>@copy</code>.
+                </p>
+            </section>
+            <section>
+                <h2>2. Operations</h2>
+                <p>
+                    All vectors support element‑wise arithmetic, bitwise, and
+                    comparison operators via <code>std::ops</code>.
+                </p>
+                <p>
+                    Inherent methods: <code>splat</code>, <code>new</code>,
+                    <code>extract</code>, <code>replace</code>,
+                    <code>load_unaligned</code>, <code>store_unaligned</code>.
+                    For floats: <code>abs</code>, <code>min</code>,
+                    <code>max</code>, <code>sqrt</code>, <code>floor</code>,
+                    <code>ceil</code>, <code>round</code>, <code>trunc</code>.
+                </p>
+            </section>
+            <section>
+                <h2>3. Compiler Intrinsics</h2>
+                <p>
+                    Re‑exports unsafe intrinsics for shuffles, permutations,
+                    reductions (guarded by <code>@cfg(target_feature)</code>).
+                </p>
+            </section>
+            <section>
+                <h2>4. Feature Detection</h2>
+                <ul>
+                    <li>
+                        <code
+                            >is_x86_feature_detected(feature: &amp;str) ->
+                            bool</code
+                        >
+                    </li>
+                    <li>
+                        <code
+                            >is_arm_feature_detected(feature: &amp;str) ->
+                            bool</code
+                        >
+                    </li>
+                    <li>
+                        <code>@cfg(target_feature = "avx2")</code> for
+                        compile‑time.
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>5. Fallback</h2>
+                <p>
+                    On unsupported targets, vector types are tuples of scalars;
+                    operations use element‑wise loops (compiler generated).
+                </p>
+            </section>
+            <section>
+                <h2>6. Testing</h2>
+                <ul>
+                    <li>
+                        Construction and <code>splat</code>/<code>new</code>,
+                        extract.
+                    </li>
+                    <li>Arithmetic comparing lanes with scalar operations.</li>
+                    <li>Load/Store.</li>
+                    <li>
+                        Feature detection (if on x86, <code>"sse"</code> true).
+                    </li>
+                    <li>Fallback: correct on non‑SIMD platforms.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase3c-extended-regex.html" rel="prev"
+                        >Previous: Regex</a
+                    >
+                    |
+                    <a href="phase3d-specialized-gpu.html" rel="next"
+                        >Next: GPU</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

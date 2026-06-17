@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: Doc Gen</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: Doc Gen</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-debug-info.html" rel="prev"
+                    >Previous: Debug Info</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-ecs.html" rel="next"
+                    >Next: ECS</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Documentation generator from <code>///</code> and
+                    <code>//!</code> comments to static HTML with search,
+                    cross‑references, doctest integration.
+                </p>
+            </section>
+            <section>
+                <h2>1. Core Types</h2>
+                <pre>
+pub struct DocCrate { name: Text, version: Text, modules: Vec&lt;DocModule&gt;, readme: Option&lt;Text&gt; }
+pub struct DocModule { name: Text, doc: Option&lt;Text&gt;, items: Vec&lt;DocItem&gt;, submodules: Vec&lt;DocModule&gt; }
+pub enum DocItem { Function(DocFunction), Struct(DocStruct), Enum(DocEnum), Trait(DocTrait), TypeAlias(DocTypeAlias), Constant(DocConstant), Static(DocStatic), Module(DocModule) }
+/* Each DocX has name, doc, fields/methods etc. */</pre
+                >
+            </section>
+            <section>
+                <h2>2. Parsing</h2>
+                <pre>
+pub fn extract_docs(crate_path: &amp;str) -> Result&lt;DocCrate, DocGenError&gt;;</pre
+                >
+                <p>
+                    Uses <code>std::meta</code> reflection to extract public
+                    items and doc comments. Markdown parsing (CommonMark). Code
+                    blocks extracted as doctests.
+                </p>
+            </section>
+            <section>
+                <h2>3. HTML Generation</h2>
+                <pre>
+pub fn render_html(doc: &amp;DocCrate, config: &amp;DocConfig) -> Result&lt;DocOutput, DocGenError&gt;;
+pub struct DocConfig { output_dir: Text, title: Text, favicon: Option&lt;Text&gt;, include_source: bool, theme: DocTheme }
+pub enum DocTheme { Light, Dark, Auto }
+pub struct DocOutput { files: Vec&lt;(Text, Vec&lt;u8&gt;)&gt;, search_index: Vec&lt;u8&gt; }</pre
+                >
+            </section>
+            <section>
+                <h2>4. Search Index</h2>
+                <p>JSON index of items for client‑side search.</p>
+            </section>
+            <section>
+                <h2>5. LSP Integration</h2>
+                <p>
+                    <code>blaze lsp</code> uses <code>extract_docs</code> for
+                    hover completions.
+                </p>
+            </section>
+            <section>
+                <h2>6. Error Handling</h2>
+                <pre>
+pub enum DocGenError {
+    Io(std::io::Error),
+    MetadataNotFound,
+    ParseError(Text),
+}</pre
+                >
+            </section>
+            <section>
+                <h2>7. Testing</h2>
+                <ul>
+                    <li>Doc extraction.</li>
+                    <li>Code examples extraction.</li>
+                    <li>HTML rendering.</li>
+                    <li>Search index.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-debug-info.html" rel="prev"
+                        >Previous: Debug Info</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-ecs.html" rel="next"
+                        >Next: ECS</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

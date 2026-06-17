@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: NATS</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: NATS</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-midi.html" rel="prev"
+                    >Previous: MIDI</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-opengl.html" rel="next"
+                    >Next: OpenGL</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Async NATS client with core NATS, JetStream, and KV store
+                    operations. Native wire protocol implementation.
+                </p>
+            </section>
+            <section>
+                <h2>1. Core Types</h2>
+                <pre>
+pub struct NatsClient { /* … */ }
+pub struct Subscriber { /* … */ }
+pub struct Message { pub subject: Text, pub reply: Option&lt;Text&gt;, pub payload: Vec&lt;u8&gt;, pub headers: Option&lt;Map&lt;Text, Vec&lt;Text&gt;&gt;&gt;, pub sub: Option&lt;Subscription&gt; }
+pub struct JetStream { /* … */ }
+pub struct KeyValue { /* … */ }</pre
+                >
+            </section>
+            <section>
+                <h2>2. Client</h2>
+                <pre>
+impl NatsClient {
+    pub async fn connect(uri: &amp;str, config: &amp;NatsConfig) -> Result&lt;Self, NatsError&gt;;
+    pub async fn publish(&amp;self, subject: &amp;str, reply: Option&lt;&amp;str&gt;, payload: &amp;[u8]) -> Result&lt;(), NatsError&gt;;
+    pub async fn subscribe(&amp;self, subject: &amp;str, queue: Option&lt;&amp;str&gt;) -> Result&lt;Subscriber, NatsError&gt;;
+    pub async fn request(&amp;self, subject: &amp;str, payload: &amp;[u8], timeout: Duration) -> Result&lt;Message, NatsError&gt;;
+    pub async fn flush(&amp;self) -> Result&lt;(), NatsError&gt;;
+    pub fn jetstream(&amp;self) -> JetStream;
+    pub fn key_value(&amp;self, bucket: &amp;str) -> KeyValue;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>3. Subscriber</h2>
+                <pre>
+impl Subscriber {
+    pub async fn recv(&amp;self) -> Option&lt;Message&gt;;
+    pub async fn unsubscribe(self) -> Result&lt;(), NatsError&gt;;
+    pub async fn auto_unsubscribe(self, max: usize) -> Result&lt;(), NatsError&gt;;
+}
+impl Iterator for Subscriber { type Item = Message; fn next(&amp;mut self) -> Option&lt;Message&gt;; }</pre
+                >
+            </section>
+            <section>
+                <h2>4. JetStream</h2>
+                <pre>
+impl JetStream {
+    pub async fn stream_create(&amp;self, config: &amp;StreamConfig) -> Result&lt;StreamInfo, NatsError&gt;;
+    pub async fn stream_delete(&amp;self, name: &amp;str) -> Result&lt;(), NatsError&gt;;
+    pub async fn consumer_create(&amp;self, stream: &amp;str, config: &amp;ConsumerConfig) -> Result&lt;ConsumerInfo, NatsError&gt;;
+    pub async fn consume(&amp;self, stream: &amp;str, consumer: &amp;str, max_deliver: Option&lt;usize&gt;) -> Result&lt;Subscriber, NatsError&gt;;
+    pub async fn publish(&amp;self, subject: &amp;str, payload: &amp;[u8]) -> Result&lt;PubAck, NatsError&gt;;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>5. KeyValue</h2>
+                <pre>
+impl KeyValue {
+    pub async fn put(&amp;self, key: &amp;str, value: &amp;[u8]) -> Result&lt;u64, NatsError&gt;;
+    pub async fn get(&amp;self, key: &amp;str) -> Result&lt;Option&lt;Entry&gt;, NatsError&gt;;
+    pub async fn delete(&amp;self, key: &amp;str) -> Result&lt;(), NatsError&gt;;
+    pub async fn watch(&amp;self, key: &amp;str) -> Result&lt;Subscriber, NatsError&gt;;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>6. Error Handling</h2>
+                <pre>
+pub enum NatsError {
+    Io(std::io::Error),
+    Protocol(Text),
+    NoResponders,
+    Timeout,
+    MaxPayload,
+    AuthorizationViolation,
+    ConnectionClosed,
+    InvalidSubject,
+    InvalidStream,
+    InvalidConsumer,
+    JetStreamApi(Text),
+}</pre
+                >
+            </section>
+            <section>
+                <h2>7. Testing</h2>
+                <ul>
+                    <li>Connect, INFO, PING/PONG.</li>
+                    <li>Pub/Sub.</li>
+                    <li>Request/Reply.</li>
+                    <li>JetStream: stream, publish, consume.</li>
+                    <li>KV: put, get, delete, history.</li>
+                    <li>Reconnect.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-midi.html" rel="prev"
+                        >Previous: MIDI</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-opengl.html" rel="next"
+                        >Next: OpenGL</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

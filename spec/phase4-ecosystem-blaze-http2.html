@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: HTTP/2</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: HTTP/2</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-http.html" rel="prev"
+                    >Previous: HTTP</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-i18n.html" rel="next"
+                    >Next: I18n</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    HTTP/2 client and server with binary framing, multiplexing,
+                    HPACK compression, server push, flow control.
+                </p>
+            </section>
+            <section>
+                <h2>1. Frames</h2>
+                <pre>
+pub enum Frame {
+    Data { stream_id: u32, flags: DataFlags, payload: Vec&lt;u8&gt; },
+    Headers { stream_id: u32, flags: HeadersFlags, header_block_fragment: Vec&lt;u8&gt; },
+    Priority { stream_id: u32, exclusive: bool, stream_dep: u32, weight: u8 },
+    RstStream { stream_id: u32, error_code: ErrorCode },
+    Settings { flags: SettingsFlags, settings: Vec&lt;(SettingId, u32)&gt; },
+    PushPromise { stream_id: u32, promised_stream_id: u32, header_block_fragment: Vec&lt;u8&gt; },
+    Ping { flags: PingFlags, opaque_data: [u8; 8] },
+    GoAway { last_stream_id: u32, error_code: ErrorCode, debug_data: Vec&lt;u8&gt; },
+    WindowUpdate { stream_id: u32, window_size_increment: u32 },
+    Continuation { stream_id: u32, header_block_fragment: Vec&lt;u8&gt; },
+}</pre
+                >
+            </section>
+            <section>
+                <h2>2. HPACK</h2>
+                <pre>
+pub struct HpackEncoder { /* … */ } impl HpackEncoder { pub fn encode(&amp;mut self, headers: &amp;Headers, buf: &amp;mut Vec&lt;u8&gt;) -> Result&lt;&amp;[u8], Error&gt;; }
+pub struct HpackDecoder { /* … */ } impl HpackDecoder { pub fn decode(&amp;mut self, fragment: &amp;[u8]) -> Result&lt;Headers, Error&gt;; }</pre
+                >
+            </section>
+            <section>
+                <h2>3. Client</h2>
+                <pre>
+pub struct Client { /* … */ } impl Client { pub async fn connect(&amp;self, uri: &amp;Uri) -> Result&lt;Connection, HttpError&gt;; }
+pub struct Connection { /* … */ } impl Connection { pub async fn send(&amp;self, request: Request) -> Result&lt;Response, HttpError&gt;; }</pre
+                >
+            </section>
+            <section>
+                <h2>4. Server</h2>
+                <pre>
+pub struct Http2Server { /* … */ } impl Http2Server { pub fn bind(addr: &amp;str, tls_config: &amp;TlsConfig) -> Result&lt;Self, HttpError&gt;; pub async fn serve(self, handler: impl HttpHandler + Send + 'static) -> Result&lt;(), HttpError&gt;; }</pre
+                >
+            </section>
+            <section>
+                <h2>5. Server Push</h2>
+                <pre>
+pub struct PushPromise { path: Text, response: Response }</pre
+                >
+            </section>
+            <section>
+                <h2>6. Flow Control</h2>
+                <p>
+                    Stream‑level and connection‑level flow control per RFC 7540.
+                </p>
+            </section>
+            <section>
+                <h2>7. Testing</h2>
+                <ul>
+                    <li>Frame encoding/decoding.</li>
+                    <li>HPACK round‑trip.</li>
+                    <li>Multiplexing.</li>
+                    <li>Flow control.</li>
+                    <li>Server push.</li>
+                    <li>Error handling (GOAWAY).</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-http.html" rel="prev"
+                        >Previous: HTTP</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-i18n.html" rel="next"
+                        >Next: I18n</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

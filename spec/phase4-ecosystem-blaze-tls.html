@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: TLS</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: TLS</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-text.html" rel="prev"
+                    >Previous: Text</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-toml.html" rel="next"
+                    >Next: TOML</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    TLS client and server built on native library
+                    (OpenSSL/BoringSSL). Async streams, certificate handling,
+                    ALPN.
+                </p>
+            </section>
+            <section>
+                <h2>1. Configuration</h2>
+                <pre>
+pub struct TlsConfig {
+    cert_file: Option&lt;Text&gt;,
+    key_file: Option&lt;Text&gt;,
+    ca_file: Option&lt;Text&gt;,
+    verify_hostname: bool,
+    min_protocol_version: ProtocolVersion,
+    max_protocol_version: ProtocolVersion,
+    cipher_list: Option&lt;Text&gt;,
+    alpn_protocols: Vec&lt;Text&gt;,
+    enable_sni: bool,
+}
+pub enum ProtocolVersion { TlsV1_0, TlsV1_1, TlsV1_2, TlsV1_3 }</pre
+                >
+            </section>
+            <section>
+                <h2>2. Client</h2>
+                <pre>
+pub struct TlsConnector { /* … */ }
+impl TlsConnector {
+    pub fn new(config: TlsConfig) -> Result&lt;Self, TlsError&gt;;
+    pub async fn connect&lt;S: Read + Write + Send + 'static&gt;(&amp;self, domain: &amp;str, stream: S) -> Result&lt;TlsStream&lt;S&gt;, TlsError&gt;;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>3. Server</h2>
+                <pre>
+pub struct TlsAcceptor { /* … */ }
+impl TlsAcceptor {
+    pub fn new(config: TlsConfig) -> Result&lt;Self, TlsError&gt;;
+    pub async fn accept&lt;S: Read + Write + Send + 'static&gt;(&amp;self, stream: S) -> Result&lt;TlsStream&lt;S&gt;, TlsError&gt;;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>4. TlsStream</h2>
+                <pre>
+pub struct TlsStream&lt;S&gt; { inner: S, ssl: SslContext, state: State }
+impl&lt;S: Read + Write&gt; TlsStream&lt;S&gt; {
+    pub fn get_ref(&amp;self) -> &amp;S;
+    pub fn get_mut(&amp;mut self) -> &amp;mut S;
+    pub fn alpn_protocol(&amp;self) -> Option&lt;&amp;str&gt;;
+    pub fn peer_certificate(&amp;self) -> Option&lt;Certificate&gt;;
+}
+impl&lt;S: Read + Write&gt; Read for TlsStream&lt;S&gt; { … }
+impl&lt;S: Read + Write&gt; Write for TlsStream&lt;S&gt; { … }</pre
+                >
+            </section>
+            <section>
+                <h2>5. Error Handling</h2>
+                <pre>
+pub enum TlsError {
+    Io(std::io::Error),
+    Config(Text),
+    Handshake(HandshakeError),
+    Certificate(Text),
+    Protocol(Text),
+    Timeout,
+}
+pub struct HandshakeError { kind: HandshakeErrorKind, message: Text }
+pub enum HandshakeErrorKind { NoCertificates, InvalidCertificate, UnknownCa, HandshakeFailure, ProtocolVersion, BadRecordMac, DecodeError, UnexpectedMessage }</pre
+                >
+            </section>
+            <section>
+                <h2>6. Testing</h2>
+                <ul>
+                    <li>Client handshake (self‑signed cert).</li>
+                    <li>Server handshake.</li>
+                    <li>Encryption round‑trip.</li>
+                    <li>Invalid certificate → error.</li>
+                    <li>ALPN negotiation.</li>
+                    <li>Resource cleanup.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-text.html" rel="prev"
+                        >Previous: Text</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-toml.html" rel="next"
+                        >Next: TOML</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

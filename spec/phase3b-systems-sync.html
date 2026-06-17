@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 3b – Systems Library: Synchronization</title>
+    </head>
+    <body>
+        <header>
+            <h1>Blaze Phase 3b – Systems Library: Synchronization</h1>
+        </header>
+        <nav>
+            <p>
+                <a href="phase3b-systems-path.html" rel="prev"
+                    >Previous: Path</a
+                >
+                | <a href="phase3b-systems-time.html" rel="next">Next: Time</a>
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Provide channel types (<code>Sender</code>,
+                    <code>Receiver</code>) and
+                    <code>Capability&lt;A&gt;</code> for actor message passing.
+                </p>
+            </section>
+            <section>
+                <h2>1. <code>Sender&lt;T&gt;</code></h2>
+                <pre>
+pub struct Sender&lt;T&gt; { /* reference‑counted pointer to inner queue */ }
+impl&lt;T&gt; Sender&lt;T&gt; {
+    pub fn send(&amp;self, value: T) -> Result&lt;(), SendError&lt;T&gt;&gt;;
+}
+impl&lt;T&gt; Clone for Sender&lt;T&gt; { ... }
+impl&lt;T&gt; Dispose for Sender&lt;T&gt; { ... }</pre
+                >
+                <p>
+                    Unbounded channel (default). <code>send</code> returns
+                    <code>SendError</code> if receiver dropped.
+                </p>
+            </section>
+            <section>
+                <h2>2. <code>Receiver&lt;T&gt;</code></h2>
+                <pre>
+pub struct Receiver&lt;T&gt; { /* owns receiving end */ }
+impl&lt;T&gt; Receiver&lt;T&gt; {
+    pub fn recv(&amp;mut self) -> Option&lt;T&gt;;
+}
+impl&lt;T&gt; Iterator for Receiver&lt;T&gt; { type Item = T; fn next(&amp;mut self) -> Option&lt;T&gt;; }
+impl&lt;T&gt; Dispose for Receiver&lt;T&gt; { ... }</pre
+                >
+                <p>
+                    Linear; <code>recv</code> blocks? Actually non‑blocking:
+                    returns <code>None</code> if empty and all senders gone. For
+                    actors, we use async channels.
+                </p>
+            </section>
+            <section>
+                <h2>3. Channel Creation</h2>
+                <pre>
+pub fn channel&lt;T&gt;() -> (Sender&lt;T&gt;, Receiver&lt;T&gt;);
+pub fn channel_with_capacity&lt;T&gt;(capacity: usize) -> (Sender&lt;T&gt;, Receiver&lt;T&gt;);</pre
+                >
+                <p>Bounded channel optional; sender blocks when full.</p>
+            </section>
+            <section>
+                <h2>4. <code>SendError&lt;T&gt;</code></h2>
+                <pre>pub struct SendError&lt;T&gt;(pub T);</pre>
+            </section>
+            <section>
+                <h2>5. <code>Capability&lt;A&gt;</code></h2>
+                <pre>
+pub struct Capability&lt;A&gt; { /* opaque handle */ }
+impl&lt;A&gt; Clone for Capability&lt;A&gt; { ... }
+impl&lt;A&gt; Dispose for Capability&lt;A&gt; { ... }</pre
+                >
+                <p>
+                    Created by <code>spawn()</code>. Compiler generates
+                    message‑sending methods on this type.
+                </p>
+            </section>
+            <section>
+                <h2>6. Implementation Notes</h2>
+                <ul>
+                    <li>
+                        Channels use lock‑free linked list or ring buffer with
+                        atomics.
+                    </li>
+                    <li>
+                        <code>Capability</code> holds pointer to actor's mailbox
+                        and supervisor reference.
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>7. Testing</h2>
+                <ul>
+                    <li>
+                        Channel: send/receive, clone sender, drop receiver →
+                        send error.
+                    </li>
+                    <li>Capability: clone and send via actor.</li>
+                    <li>
+                        Dispose: sender drop closes; receiver drop discards
+                        pending messages.
+                    </li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase3b-systems-path.html" rel="prev"
+                        >Previous: Path</a
+                    >
+                    |
+                    <a href="phase3b-systems-time.html" rel="next"
+                        >Next: Time</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

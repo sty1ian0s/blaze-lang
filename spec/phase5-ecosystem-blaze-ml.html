@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 5 – Ecosystem: ML</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 5 – Ecosystem: ML</h1></header>
+        <nav>
+            <p>
+                <a href="phase5-ecosystem-blaze-dataframe.html" rel="prev"
+                    >Previous: Dataframe</a
+                >
+                |
+                <a href="phase5-ecosystem-blaze-tensor.html" rel="next"
+                    >Next: Tensor</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Data‑oriented, zero‑cost machine learning framework with
+                    automatic differentiation, gradient‑based optimisation, and
+                    GPU offloading.
+                </p>
+            </section>
+            <section>
+                <h2>1. Core Types</h2>
+                <pre>
+pub struct Tensor&lt;T, const N: usize&gt; { /* … */ } // see blaze-tensor
+pub struct Grad&lt;T: Numeric&gt; { data: Tensor&lt;T, 1&gt;, gradient: Option&lt;Tensor&lt;T, 1&gt;&gt;, tape: Option&lt;Tape&gt; }
+pub trait Module&lt;T: Numeric&gt; {
+    fn forward(&amp;self, input: &amp;Tensor&lt;T, 2&gt;) -> Tensor&lt;T, 2&gt;;
+    fn parameters(&amp;self) -> Vec&lt;Grad&lt;T&gt;&gt;;
+}
+pub trait Optimizer&lt;T: Numeric&gt; {
+    fn step(&amp;mut self, parameters: &amp;mut [Grad&lt;T&gt;]);
+    fn zero_grad(&amp;mut self);
+}
+pub trait Loss&lt;T: Numeric&gt; { fn forward(&amp;self, predicted: &amp;Tensor&lt;T, 2&gt;, target: &amp;Tensor&lt;T, 2&gt;) -> T; }</pre
+                >
+            </section>
+            <section>
+                <h2>2. Optimizers</h2>
+                <pre>
+pub struct SGD&lt;T&gt; { learning_rate: T }
+pub struct Adam&lt;T&gt; { learning_rate: T, beta1: T, beta2: T, epsilon: T }</pre
+                >
+            </section>
+            <section>
+                <h2>3. Loss Functions</h2>
+                <pre>
+pub struct MseLoss&lt;T&gt;; pub struct CrossEntropyLoss&lt;T&gt;; pub struct BinaryCrossEntropyLoss&lt;T&gt;;</pre
+                >
+            </section>
+            <section>
+                <h2>4. Data Loading</h2>
+                <pre>
+pub trait Dataset&lt;T&gt; { fn len(&amp;self) -> usize; fn get(&amp;self, index: usize) -> (Tensor&lt;T, 2&gt;, Tensor&lt;T, 2&gt;); }
+pub struct DataLoader&lt;D: Dataset&lt;T&gt;, T&gt; { dataset: D, batch_size: usize, shuffle: bool }
+impl&lt;D: Dataset&lt;T&gt;, T&gt; Iterator for DataLoader&lt;D, T&gt; { type Item = (Tensor&lt;T, 2&gt;, Tensor&lt;T, 2&gt;); }</pre
+                >
+            </section>
+            <section>
+                <h2>5. Serialization</h2>
+                <pre>
+pub fn save&lt;M: Module&lt;f32&gt;&gt;(module: &amp;M, path: &amp;str) -> Result&lt;(), MlError&gt;;
+pub fn load&lt;M: Module&lt;f32&gt; + 'static&gt;(path: &amp;str) -> Result&lt;M, MlError&gt;;</pre
+                >
+            </section>
+            <section>
+                <h2>6. Error Handling</h2>
+                <pre>
+pub enum MlError {
+    ShapeMismatch(Text), DeviceMismatch, OutOfMemory,
+    InvalidParameter(Text), LossNotReduced, LoadError(Text), SaveError(Text),
+}</pre
+                >
+            </section>
+            <section>
+                <h2>7. Testing</h2>
+                <ul>
+                    <li>Tensor ops.</li>
+                    <li>Autograd: linear function gradient.</li>
+                    <li>Optimizer: SGD convergence.</li>
+                    <li>DataLoader: batching, shuffling.</li>
+                    <li>Model save/load.</li>
+                    <li>GPU: compare with CPU.</li>
+                    <li>Performance: matrix multiplication.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase5-ecosystem-blaze-dataframe.html" rel="prev"
+                        >Previous: Dataframe</a
+                    >
+                    |
+                    <a href="phase5-ecosystem-blaze-tensor.html" rel="next"
+                        >Next: Tensor</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

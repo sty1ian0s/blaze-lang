@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 4 – Ecosystem: SQLite</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 4 – Ecosystem: SQLite</h1></header>
+        <nav>
+            <p>
+                <a href="phase4-ecosystem-blaze-sql.html" rel="prev"
+                    >Previous: SQL</a
+                >
+                |
+                <a href="phase4-ecosystem-blaze-svg.html" rel="next"
+                    >Next: SVG</a
+                >
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    SQLite driver implementing <code>blaze‑sql</code> traits.
+                    FFI to <code>libsqlite3</code>, async via blocking thread
+                    pool.
+                </p>
+            </section>
+            <section>
+                <h2>1. Database Type</h2>
+                <pre>
+pub struct Sqlite;
+impl Database for Sqlite { type Connection = SqliteConnection; fn connect(uri: &amp;str) -> Result&lt;Self::Connection, Error&gt;; }</pre
+                >
+            </section>
+            <section>
+                <h2>2. Connection</h2>
+                <pre>
+pub struct SqliteConnection { db: *mut sqlite3, is_open: bool }
+impl Connection for SqliteConnection {
+    async fn execute(&amp;self, query: &amp;Query) -> Result&lt;ExecuteResult, Error&gt;;
+    async fn query(&amp;self, query: &amp;Query) -> Result&lt;Rows, Error&gt;;
+    async fn transaction(&amp;self) -> Result&lt;Transaction&lt;'_, Self&gt;, Error&gt;;
+    fn is_autocommit(&amp;self) -> bool;
+    fn set_autocommit(&amp;mut self, value: bool) -> Result&lt;(), Error&gt;;
+    fn close(self) -> Result&lt;(), Error&gt;;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>3. Transaction</h2>
+                <pre>
+pub struct SqliteTransaction&lt;'a&gt; { conn: &amp;'a mut SqliteConnection, committed: bool }
+impl&lt;'a&gt; SqliteTransaction&lt;'a&gt; {
+    pub async fn commit(self) -> Result&lt;(), Error&gt;;
+    pub async fn rollback(self) -> Result&lt;(), Error&gt;;
+}
+impl&lt;'a&gt; Dispose for SqliteTransaction&lt;'a&gt; { … }</pre
+                >
+            </section>
+            <section>
+                <h2>4. Parameter Binding and Extraction</h2>
+                <p>
+                    Uses <code>sqlite3_bind_*</code> and
+                    <code>sqlite3_column_*</code>.
+                    <code>FromValue</code> implemented for all supported types.
+                </p>
+            </section>
+            <section>
+                <h2>5. Error Handling</h2>
+                <p>Maps SQLite error codes to <code>sql::Error</code>.</p>
+            </section>
+            <section>
+                <h2>6. Testing</h2>
+                <ul>
+                    <li>In‑memory database.</li>
+                    <li>Error handling.</li>
+                    <li>Transactions.</li>
+                    <li>Type round‑trip.</li>
+                    <li>Null handling.</li>
+                    <li>Connection lifecycle.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase4-ecosystem-blaze-sql.html" rel="prev"
+                        >Previous: SQL</a
+                    >
+                    |
+                    <a href="phase4-ecosystem-blaze-svg.html" rel="next"
+                        >Next: SVG</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>

@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blaze Phase 3a – Core Library: I/O</title>
+    </head>
+    <body>
+        <header><h1>Blaze Phase 3a – Core Library: I/O</h1></header>
+        <nav>
+            <p>
+                <a href="phase3a-core-hash.html" rel="prev"
+                    >Previous: Hashing</a
+                >
+                |
+                <a href="phase3a-core-iter.html" rel="next">Next: Iterators</a>
+            </p>
+        </nav>
+        <main>
+            <section>
+                <h2>Goal</h2>
+                <p>
+                    Implement <code>Read</code> and <code>Write</code> traits,
+                    <code>File</code>, <code>Metadata</code>, standard streams,
+                    and error types.
+                </p>
+            </section>
+            <section>
+                <h2>1. Traits</h2>
+                <h3>1.1 <code>Read</code></h3>
+                <pre>
+pub trait Read {
+    fn read(&amp;mut self, buf: &amp;mut [u8]) -> Result&lt;usize, Error&gt;;
+    fn read_to_end(&amp;mut self, buf: &amp;mut Vec&lt;u8&gt;) -> Result&lt;usize, Error&gt;;
+    fn read_to_text(&amp;mut self) -> Result&lt;Text, Error&gt;;
+}</pre
+                >
+                <h3>1.2 <code>Write</code></h3>
+                <pre>
+pub trait Write {
+    fn write(&amp;mut self, buf: &amp;[u8]) -> Result&lt;usize, Error&gt;;
+    fn flush(&amp;mut self) -> Result&lt;(), Error&gt;;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>2. <code>File</code></h2>
+                <pre>
+pub struct File { fd: i32, is_stdout: bool }
+impl File {
+    pub fn open(path: &amp;str) -> Result&lt;File, Error&gt;;
+    pub fn create(path: &amp;str) -> Result&lt;File, Error&gt;;
+    pub fn metadata(&amp;self) -> Result&lt;Metadata, Error&gt;;
+    pub fn set_nonblocking(&amp;mut self, nonblocking: bool) -> Result&lt;(), Error&gt;;
+}
+impl Read for File { ... }
+impl Write for File { ... }
+impl Dispose for File { ... }</pre
+                >
+            </section>
+            <section>
+                <h2>3. <code>Metadata</code></h2>
+                <pre>
+pub struct Metadata { size: u64, kind: u8 }
+impl Metadata {
+    pub fn len(&amp;self) -> u64;
+    pub fn is_file(&amp;self) -> bool;
+    pub fn is_dir(&amp;self) -> bool;
+}</pre
+                >
+            </section>
+            <section>
+                <h2>4. Standard Streams</h2>
+                <pre>
+pub struct Stdout { fd: i32 }
+pub struct Stderr { fd: i32 }
+pub struct Stdin { fd: i32 }
+pub fn stdout() -> Stdout;
+pub fn stderr() -> Stderr;
+pub fn stdin() -> Stdin;</pre
+                >
+                <p>
+                    Implement <code>Write</code> for <code>Stdout</code> and
+                    <code>Stderr</code>; <code>Read</code> for
+                    <code>Stdin</code>.
+                </p>
+            </section>
+            <section>
+                <h2>5. Error Handling</h2>
+                <pre>
+pub struct Error(ErrorKind, Text);
+pub enum ErrorKind {
+    NotFound, PermissionDenied, ConnectionRefused, ConnectionReset,
+    Interrupted, UnexpectedEof, InvalidInput, TimedOut, Other
+}</pre
+                >
+            </section>
+            <section>
+                <h2>6. Testing</h2>
+                <ul>
+                    <li>Mock <code>Read</code>/<code>Write</code>.</li>
+                    <li>
+                        File tests (open, create, read, write, metadata,
+                        non‑blocking).
+                    </li>
+                    <li>
+                        Standard streams: write succeeds, read doesn't panic.
+                    </li>
+                    <li>Error creation and retrieval.</li>
+                </ul>
+            </section>
+            <nav>
+                <p>
+                    <a href="phase3a-core-hash.html" rel="prev"
+                        >Previous: Hashing</a
+                    >
+                    |
+                    <a href="phase3a-core-iter.html" rel="next"
+                        >Next: Iterators</a
+                    >
+                </p>
+            </nav>
+        </main>
+    </body>
+</html>
